@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+set -e
+
+# Repo-wide hygiene checks (run against the index, not the working tree).
+.husky/lib/check-large-files.sh 500
+.husky/lib/check-merge-conflict.sh
+.husky/lib/check-private-keys.sh
+
+# Per-file linters / formatters / validators.
+# lint-staged config lives in package.json under "lint-staged".
+pnpm exec lint-staged
+
+# Secret scanning (last, after auto-fixers may have re-staged content).
+.husky/lib/gitleaks.sh

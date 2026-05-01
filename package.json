@@ -1,0 +1,23 @@
+{
+  "name": "sdd-reference",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Spec-Driven Development reference architecture — git hook tooling.",
+  "packageManager": "pnpm@10.33.2",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0"
+  },
+  "lint-staged": {
+    "*.py": [
+      ".husky/lib/run-python.sh -m ruff check --fix --force-exclude",
+      ".husky/lib/run-python.sh -m ruff format --force-exclude"
+    ],
+    "*.{yml,yaml}": ".husky/lib/check-yaml.sh",
+    "*.toml": ".husky/lib/check-toml.sh",
+    "*": ".husky/lib/run-python.sh .husky/lib/fix-whitespace.py"
+  }
+}

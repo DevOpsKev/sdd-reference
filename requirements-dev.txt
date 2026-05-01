@@ -1,0 +1,6 @@
+# Tooling required by git hooks (.husky/) and local development.
+# Runtime deps are in requirements.txt; this file pulls those in too.
+-r requirements.txt
+
+ruff>=0.8.0
+pyyaml>=6.0

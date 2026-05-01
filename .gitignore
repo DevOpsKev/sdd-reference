@@ -15,6 +15,11 @@ build/
 dist/
 *.egg
 
+# Node / pnpm (husky + lint-staged tooling only)
+node_modules/
+pnpm-debug.log*
+.pnpm-store/
+
 # Secrets — never commit
 .env
 .env.*

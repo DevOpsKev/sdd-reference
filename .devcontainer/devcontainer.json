@@ -7,7 +7,7 @@
     "features": {
       "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },
-    "postCreateCommand": "pip install --user requests pyyaml",
+    "postCreateCommand": "pip install --user -r requirements-dev.txt && pnpm install",
     "remoteEnv": {
       "MISTRAL_API_KEY": "${localEnv:MISTRAL_API_KEY}",
       "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",

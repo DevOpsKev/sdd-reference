@@ -73,6 +73,31 @@ Specs live at `.sdd/specifications/<name>/spec.md`. Follow the structure used in
 - **Acceptance criteria** — verifiable checklist (file paths, commands, HTTP checks)
 - **Out of scope** — explicit exclusions to keep the agent focused
 
+## Git hooks
+
+Git hooks are managed by [husky](https://typicode.github.io/husky) with [lint-staged](https://github.com/lint-staged/lint-staged), installed via [pnpm](https://pnpm.io). The orchestrator lives at [`.husky/pre-commit`](.husky/pre-commit) and delegates to small helpers under [`.husky/lib/`](.husky/lib/). Per-file linters/formatters (ruff, YAML/TOML validation, whitespace normalisation) are configured under the `lint-staged` key in [`package.json`](package.json).
+
+To enable hooks after cloning:
+
+```bash
+corepack enable      # one-time, picks up the pinned pnpm version
+pnpm install
+```
+
+`pnpm install` runs husky's `prepare` script, which points `core.hooksPath` at `.husky/`. The pinned pnpm version lives in the `packageManager` field of `package.json`; corepack takes care of fetching it.
+
+The devcontainer ships with Node 20 LTS, where corepack is still bundled, and runs both steps automatically via `postCreateCommand`. If you're working outside the devcontainer on Node 25+ (corepack is no longer bundled there), install it once with `npm install -g corepack` before the steps above.
+
+External tooling the hooks expect on `PATH`:
+
+- `ruff` — Python lint/format
+- `python3` with `pyyaml` — YAML validation
+- `gitleaks` — secret scanning (`brew install gitleaks` or download a release)
+
+`ruff` and `pyyaml` are pinned in [`requirements-dev.txt`](requirements-dev.txt); install them with `pip install -r requirements-dev.txt` (the devcontainer does this automatically).
+
+Bypass hooks for a single commit only when truly necessary: `git commit --no-verify`.
+
 ## Conventions
 
 These apply to both human contributors and AI coding assistants working in this repo:
@@ -82,3 +107,4 @@ These apply to both human contributors and AI coding assistants working in this 
 - Never commit API keys or CI secrets to tracked files
 - Keep agent implementations in `.agents/`, one file per agent
 - Do not modify `.agents/run.py` or `.agents/base.py` to work around a broken agent — fix the agent instead
+- Keep git-hook logic in `.husky/` — `package.json` wires up husky and lint-staged, individual checks live as helpers under `.husky/lib/`
