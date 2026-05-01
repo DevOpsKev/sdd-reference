@@ -1,0 +1,25 @@
+{
+    "name": "sdd-reference",
+    "build": {
+      "dockerfile": "Dockerfile"
+    },
+    "remoteUser": "vscode",
+    "features": {
+      "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    },
+    "postCreateCommand": "pip install --user requests pyyaml",
+    "remoteEnv": {
+      "MISTRAL_API_KEY": "${localEnv:MISTRAL_API_KEY}",
+      "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
+      "OPENAI_API_KEY": "${localEnv:OPENAI_API_KEY}"
+    },
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "ms-python.python",
+          "redhat.vscode-yaml",
+          "ms-azuretools.vscode-docker"
+        ]
+      }
+    }
+  }

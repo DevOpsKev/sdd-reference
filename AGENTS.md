@@ -1,0 +1,84 @@
+# Agents
+
+This repo is a reference implementation of **Spec Driven Development (SDD)**. Specs are written by humans and live under `.sdd/specifications/`. Agents consume a spec and generate code — no manual scaffolding required.
+
+## How agents work
+
+Each agent implements a single contract defined in [`.agents/base.py`](.agents/base.py):
+
+- **Input:** `spec: str` — the raw text of a `spec.md` file
+- **Output:** `dict[str, str]` — repo-relative file paths mapped to their contents
+
+The runner ([`.agents/run.py`](.agents/run.py)) wires everything together: it reads the `AGENT` and `SPEC` environment variables, loads the spec from `.sdd/specifications/<SPEC>/spec.md`, calls `agent.generate(spec)`, and writes the returned files to disk.
+
+```
+.sdd/specifications/<SPEC>/spec.md
+        │
+        ▼
+  .agents/run.py
+        │
+        ▼
+  Agent.generate(spec)
+        │
+        ▼
+  Files written to repo root
+```
+
+## Available agents
+
+| Agent key   | Class            | Model               | Required env var    |
+| ----------- | ---------------- | ------------------- | ------------------- |
+| `anthropic` | `AnthropicAgent` | `claude-sonnet-4-5` | `ANTHROPIC_API_KEY` |
+| `mistral`   | `MistralAgent`   | `codestral-latest`  | `MISTRAL_API_KEY`   |
+
+The registry is in [`.agents/registry.py`](.agents/registry.py).
+
+## Running locally
+
+```bash
+AGENT=anthropic SPEC=helloworld python .agents/run.py
+```
+
+Both `AGENT` and `SPEC` are required. The runner will exit with a clear error if either is missing or invalid.
+
+## CI (GitLab)
+
+The pipeline is defined in [`.gitlab-ci.yml`](.gitlab-ci.yml) using GitLab's `spec:inputs` feature, which exposes `AGENT` and `SPEC` as dropdown inputs when triggering the pipeline manually.
+
+The shared job template lives in [`.gitlab/ci/agents.gitlab-ci.yml`](.gitlab/ci/agents.gitlab-ci.yml). On a successful run it:
+
+1. Commits the generated files to a new branch `ai/<AGENT>-<SPEC>-<pipeline_id>`
+2. Opens a merge request against `main` automatically
+
+## Adding a new agent
+
+1. Create `.agents/<name>.py` — subclass `Agent`, set the `name` class attribute, implement `generate()`
+2. Register it in `.agents/registry.py` under the key you want users to pass as `AGENT`
+3. Add that key to the `options` list for `inputs.AGENT` in `.gitlab-ci.yml`
+
+**System prompt.** `Agent` defines a default `system_prompt` class attribute that instructs the model to return a bare JSON object. Most agents inherit it unchanged. Override it as a class attribute only when a model genuinely needs different phrasing — `AnthropicAgent` is the reference example, adding an explicit boundary instruction because Claude tends to wrap output in prose or fences despite the base instruction:
+
+```python
+class AnthropicAgent(Agent):
+    name = "anthropic"
+    system_prompt = Agent.system_prompt + " Begin your response with { and end with }."
+```
+
+## Writing a spec
+
+Specs live at `.sdd/specifications/<name>/spec.md`. Follow the structure used in [`helloworld`](.sdd/specifications/helloworld/spec.md):
+
+- **Intent** — one sentence on what the output should be
+- **Requirements** — concrete functional constraints
+- **Acceptance criteria** — verifiable checklist (file paths, commands, HTTP checks)
+- **Out of scope** — explicit exclusions to keep the agent focused
+
+## Conventions
+
+These apply to both human contributors and AI coding assistants working in this repo:
+
+- Treat `.sdd/` as read-only — specs are inputs, not outputs
+- Generated files belong at the repo root (or wherever the spec directs)
+- Never commit API keys or CI secrets to tracked files
+- Keep agent implementations in `.agents/`, one file per agent
+- Do not modify `.agents/run.py` or `.agents/base.py` to work around a broken agent — fix the agent instead
