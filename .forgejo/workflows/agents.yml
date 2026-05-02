@@ -21,18 +21,13 @@ jobs:
   agent:
     runs-on: ubuntu-latest
     container:
-      image: python:3.12-slim
+      image: python:3.12
     env:
       AGENT: ${{ inputs.AGENT }}
       SPEC: ${{ inputs.SPEC }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
     steps:
-      - name: Install git + curl in slim image
-        run: |
-          apt-get update -qq
-          apt-get install -y -qq git curl ca-certificates
-
       - uses: actions/checkout@v4
 
       - name: Install Python deps
