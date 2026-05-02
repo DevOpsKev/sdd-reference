@@ -41,20 +41,22 @@ AGENT=anthropic SPEC=helloworld python .agents/run.py
 
 Both `AGENT` and `SPEC` are required. The runner will exit with a clear error if either is missing or invalid.
 
-## CI (GitLab)
+## CI (Forgejo)
 
-The pipeline is defined in [`.gitlab-ci.yml`](.gitlab-ci.yml) using GitLab's `spec:inputs` feature, which exposes `AGENT` and `SPEC` as dropdown inputs when triggering the pipeline manually.
+The pipeline is defined in [`.forgejo/workflows/agents.yml`](.forgejo/workflows/agents.yml) using Forgejo Actions' `workflow_dispatch.inputs` feature, which exposes `AGENT` and `SPEC` as dropdown choices when triggering the workflow manually from the web UI.
 
-The shared job template lives in [`.gitlab/ci/agents.gitlab-ci.yml`](.gitlab/ci/agents.gitlab-ci.yml). On a successful run it:
+On a successful run it:
 
-1. Commits the generated files to a new branch `ai/<AGENT>-<SPEC>-<pipeline_id>`
-2. Opens a merge request against `main` automatically
+1. Commits the generated files to a new branch `ai/<AGENT>-<SPEC>-<run_id>`
+2. Opens a pull request against `main` automatically via the Forgejo (Gitea-compatible) API
+
+It expects three repo-scoped secrets: `FORGEJO_PUSH_TOKEN` (a PAT with `write:repository`, used for both the push and the `pulls` API call) plus `ANTHROPIC_API_KEY` and `MISTRAL_API_KEY` for the agents themselves.
 
 ## Adding a new agent
 
 1. Create `.agents/<name>.py` — subclass `Agent`, set the `name` class attribute, implement `generate()`
 2. Register it in `.agents/registry.py` under the key you want users to pass as `AGENT`
-3. Add that key to the `options` list for `inputs.AGENT` in `.gitlab-ci.yml`
+3. Add that key to the `options` list for `on.workflow_dispatch.inputs.AGENT` in [`.forgejo/workflows/agents.yml`](.forgejo/workflows/agents.yml)
 
 **System prompt.** `Agent` defines a default `system_prompt` class attribute that instructs the model to return a bare JSON object. Most agents inherit it unchanged. Override it as a class attribute only when a model genuinely needs different phrasing — `AnthropicAgent` is the reference example, adding an explicit boundary instruction because Claude tends to wrap output in prose or fences despite the base instruction:
 
