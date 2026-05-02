@@ -35,7 +35,12 @@ jobs:
           persist-credentials: false
 
       - name: Install Python deps
-        run: pip install --quiet -r requirements.txt
+        run: |
+          pip install \
+            --default-timeout=120 \
+            --retries 10 \
+            --quiet \
+            -r requirements.txt
 
       - name: Configure git identity
         run: |
