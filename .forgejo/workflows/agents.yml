@@ -34,6 +34,44 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Read interface MTU and probe with workaround
+        run: |
+          set +e
+
+          echo "::group::Container interface MTU"
+          for f in /sys/class/net/*/mtu; do
+            iface=$(basename "$(dirname "$f")")
+            echo "$iface: $(cat "$f")"
+          done
+          echo "::endgroup::"
+
+          echo "::group::Baseline curl (no MTU change)"
+          curl -sS --max-time 20 -o /dev/null \
+            -w "baseline pypi http=%{http_code} total=%{time_total}s size=%{size_download}B\n" \
+            https://pypi.org/simple/requests/
+          echo "::endgroup::"
+
+          echo "::group::Try lowering MTU"
+          for mtu in 1450 1400 1380 1280; do
+            if echo "$mtu" > /sys/class/net/eth0/mtu 2>/dev/null; then
+              echo "set eth0 mtu=$mtu (now $(cat /sys/class/net/eth0/mtu))"
+              curl -sS --max-time 20 -o /dev/null \
+                -w "  mtu=$mtu pypi http=%{http_code} total=%{time_total}s size=%{size_download}B\n" \
+                https://pypi.org/simple/requests/
+            else
+              echo "mtu=$mtu: write to sysfs denied (likely no CAP_NET_ADMIN)"
+            fi
+          done
+          echo "::endgroup::"
+
+          echo "::group::TCP MSS workaround (curl --max-filesize trick won't help; use ss/ip route if available)"
+          for f in /proc/sys/net/ipv4/tcp_mtu_probing; do
+            [ -r "$f" ] && echo "$f = $(cat $f)"
+          done
+          echo "::endgroup::"
+
+          exit 0
+
       - name: Diagnose container network
         run: |
           set +e
