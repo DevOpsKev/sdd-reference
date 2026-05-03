@@ -38,6 +38,59 @@ For deeper agent architecture and contribution rules, see [`AGENTS.md`](AGENTS.m
 | `claude` | Anthropic Claude Code | `ANTHROPIC_API_KEY` |
 | `deepseek` | Claude Code via DeepSeek API | `DEEPSEEK_API_KEY` |
 
+## Developer Workflow
+
+The normal SDD loop starts with the spec, not the implementation.
+
+1. Create a spec branch.
+
+```bash
+git switch -c spec/<spec-name>
+```
+
+2. Write the spec on that branch.
+
+Interactive problem solving with an LLM is encouraged here. The human owns the intent, constraints, and acceptance criteria; the LLM can help structure the spec, identify missing checks, and tighten ambiguous requirements.
+
+3. Add the spec under:
+
+```text
+.sdd/specifications/<spec-name>/spec.md
+```
+
+4. Execute the spec locally.
+
+```bash
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec <agent> <spec-name>
+```
+
+5. Test the generated result locally.
+
+For a Dockerized site, for example:
+
+```bash
+docker build -t <spec-name> .
+docker run --rm -p 8080:80 <spec-name>
+```
+
+6. Iterate on the spec.
+
+If the generated output is wrong, update the spec and rerun the agent. Avoid hand-fixing generated files as the primary path; the goal is for the spec to reliably reproduce the desired solution.
+
+7. Push the working branch upstream.
+
+```bash
+git push -u origin spec/<spec-name>
+```
+
+8. Let CI/CD execute the spec.
+
+The workflow runs the selected agent against the branch, performs the configured checks, and validates the generated result.
+
+9. Review the PR raised by CI/CD.
+
+The PR should contain the generated implementation produced from the spec branch. The spec remains the source of truth; local runs are the feedback loop, and CI/CD is the repeatable execution path.
+
 ## Local Usage
 
 Install the lightweight project tooling once:
