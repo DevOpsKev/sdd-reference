@@ -1,67 +1,79 @@
 # sdd-reference
 
-Reference implementation for the KRA Spec-Driven Development (SDD) methodology. Specs live under `.sdd/specifications/`, reusable agent guidance lives under `.skills/`, and project background context lives under `.context/`; workflow agents in `.workflow-agents/` consume these inputs and emit code. See [`AGENTS.md`](AGENTS.md) for the architecture, context convention, and contribution rules, and [`.skills/README.md`](.skills/README.md) for the skill convention.
+A reference implementation of **Spec Driven Development (SDD)** for building software with workflow-managed AI coding agents.
 
-## Getting started
+The core idea is simple: humans write specs and reusable guidance; agents read those inputs and generate the implementation. The repository is structured so the same spec can be executed locally during development or in CI/CD to produce a pull request.
 
-Prerequisites:
+## How It Works
 
-- **Python ≥ 3.12**
-- **Node.js** (any recent version; LTS recommended) for husky + lint-staged
-- **[gitleaks](https://github.com/gitleaks/gitleaks)** on `PATH` for secret scanning (`brew install gitleaks` on macOS)
-- **Docker** (only required if you intend to run agents locally; CI builds and runs them in containers)
+SDD separates inputs from generated output:
 
-Then, from the repo root:
+- `.sdd/specifications/` contains human-authored specs: what should be built.
+- `.skills/` contains reusable agent skills: how certain kinds of work should be done.
+- `.context/` contains product, architecture, design, deployment, and glossary background.
+- `.workflow-agents/` contains Dockerized agent runtimes.
+- Generated application files are written at the repo root, or wherever a spec explicitly directs.
+
+In normal use, a developer chooses an agent and a spec. The agent container reads the spec, skills, and context, then mutates the working tree.
+
+## Repository Map
+
+| Path | Purpose |
+| --- | --- |
+| `.sdd/specifications/` | SDD specs such as `helloworld` and `homepage` |
+| `.skills/` | Reusable guidance consumed by agents |
+| `.context/` | Product and technical background for generated work |
+| `.workflow-agents/` | Docker images and entrypoints for each supported agent |
+| `.forgejo/workflows/` | CI/CD workflow that runs agents and opens PRs |
+| `.scripts/` | Local maintainer tooling |
+| `.husky/` | Git hook orchestration and helper checks |
+
+For deeper agent architecture and contribution rules, see [`AGENTS.md`](AGENTS.md).
+
+## Supported Agents
+
+| Agent | Provider/tool | Required local env var |
+| --- | --- | --- |
+| `vibe` | Mistral Vibe | `MISTRAL_API_KEY` |
+| `claude` | Anthropic Claude Code | `ANTHROPIC_API_KEY` |
+| `deepseek` | Claude Code via DeepSeek API | `DEEPSEEK_API_KEY` |
+
+## Local Usage
+
+Install the lightweight project tooling once:
 
 ```bash
-# corepack ships with Node 14.19–24.x; on Node 25+ install it once: npm i -g corepack
 corepack enable
 pnpm install
-
-# Project virtualenv for Python dev deps (ruff, pyyaml).
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements-dev.txt
 ```
 
-The git hooks resolve Python through [`.husky/lib/run-python.sh`](.husky/lib/run-python.sh), which prefers `./.venv/bin/python` if it exists — so commits work whether or not the venv is currently activated in your shell. `pnpm install` itself runs husky's `prepare` script, which sets `core.hooksPath` to `.husky/`.
+To run agents locally, Docker must be running and the provider API key for the selected agent must be set.
 
-If you'd rather not use a venv (e.g. on macOS with Homebrew Python you'll otherwise hit [PEP 668](https://peps.python.org/pep-0668/)), substitute the last two lines with:
-
-```bash
-pip install --user --break-system-packages -r requirements-dev.txt
-```
-
-To run an agent you'll also need an API key for whichever provider it talks to:
-
-- `ANTHROPIC_API_KEY` — for the `claude` agent
-- `DEEPSEEK_API_KEY` — for the `deepseek` agent
-- `MISTRAL_API_KEY` — for the `vibe` agent (Codestral key)
-
-## Running an agent
-
-Agents are normally run through the Forgejo workflow [`workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml). Trigger it manually with:
-
-- `AGENT` — `vibe`, `claude`, or `deepseek`
-- `SPEC` — a directory under `.sdd/specifications/` such as `helloworld`
-- `DEBUG` — set to `true` for verbose container and agent diagnostics
-
-The workflow builds the selected agent container, streams the repo into it, lets the agent generate files, then commits the result to `ai/<AGENT>-<SPEC>-<run_id>` and opens a PR against `main`. Available agents are listed in [`AGENTS.md`](AGENTS.md#workflow-agents).
-
-### Local agent runs
-
-For day-to-day development, run an agent locally against your current checkout:
+Run a spec against your current branch:
 
 ```bash
+export MISTRAL_API_KEY="..."
 AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec vibe homepage
 ```
 
-The runner builds `.workflow-agents/<AGENT>/`, mounts the current repo into the container, and leaves generated files directly on your current branch. It does not commit, push, or open a PR; create or switch branches yourself before running it. As a safety catch, it refuses to run on `main`.
+Local runs:
 
-Local runs stream the agent's step-by-step output live in a readable format. By default the runner uses Vibe's `streaming` output and Claude Code's `stream-json --verbose` output, then pretty-prints tool calls, tool results, assistant messages, and final status. Override the output format only when you want quieter logs:
+- Build the selected image from `.workflow-agents/<agent>/`.
+- Mount the current checkout into the container.
+- Stream readable step-by-step output to the terminal.
+- Leave generated files directly in the current branch.
+- Refuse to run on `main` as a safety catch.
+
+Use a low turn cap first to catch prompt or spec mistakes cheaply. If the run starts correctly, use the normal cap:
 
 ```bash
-AGENT_OUTPUT_FORMAT=text pnpm execute spec vibe homepage
+AGENT_DEBUG=true AGENT_MAX_TURNS=150 pnpm execute spec vibe homepage
+```
+
+For a disposable smoke test that does not mutate your checkout, pass `--tmp`:
+
+```bash
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec --tmp vibe homepage
 ```
 
 To see the raw provider stream instead of the pretty terminal output:
@@ -70,61 +82,58 @@ To see the raw provider stream instead of the pretty terminal output:
 AGENT_PRETTY_OUTPUT=false pnpm execute spec vibe homepage
 ```
 
-Set the provider key for the agent you are testing before running it locally. Each agent requires its own local environment variable:
+## CI/CD Usage
 
-- `MISTRAL_API_KEY` for `vibe`
-- `ANTHROPIC_API_KEY` for `claude`
-- `DEEPSEEK_API_KEY` for `deepseek`
+CI runs through Forgejo Actions in [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml).
+
+Trigger the workflow manually with:
+
+- `AGENT`: `vibe`, `claude`, or `deepseek`
+- `SPEC`: a spec directory under `.sdd/specifications/`
+- `DEBUG`: `true` for verbose diagnostics
+
+The workflow builds the selected agent image, copies the repository into the container, runs the agent against the spec, commits the generated files to an `ai/<AGENT>-<SPEC>-<run_id>` branch, and opens a pull request against `main`.
+
+Required repo secrets:
+
+- `FORGEJO_PUSH_TOKEN`
+- `MISTRAL_API_KEY`
+- `ANTHROPIC_API_KEY`
+- `DEEPSEEK_API_KEY`
+
+## Writing Specs
+
+Specs live at `.sdd/specifications/<name>/spec.md`.
+
+A good spec should include:
+
+- Intent: one sentence describing the desired output.
+- Requirements: concrete behavior and file layout.
+- Acceptance criteria: commands or checks that prove completion.
+- Out of scope: explicit boundaries to keep the agent focused.
+
+Specs may reference sibling files such as copy, fixtures, schemas, or examples. If they do, agents are expected to read those files and treat them as part of the spec.
+
+## Developer Setup
+
+For hook and lint support, install the Python dev dependencies:
 
 ```bash
-export MISTRAL_API_KEY="..."
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec vibe homepage
-
-export ANTHROPIC_API_KEY="..."
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec claude homepage
-
-export DEEPSEEK_API_KEY="..."
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec deepseek homepage
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
 ```
 
-Use a low turn cap first to catch prompt/spec mistakes cheaply. If the agent reads the right files and starts correctly, rerun with the normal cap:
+The pre-commit hooks are managed by Husky and lint-staged. They check Python formatting, YAML/TOML syntax, whitespace, large files, merge conflict markers, private-key headers, and secrets.
 
-```bash
-AGENT_DEBUG=true AGENT_MAX_TURNS=150 pnpm execute spec vibe homepage
-```
+External tools expected by the hooks:
 
-For a disposable smoke test that does not mutate your current checkout, pass `--tmp`:
+- `gitleaks`
+- `python3`
+- `ruff`
+- `pyyaml`
 
-```bash
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec --tmp vibe homepage
-```
-
-Tmp runs copy the current repo to `.tmp/agent-runs/<AGENT>-<SPEC>-<timestamp>/`, run the agent there, and leave the output for review. Inspect the full tmp diff with:
-
-```bash
-git diff --no-index \
-  .tmp/agent-runs/<AGENT>-<SPEC>-<timestamp>.baseline \
-  .tmp/agent-runs/<AGENT>-<SPEC>-<timestamp>
-```
-
-## Git hooks
-
-Pre-commit hooks are managed by [husky](https://typicode.github.io/husky) + [lint-staged](https://github.com/lint-staged/lint-staged), with helpers under [`.husky/lib/`](.husky/lib/):
-
-| Check | Tool | Scope |
-| --- | --- | --- |
-| Python lint + format | `ruff check --fix`, `ruff format` | staged `*.py` |
-| YAML syntax | PyYAML | staged `*.yml`/`*.yaml` (excluding `.gitlab-ci.yml`) |
-| TOML syntax | `tomllib` | staged `*.toml` |
-| Trailing whitespace + EOF newline | `.husky/lib/fix-whitespace.py` | all staged text files |
-| Large files (> 500 KB) | `.husky/lib/check-large-files.sh` | repo-wide |
-| Merge-conflict markers | `git diff --check` | repo-wide |
-| Private-key headers | `.husky/lib/check-private-keys.sh` | repo-wide |
-| Secret scanning | `gitleaks protect --staged` | repo-wide |
-
-To bypass hooks for a single commit (use sparingly): `git commit --no-verify`.
-
-See [`AGENTS.md`](AGENTS.md) for full project conventions and agent-authoring guidance.
+See [`AGENTS.md`](AGENTS.md) for the full conventions, protected paths, and agent implementation details.
 
 ## License
 
