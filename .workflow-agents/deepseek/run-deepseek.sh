@@ -38,6 +38,26 @@ echo "CLAUDE_CODE_EFFORT_LEVEL=$CLAUDE_CODE_EFFORT_LEVEL"
 echo "Claude Code version:"
 claude --version || true
 
+echo "Checking DeepSeek Anthropic endpoint reachability"
+curl -sS --connect-timeout 10 --max-time 20 \
+  -o /dev/null \
+  -w "DeepSeek Anthropic endpoint HTTP status: %{http_code}\n" \
+  "$ANTHROPIC_BASE_URL" || true
+
+echo "Checking DeepSeek API auth with minimal chat completion"
+curl -sS --connect-timeout 10 --max-time 30 \
+  -o /dev/null \
+  -w "DeepSeek chat completion HTTP status: %{http_code}\n" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ${DEEPSEEK_API_KEY}" \
+  -d '{
+        "model": "deepseek-v4-flash",
+        "messages": [{"role": "user", "content": "ping"}],
+        "max_tokens": 1,
+        "stream": false
+      }' \
+  "https://api.deepseek.com/chat/completions" || true
+
 PROMPT=$(cat <<EOF
 Read the spec at ${SPEC_PATH}.
 
@@ -65,5 +85,6 @@ exec claude \
   -p "$PROMPT" \
   --model "deepseek-v4-pro[1m]" \
   --max-turns 50 \
-  --output-format text \
+  --output-format stream-json \
+  --verbose \
   --dangerously-skip-permissions
