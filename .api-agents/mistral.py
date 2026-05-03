@@ -6,12 +6,15 @@ import os
 import requests
 
 from .base import Agent
+from .skills import load_skills
 
 
 class MistralAgent(Agent):
     name = "mistral"
 
     def generate(self, spec: str) -> dict[str, str]:
+        skills = load_skills()
+        system = f"{self.system_prompt}\n\n{skills}" if skills else self.system_prompt
         resp = requests.post(
             "https://api.mistral.ai/v1/chat/completions",
             headers={
@@ -21,7 +24,7 @@ class MistralAgent(Agent):
             json={
                 "model": "codestral-latest",
                 "messages": [
-                    {"role": "system", "content": self.system_prompt},
+                    {"role": "system", "content": system},
                     {"role": "user", "content": f"SPEC:\n\n{spec}"},
                 ],
                 "response_format": {"type": "json_object"},

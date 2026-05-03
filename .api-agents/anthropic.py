@@ -7,6 +7,7 @@ import re
 import requests
 
 from .base import Agent
+from .skills import load_skills
 
 
 def _extract_json(text: str) -> str:
@@ -31,6 +32,8 @@ class AnthropicAgent(Agent):
     system_prompt = Agent.system_prompt + " Begin your response with { and end with }."
 
     def generate(self, spec: str) -> dict[str, str]:
+        skills = load_skills()
+        system = f"{self.system_prompt}\n\n{skills}" if skills else self.system_prompt
         resp = requests.post(
             "https://api.anthropic.com/v1/messages",
             headers={
@@ -41,7 +44,7 @@ class AnthropicAgent(Agent):
             json={
                 "model": "claude-sonnet-4-5",
                 "max_tokens": 8192,
-                "system": self.system_prompt,
+                "system": system,
                 "messages": [{"role": "user", "content": f"SPEC:\n\n{spec}"}],
             },
             timeout=120,

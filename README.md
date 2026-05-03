@@ -1,6 +1,6 @@
 # sdd-reference
 
-Reference implementation for the KRA Spec-Driven Development (SDD) methodology. Specs live under `.sdd/specifications/`; one-shot Python agents in `.api-agents/` and containerized agentic-CLI agents in `.container-agents/` consume a spec and emit code. See [`AGENTS.md`](AGENTS.md) for the architecture and contribution rules.
+Reference implementation for the KRA Spec-Driven Development (SDD) methodology. Specs live under `.sdd/specifications/` and reusable agent guidance lives under `.skills/`; one-shot Python agents in `.api-agents/` and containerized agentic-CLI agents in `.container-agents/` consume both and emit code. See [`AGENTS.md`](AGENTS.md) for the architecture and contribution rules, and [`.skills/README.md`](.skills/README.md) for the skill convention.
 
 ## Getting started
 

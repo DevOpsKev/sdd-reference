@@ -1,6 +1,6 @@
 # Agents
 
-This repo is a reference implementation of **Spec Driven Development (SDD)**. Specs are written by humans and live under `.sdd/specifications/`. Agents consume a spec and generate code — no manual scaffolding required.
+This repo is a reference implementation of **Spec Driven Development (SDD)**. Specs are written by humans and live under `.sdd/specifications/`. Reusable cross-spec guidance for agents lives under `.skills/` (see [`.skills/README.md`](.skills/README.md)). Agents consume both and generate code — no manual scaffolding required.
 
 ## How agents work
 
@@ -9,19 +9,19 @@ Each agent implements a single contract defined in [`.api-agents/base.py`](.api-
 - **Input:** `spec: str` — the raw text of a `spec.md` file
 - **Output:** `dict[str, str]` — repo-relative file paths mapped to their contents
 
-The runner ([`.api-agents/run.py`](.api-agents/run.py)) wires everything together: it reads the `AGENT` and `SPEC` environment variables, loads the spec from `.sdd/specifications/<SPEC>/spec.md`, calls `agent.generate(spec)`, and writes the returned files to disk.
+The runner ([`.api-agents/run.py`](.api-agents/run.py)) wires everything together: it reads the `AGENT` and `SPEC` environment variables, loads the spec from `.sdd/specifications/<SPEC>/spec.md`, calls `agent.generate(spec)`, and writes the returned files to disk. Each agent independently loads any skills under `.skills/` via [`.api-agents/skills.py`](.api-agents/skills.py) and appends them to its system prompt.
 
 ```
-.sdd/specifications/<SPEC>/spec.md
-        │
-        ▼
-  .api-agents/run.py
-        │
-        ▼
-  Agent.generate(spec)
-        │
-        ▼
-  Files written to repo root
+.sdd/specifications/<SPEC>/spec.md      .skills/*/SKILL.md
+        │                                       │
+        ▼                                       ▼
+              .api-agents/run.py
+                        │
+                        ▼
+              Agent.generate(spec)
+                        │
+                        ▼
+              Files written to repo root
 ```
 
 ## Available agents
@@ -110,6 +110,17 @@ Specs live at `.sdd/specifications/<name>/spec.md`. Follow the structure used in
 - **Acceptance criteria** — verifiable checklist (file paths, commands, HTTP checks)
 - **Out of scope** — explicit exclusions to keep the agent focused
 
+## Skills
+
+A skill is a reusable bundle of guidance that tells an agent *how* to do a kind of work well, distinct from a spec which tells it *what* to build. Skills live at `.skills/<name>/SKILL.md` and follow the [Anthropic Skills](https://www.anthropic.com/news/skills) convention (YAML frontmatter with `name` + `description`, then a markdown body). See [`.skills/README.md`](.skills/README.md) for the full convention.
+
+Both agent tracks pick up `.skills/` automatically:
+
+- **API agents** — [`.api-agents/skills.py`](.api-agents/skills.py) globs every `.skills/*/SKILL.md`. Each agent's `generate()` calls `load_skills()` and appends the result to its system prompt at call time. Skills go in the system prompt (how to work) rather than the user message (what to build) so they don't dilute the spec.
+- **Container agents** — `.container-agents/<agent>/run-*.sh` prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code. `.skills/` is in the no-modify list alongside `.sdd/`.
+
+To add a skill: create `.skills/<name>/SKILL.md` with valid frontmatter and a body. No further wiring is needed — both agent tracks pick it up on the next run.
+
 ## Git hooks
 
 Git hooks are managed by [husky](https://typicode.github.io/husky) with [lint-staged](https://github.com/lint-staged/lint-staged), installed via [pnpm](https://pnpm.io). The orchestrator lives at [`.husky/pre-commit`](.husky/pre-commit) and delegates to small helpers under [`.husky/lib/`](.husky/lib/). Per-file linters/formatters (ruff, YAML/TOML validation, whitespace normalisation) are configured under the `lint-staged` key in [`package.json`](package.json).
@@ -140,6 +151,7 @@ Bypass hooks for a single commit only when truly necessary: `git commit --no-ver
 These apply to both human contributors and AI coding assistants working in this repo:
 
 - Treat `.sdd/` as read-only — specs are inputs, not outputs
+- Treat `.skills/` as read-only — skills are inputs (how to work), not outputs
 - Generated files belong at the repo root (or wherever the spec directs)
 - Never commit API keys or CI secrets to tracked files
 - Keep API-agent implementations in `.api-agents/`, one file per agent
