@@ -1,0 +1,13 @@
+# Mistral Vibe configuration baked into the agent container.
+#
+# Copied into the image at /root/.vibe/config.toml (Vibe looks for
+# ./.vibe/config.toml first, then ~/.vibe/config.toml; the container
+# runs as root so $HOME == /root). Project-local config in the
+# checked-out repo would override this, which is intentional.
+#
+# Pin the active model so the agent's behaviour is reproducible across
+# Vibe CLI upgrades. devstral-2 is the current built-in default in
+# mistral-vibe v2.9.x; if a future Vibe version retires this alias,
+# update this value (and bump VIBE_VERSION in the Dockerfile) together.
+
+active_model = "devstral-2"

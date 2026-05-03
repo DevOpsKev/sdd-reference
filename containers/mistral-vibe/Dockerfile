@@ -29,6 +29,8 @@ RUN apt-get update \
 
 RUN pip install "mistral-vibe==${VIBE_VERSION}"
 
+COPY config.toml /root/.vibe/config.toml
+
 COPY run-vibe.sh /usr/local/bin/run-vibe
 RUN chmod +x /usr/local/bin/run-vibe
 

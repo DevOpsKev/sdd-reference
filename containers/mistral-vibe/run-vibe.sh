@@ -38,6 +38,7 @@ EOF
 
 exec vibe \
   --agent auto-approve \
+  --trust \
   --max-turns 50 \
   --max-price 5 \
   --output text \
