@@ -30,6 +30,52 @@ if debug_enabled; then
   echo "SPEC_PATH=$SPEC_PATH"
   echo "Vibe version:"
   vibe --version || true
+  echo "Vibe config:"
+  sed -n '1,40p' /root/.vibe/config.toml || true
+
+  echo "Checking Mistral API auth with model list request"
+  RESPONSE_FILE="$(mktemp)"
+  HTTP_STATUS=$(curl -sS --connect-timeout 10 --max-time 30 \
+    -o "$RESPONSE_FILE" \
+    -w "%{http_code}" \
+    -H "Authorization: Bearer ${MISTRAL_API_KEY}" \
+    "https://api.mistral.ai/v1/models" || true)
+  echo "Mistral models HTTP status: ${HTTP_STATUS:-curl-failed}"
+  if [ "${HTTP_STATUS:-}" = "200" ]; then
+    echo "Mistral available model sample:"
+    jq -r '.data[]?.id' "$RESPONSE_FILE" | sed -n '1,10p' || true
+  else
+    echo "Mistral models response body:"
+    sed -n '1,20p' "$RESPONSE_FILE" || true
+  fi
+  rm -f "$RESPONSE_FILE"
+
+  echo "Checking Mistral chat completion with fallback models"
+  for DEBUG_MODEL in devstral-small-latest codestral-latest mistral-small-latest; do
+    RESPONSE_FILE="$(mktemp)"
+    HTTP_STATUS=$(curl -sS --connect-timeout 10 --max-time 30 \
+      -o "$RESPONSE_FILE" \
+      -w "%{http_code}" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer ${MISTRAL_API_KEY}" \
+      -d "{
+            \"model\": \"${DEBUG_MODEL}\",
+            \"messages\": [{\"role\": \"user\", \"content\": \"Reply with ok.\"}],
+            \"max_tokens\": 8,
+            \"stream\": false
+          }" \
+      "https://api.mistral.ai/v1/chat/completions" || true)
+    echo "Mistral chat HTTP status for ${DEBUG_MODEL}: ${HTTP_STATUS:-curl-failed}"
+    if [ "${HTTP_STATUS:-}" = "200" ]; then
+      echo "Mistral response text:"
+      jq -r '.choices[0].message.content // empty' "$RESPONSE_FILE" || true
+      rm -f "$RESPONSE_FILE"
+      break
+    fi
+    echo "Mistral response body for ${DEBUG_MODEL}:"
+    sed -n '1,10p' "$RESPONSE_FILE" || true
+    rm -f "$RESPONSE_FILE"
+  done
 fi
 
 PROMPT=$(cat <<EOF

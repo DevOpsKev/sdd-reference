@@ -31,6 +31,30 @@ if debug_enabled; then
   echo "CLAUDE_MODEL=claude-sonnet-4-5"
   echo "Claude Code version:"
   claude --version || true
+
+  echo "Checking Anthropic API auth with minimal messages request"
+  RESPONSE_FILE="$(mktemp)"
+  HTTP_STATUS=$(curl -sS --connect-timeout 10 --max-time 30 \
+    -o "$RESPONSE_FILE" \
+    -w "%{http_code}" \
+    -H "Content-Type: application/json" \
+    -H "anthropic-version: 2023-06-01" \
+    -H "x-api-key: ${ANTHROPIC_API_KEY}" \
+    -d '{
+          "model": "claude-sonnet-4-5",
+          "max_tokens": 8,
+          "messages": [{"role": "user", "content": "Reply with ok."}]
+        }' \
+    "https://api.anthropic.com/v1/messages" || true)
+  echo "Anthropic messages HTTP status: ${HTTP_STATUS:-curl-failed}"
+  if [ "${HTTP_STATUS:-}" = "200" ]; then
+    echo "Anthropic response text:"
+    jq -r '.content[]? | select(.type == "text") | .text' "$RESPONSE_FILE" || true
+  else
+    echo "Anthropic response body:"
+    sed -n '1,20p' "$RESPONSE_FILE" || true
+  fi
+  rm -f "$RESPONSE_FILE"
 fi
 
 PROMPT=$(cat <<EOF
