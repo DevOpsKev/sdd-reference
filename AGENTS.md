@@ -83,6 +83,8 @@ Specs live at `.sdd/specifications/<name>/spec.md`. Follow the structure used in
 - **Acceptance criteria** — verifiable checklist (file paths, commands, HTTP checks)
 - **Out of scope** — explicit exclusions to keep the agent focused
 
+Specs may include sibling files such as `copy.yaml`, fixtures, schemas, or examples. When a spec references sibling files, workflow agents must read them before implementing and treat them as part of the spec. For complex specs, prefer putting deterministic copy/data/fixtures in sibling files and require a validation script that proves generated output came from those files rather than from paraphrased agent output.
+
 ## Skills
 
 A skill is a reusable bundle of guidance that tells an agent *how* to do a kind of work well, distinct from a spec which tells it *what* to build. Skills live at `.skills/<name>/SKILL.md` and follow the [Anthropic Skills](https://www.anthropic.com/news/skills) convention (YAML frontmatter with `name` + `description`, then a markdown body). See [`.skills/README.md`](.skills/README.md) for the full convention.

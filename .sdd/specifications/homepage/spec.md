@@ -4,7 +4,7 @@
 
 Create the first static homepage for Tech Sovereignty Radar: a sober, editorial landing page that explains the radar, previews its structure, and gives European technology leaders a clear way into the product.
 
-This spec is **deterministic where possible**. Agents should treat enumerated page sections, the SVG specification, the file layout, the toolchain, and the validation script as binding. Where the spec gives a word budget and constraints rather than literal copy, the agent writes the copy — but does not invent additional sections, restructure the page, or add dependencies.
+This spec is **deterministic where possible**. Agents should treat enumerated page sections, the SVG specification, the file layout, the toolchain, and the validation script as binding. The agent does not invent additional sections, restructure the page, add unlisted dependencies, or generate visible prose.
 
 ## References
 
@@ -16,17 +16,19 @@ If this spec and the design system disagree, the design system wins. If this spe
 
 ## Copy
 
-All homepage prose — eyebrows, headings, value proposition, body paragraphs, ring and quadrant definitions, preview text, closing line, footer — lives in `copy.yaml`. The build loads YAML at compile time and renders it into the page.
+All homepage prose — eyebrows, headings, value proposition, body paragraphs, ring and quadrant definitions, preview text, closing line, footer — lives in `copy.yaml`. The build loads YAML before Vite runs and renders that data into the page.
 
 **The agent does not write or paraphrase copy.** Every visible string on the homepage maps to a YAML key. If a string is missing from the YAML, stop and ask — do not invent one. If a string in the YAML seems wrong, do not silently rewrite it; flag the issue.
 
 The per-section specifications below describe **structure and constraints** (which YAML keys map where, what styling each receives). Word budgets and content constraints in those sections are documentation of how the YAML was authored, not instructions to regenerate it.
 
+Do not satisfy this requirement by manually transcribing `copy.yaml` into source code. The implementation must derive generated copy data from `.sdd/specifications/homepage/copy.yaml` through the build step.
+
 ## Toolchain (pinned)
 
 - **Vite** `^5.4.0` — build tool.
 - **TypeScript** `^5.5.0` — strict mode on.
-- No other runtime or dev dependencies. No React, Vue, Tailwind, Sass, PostCSS plugins, component libraries, icon packs, or utility frameworks.
+- No runtime dependencies. The only permitted dev dependencies are Vite, TypeScript, and `yaml` for parsing `copy.yaml` in build/validation scripts. No React, Vue, Tailwind, Sass, PostCSS plugins, component libraries, icon packs, or utility frameworks.
 - Vanilla HTML, CSS (with native CSS custom properties), inline SVG, and TypeScript only.
 - Google Fonts is the only permitted external runtime asset.
 
@@ -229,8 +231,13 @@ These names are illustrative placements for visual purposes only. The footer or 
 ├── index.html
 ├── public/
 │   └── favicon.svg
+├── scripts/
+│   ├── generate-copy.mjs
+│   └── validate.mjs
 └── src/
     ├── main.ts
+    ├── data/
+    │   └── copy.generated.ts
     ├── styles/
     │   ├── tokens.css
     │   ├── base.css
@@ -243,6 +250,8 @@ These names are illustrative placements for visual purposes only. The footer or 
 - `tokens.css` defines every design system token (colors, type, spacing, motion) as CSS custom properties on `:root`.
 - `base.css` covers element resets, focus styles, link styles, the Google Fonts import, and the `prefers-reduced-motion` rules.
 - `homepage.css` styles only the homepage sections.
+- `scripts/generate-copy.mjs` reads `.sdd/specifications/homepage/copy.yaml`, parses it with `yaml`, and writes `src/data/copy.generated.ts`.
+- `copy.generated.ts` is generated code. It may contain the copy values from YAML because it is derived mechanically at build time. Do not hand-edit it.
 - `radar-preview.svg.ts` exports a function that returns the SVG markup as a string. `radar-preview.ts` mounts it.
 
 ## Dockerfile strategy
@@ -263,12 +272,15 @@ Exactly these scripts, exactly these names:
 {
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "generate:copy": "node scripts/generate-copy.mjs",
+    "build": "npm run generate:copy && tsc --noEmit && vite build",
     "preview": "vite preview --port 8080",
     "validate": "node scripts/validate.mjs"
   }
 }
 ```
+
+`npm run dev` may run Vite directly, but `npm run build` must run `generate:copy` before TypeScript and Vite. Agents may also choose `"dev": "npm run generate:copy && vite"` if they want local development to regenerate copy on startup.
 
 ## Validation script (`scripts/validate.mjs`)
 
@@ -287,8 +299,12 @@ The script must check, in order:
 9. `dist/index.html` contains `role="img"` on the radar SVG.
 10. `dist/` contains no files referencing external CDNs other than `fonts.googleapis.com` and `fonts.gstatic.com`.
 11. `.sdd/specifications/homepage/copy.yaml` exists, parses as valid YAML, and has the required top-level keys: `meta`, `sections.hero`, `sections.why_different`, `sections.rings`, `sections.quadrants`, `sections.preview`, `sections.closing`, `sections.footer`.
-12. `dist/index.html` contains the literal phrase `sovereignty-aware decisions` (proves the value prop from the YAML was rendered, not regenerated).
-13. `dist/index.html` contains the literal phrase `Sovereignty is not maturity` (proves the why-different heading was rendered from the YAML).
+12. `src/data/copy.generated.ts` exists and contains a generated-file warning.
+13. `dist/index.html` contains every visible copy leaf from `copy.yaml` after normalising whitespace. This includes hero copy, why-different body paragraphs, ring names/descriptions, quadrant names/descriptions, preview body, closing body/CTA, and footer strings.
+14. `dist/index.html` contains the literal phrase `sovereignty-aware decisions` (proves the value prop from the YAML was rendered, not regenerated).
+15. `dist/index.html` contains the literal phrase `Sovereignty is not maturity` (proves the why-different heading was rendered from the YAML).
+16. `package.json` has exactly the required script names (`dev`, `generate:copy`, `build`, `preview`, `validate`) and no runtime dependencies.
+17. `package.json` dev dependencies are limited to `@types/node` if needed, `typescript`, `vite`, and `yaml`.
 
 Each failed check prints which check failed and what was expected.
 
@@ -297,6 +313,7 @@ Each failed check prints which check failed and what was expected.
 The homepage is complete when all of the following are true:
 
 - [ ] `npm install` succeeds with no warnings about missing peer dependencies.
+- [ ] `npm run generate:copy` reads `.sdd/specifications/homepage/copy.yaml` and writes `src/data/copy.generated.ts`.
 - [ ] `npm run build` produces `dist/index.html` and asset files under `dist/assets/`.
 - [ ] `npm run validate` exits 0.
 - [ ] `docker build -t sovereignty-radar .` succeeds.
@@ -318,6 +335,7 @@ The homepage is complete when all of the following are true:
 
 - If something in this spec contradicts the design system, the design system wins. Stop and note the contradiction in your output rather than picking one silently.
 - All visible prose comes from `copy.yaml`. Do not generate, paraphrase, or "improve" copy at build time. If a string is missing, stop and ask.
+- Do not manually copy YAML values into a source file. Generate `src/data/copy.generated.ts` from `copy.yaml` using `scripts/generate-copy.mjs`.
 - Do not add sections, components, or dependencies not listed here. If you believe one is needed, stop and ask.
 - The validation script is the source of truth for "done." If it passes, ship. If it fails, fix the specific check it names — don't refactor broadly.
 - The only place taste is required is the SVG layout — and that is fully specified by coordinates. Render it and move on.
