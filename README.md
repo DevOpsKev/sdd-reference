@@ -103,6 +103,26 @@ git push origin --delete spec/<spec-name> # only if the branch was pushed
 
 `main` stays clean, and the failed idea leaves no architectural scar tissue.
 
+## Learning With Specs
+
+SDD is also a structured learning workflow for junior engineers.
+
+Rather than using an LLM as a code vending machine, junior engineers should use it as a tutor and reviewer while writing specs. The goal is to learn how to express intent, constraints, risks, and acceptance criteria clearly enough that an agent can execute the work repeatably.
+
+Useful questions to ask the LLM while writing or refining a spec:
+
+- What is ambiguous in this requirement?
+- What edge cases am I missing?
+- What acceptance criteria would prove this works?
+- What should be explicitly out of scope?
+- What files, systems, or boundaries should this probably touch?
+- What failure modes should I test?
+- Does this spec conflict with existing architecture, product, or design guidance?
+- How could another agent misinterpret this instruction?
+- Explain why the generated output does or does not satisfy the spec.
+
+This makes the LLM a patient teacher rather than a shortcut around learning. Junior engineers still inspect the generated result, understand failures, and iterate on the spec until the acceptance criteria are meaningful. Senior engineers then get a better coaching surface: they can review the spec and generated output together instead of reviewing unexplained ad hoc AI-generated code.
+
 ## Local Usage
 
 Install the lightweight project tooling once:
