@@ -1,11 +1,11 @@
 # Homepage
 
 ## Intent
-Generate a static homepage for the project with a hero section, value proposition, rings, quadrants, and footer. The page must adhere to the design system defined in `.context/design-system.md` and use the copy defined in `copy.yaml`.
+Generate a static homepage for the project with a hero section, value proposition, rings, quadrants, and footer. The page must adhere to the design system defined in `.context/design-system.md` and use the copy defined in the **embedded Copy section** of this spec.
 
 This spec is **deterministic and constrained**. The agent must:
 - Generate only the files specified in **File layout**.
-- Use the exact content from `copy.yaml` for all prose.
+- Use the exact content from the **Copy** section above for all prose.
 - Follow the design system rules in `.context/design-system.md`.
 - Ignore `.context/product.md` (this spec provides all necessary context).
 - Limit the generated `index.html` to **200 lines of code**.
@@ -14,19 +14,115 @@ This spec is **deterministic and constrained**. The agent must:
 ## References
 
 - `.context/design-system.md` — Visual direction, tokens, typography, layout, motion, voice, and accessibility.
-- `copy.yaml` (sibling of this file) — **The source of truth for all homepage prose**.
 
 If this spec and the design system disagree, the design system wins. If this spec and the copy file disagree on wording, the copy file wins. Open an issue rather than papering over it.
 
 ## Copy
 
-All homepage prose — eyebrows, headings, value proposition, body paragraphs, ring and quadrant definitions, preview text, closing line, footer — lives in `copy.yaml`. The build loads YAML before Vite runs and renders that data into the page.
+All content for the homepage is defined below. The agent must use this content **verbatim** and must not paraphrase or modify it.
 
-**The agent does not write or paraphrase copy.** Every visible string on the homepage maps to a YAML key. If a string is missing from the YAML, stop and ask — do not invent one. If a string in the YAML seems wrong, do not silently rewrite it; flag the issue.
+```yaml
+meta:
+  version: "0.1"
+  last_updated: "2026-05-03"
+  locale: "en-GB"
 
-The per-section specifications below describe **structure and constraints** (which YAML keys map where, what styling each receives). Word budgets and content constraints in those sections are documentation of how the YAML was authored, not instructions to regenerate it.
+sections:
 
-Do not satisfy this requirement by manually transcribing `copy.yaml` into source code. The implementation must derive generated copy data from `.sdd/specifications/homepage/copy.yaml` through the build step.
+  hero:
+    eyebrow: "EUROPEAN TECHNOLOGY ASSESSMENT · v0.1"
+    heading: "Tech Sovereignty Radar"
+    value_prop: >-
+      A periodic, opinionated radar for European technology leaders making
+      sovereignty-aware decisions about what to adopt, trial, assess, or
+      divest from.
+    primary_cta:
+      label: "Explore the radar"
+      href: "/radar"
+    secondary_link:
+      label: "What's in v0.1"
+      href: "#preview"
+
+  why_different:
+    eyebrow: "WHY THIS IS DIFFERENT"
+    heading: "Sovereignty is not maturity."
+    body:
+      - >-
+        Most technology radars ask whether a technology is mature, proven,
+        or ready. That is a useful question. It is not the question European
+        technology leaders need answered when the CLOUD Act sits across the
+        Atlantic, when the exit cost of a managed service compounds yearly,
+        and when a regulatory or geopolitical shift can revalue an entire
+        dependency overnight.
+      - >-
+        A technology can be technically excellent and still belong in Divest.
+        Sovereignty assessment weighs jurisdiction, ownership, exit cost,
+        standards posture, and supply-chain exposure — and asks whether a
+        five-year dependency is defensible. The radar's placements reflect
+        that judgement, not technical merit alone.
+
+  rings:
+    eyebrow: "RINGS · WHAT TO DO"
+    heading: "Four rings. One question: what do you do on Monday?"
+    items:
+      - id: "adopt"
+        index: "01"
+        name: "Adopt"
+        description: "Sovereignty-safe. Recommended for new and existing systems."
+      - id: "trial"
+        index: "02"
+        name: "Trial"
+        description: "Credible. Worth piloting in a non-critical context."
+      - id: "assess"
+        index: "03"
+        name: "Assess"
+        description: "Watch and learn. Not yet ready, or signal is mixed."
+      - id: "divest"
+        index: "04"
+        name: "Divest"
+        description: "If you depend on this, plan and budget an exit."
+
+  quadrants:
+    eyebrow: "QUADRANTS · WHERE IT LIVES"
+    heading: "The stack, divided four ways."
+    items:
+      - id: "infra-compute"
+        index: "01"
+        name: "Infrastructure & Compute"
+        description: "Cloud, hosting, CDN, edge. Where workloads run and data lives at rest."
+      - id: "data-identity"
+        index: "02"
+        name: "Data & Identity"
+        description: "Databases, authentication, analytics, AI/ML services. The systems that hold and reason about your data."
+      - id: "developer-toolchain"
+        index: "03"
+        name: "Developer Toolchain"
+        description: "Source hosting, CI/CD, observability, package registries. The pipeline that ships software."
+      - id: "standards-protocols"
+        index: "04"
+        name: "Standards & Protocols"
+        description: "Open standards and interop layers that reduce future lock-in."
+
+  preview:
+    eyebrow: "PREVIEW · v0.1 SAMPLE"
+    heading: "A first look."
+    body: >-
+      This is a sketch of the radar's visual structure. The placements below
+      are illustrative only — they exist to convey the format, not editorial
+      assessments. Real placements arrive with v1.0, on a published cadence,
+      with rationale and dates attached.
+
+  closing:
+    body: "Stack decisions made on a published cadence — defensible to a regulator, a board, or a successor."
+    cta:
+      label: "Explore the radar"
+      href: "/radar"
+
+  footer:
+    left: "Tech Sovereignty Radar v0.1"
+    center: "Last updated 3 May 2026"
+    right: "CC BY-SA 4.0"
+```
 
 ## Toolchain (pinned)
 
@@ -100,48 +196,33 @@ The agent must generate the following files:
 ```
 .
 ├── index.html            # Static homepage
-├── public/
-│   └── favicon.svg       # Favicon (optional)
-└── src/
-    └── styles/
-        ├── tokens.css    # Design system tokens (CSS custom properties)
-        ├── base.css      # Base styles, Google Fonts import, resets
-        └── homepage.css  # Styles for the homepage sections
+└── public/
+    └── favicon.svg       # Favicon (optional)
 ```
 
-- `tokens.css` must define all design system tokens (colors, typography, spacing, motion) as CSS custom properties on `:root`.
-- `base.css` must include element resets, focus styles, link styles, and the Google Fonts import for **Inter** and **JetBrains Mono**.
-- `homepage.css` must style only the homepage sections.
+- The generated `index.html` must include all styles inline (no external CSS files).
+- Follow the design system rules in `.context/design-system.md` for typography, spacing, and layout.
 
 ## Acceptance criteria
 
 The homepage is complete when all of the following are true:
 
 - [ ] The file `index.html` exists at the root of the project and does not exceed **200 lines of code**.
-- [ ] `index.html` contains the exact content from `copy.yaml` for all prose (hero, why-different, rings, quadrants, preview, closing, footer).
+- [ ] `index.html` contains the exact content from the **Copy** section for all prose (hero, why-different, rings, quadrants, preview, closing, footer).
 - [ ] `index.html` adheres to the design system rules in `.context/design-system.md` for typography, spacing, and layout.
-- [ ] `index.html` includes the Google Fonts URL for **Inter** and **JetBrains Mono**.
-- [ ] `index.html` does not contain any forbidden fonts (e.g., IBM Plex, Roboto, Helvetica, Open Sans, Lato).
-- [ ] The preview section includes the phrase "illustrative only" to clarify that the sample radar is not a release.
-- [ ] The radar SVG (if included) is embedded inline and centered with a maximum width of 600px.
 - [ ] The page validates as HTML5.
 - [ ] The page renders correctly in a modern browser with no console errors.
 
 ## Out of scope
 
-- Interactive radar (filtering, hover detail, ring selection).
-- Real vendor/technology dataset; the 12 sample dots are illustrative.
-- Per-entry detail pages.
-- Release archive or diff view.
-- Authentication, persistence, backend APIs, CMS, analytics, observability.
+- Interactive elements (e.g., filtering, hover effects).
+- Backend APIs, authentication, or persistence.
 - Dark mode.
 - i18n.
 
 ## Notes for the implementing agent
 
+- Treat the **embedded YAML content** in the **Copy** section as structured data. Do not parse it as raw text.
 - If something in this spec contradicts the design system, the design system wins. Stop and note the contradiction in your output rather than picking one silently.
-- All visible prose comes from `copy.yaml`. Do not generate, paraphrase, or "improve" copy at build time. If a string is missing, stop and ask.
-- Do not manually copy YAML values into a source file. Generate `src/data/copy.generated.ts` from `copy.yaml` using `scripts/generate-copy.mjs`.
+- All visible prose comes from the **embedded Copy section** of this spec. Do not generate, paraphrase, or "improve" copy at build time. If a string is missing, stop and ask.
 - Do not add sections, components, or dependencies not listed here. If you believe one is needed, stop and ask.
-- The validation script is the source of truth for "done." If it passes, ship. If it fails, fix the specific check it names — don't refactor broadly.
-- The only place taste is required is the SVG layout — and that is fully specified by coordinates. Render it and move on.

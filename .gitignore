@@ -13,6 +13,7 @@ env/
 # Build artefacts
 build/
 dist/
+.tmp/
 *.egg
 
 # Node / pnpm (husky + lint-staged tooling only)

@@ -18,6 +18,7 @@ debug_enabled() {
   [ "${AGENT_DEBUG:-false}" = "true" ] || [ "${AGENT_DEBUG:-false}" = "1" ]
 }
 
+MAX_TURNS="${AGENT_MAX_TURNS:-150}"
 export ANTHROPIC_BASE_URL="https://api.deepseek.com/anthropic"
 export ANTHROPIC_AUTH_TOKEN="$DEEPSEEK_API_KEY"
 export ANTHROPIC_MODEL="deepseek-v4-pro[1m]"
@@ -40,6 +41,7 @@ if debug_enabled; then
   echo "ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL"
   echo "ANTHROPIC_MODEL=$ANTHROPIC_MODEL"
   echo "CLAUDE_CODE_EFFORT_LEVEL=$CLAUDE_CODE_EFFORT_LEVEL"
+  echo "AGENT_MAX_TURNS=$MAX_TURNS"
   echo "Claude Code version:"
   claude --version || true
 
@@ -89,7 +91,7 @@ When a spec requires a validation script or acceptance command,
 implement it early and use it as the completion gate.
 
 Hard constraints:
-- Do not modify anything under .sdd/, .skills/, .context/,
+- Do not modify anything under .sdd/, .skills/, .context/, .scripts/,
   .workflow-agents/, .forgejo/, or .husky/. Those are inputs and
   infrastructure, not agent output.
 - Do not run any git commands. Do not commit, push, fetch, or modify
@@ -103,10 +105,16 @@ CLAUDE_OUTPUT_ARGS=(--output-format text)
 if debug_enabled; then
   CLAUDE_OUTPUT_ARGS=(--output-format stream-json --verbose)
 fi
+if [ -n "${AGENT_OUTPUT_FORMAT:-}" ]; then
+  CLAUDE_OUTPUT_ARGS=(--output-format "$AGENT_OUTPUT_FORMAT")
+  if [ "$AGENT_OUTPUT_FORMAT" = "stream-json" ]; then
+    CLAUDE_OUTPUT_ARGS+=(--verbose)
+  fi
+fi
 
 exec claude \
   -p "$PROMPT" \
   --model "deepseek-v4-pro[1m]" \
-  --max-turns 150 \
+  --max-turns "$MAX_TURNS" \
   "${CLAUDE_OUTPUT_ARGS[@]}" \
   --dangerously-skip-permissions

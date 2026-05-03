@@ -48,6 +48,55 @@ Agents are normally run through the Forgejo workflow [`workflow-agents.yml`](.fo
 
 The workflow builds the selected agent container, streams the repo into it, lets the agent generate files, then commits the result to `ai/<AGENT>-<SPEC>-<run_id>` and opens a PR against `main`. Available agents are listed in [`AGENTS.md`](AGENTS.md#workflow-agents).
 
+### Local agent runs
+
+For day-to-day development, run an agent locally against your current checkout:
+
+```bash
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh vibe homepage
+```
+
+The runner builds `.workflow-agents/<AGENT>/`, mounts the current repo into the container, and leaves generated files directly on your current branch. It does not commit, push, or open a PR; create or switch branches yourself before running it when you want that isolation.
+
+Local runs stream the agent's step-by-step output live and save the raw stream to `agent-output.log`. By default the runner uses Vibe's `streaming` output and Claude Code's `stream-json --verbose` output. Override this only when you want quieter logs:
+
+```bash
+AGENT_OUTPUT_FORMAT=text .scripts/run-agent-local.sh vibe homepage
+```
+
+Set the provider key for the agent you are testing:
+
+```bash
+export MISTRAL_API_KEY="..."
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh vibe homepage
+
+export ANTHROPIC_API_KEY="..."
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh claude homepage
+
+export DEEPSEEK_API_KEY="..."
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh deepseek homepage
+```
+
+Use a low turn cap first to catch prompt/spec mistakes cheaply. If the agent reads the right files and starts correctly, rerun with the normal cap:
+
+```bash
+AGENT_DEBUG=true AGENT_MAX_TURNS=150 .scripts/run-agent-local.sh vibe homepage
+```
+
+For a disposable smoke test that does not mutate your current checkout, pass `--tmp`:
+
+```bash
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh --tmp vibe homepage
+```
+
+Tmp runs copy the current repo to `.tmp/agent-runs/<AGENT>-<SPEC>-<timestamp>/`, run the agent there, and leave the output for review. Inspect the full tmp diff with:
+
+```bash
+git diff --no-index \
+  .tmp/agent-runs/<AGENT>-<SPEC>-<timestamp>.baseline \
+  .tmp/agent-runs/<AGENT>-<SPEC>-<timestamp>
+```
+
 ## Git hooks
 
 Pre-commit hooks are managed by [husky](https://typicode.github.io/husky) + [lint-staged](https://github.com/lint-staged/lint-staged), with helpers under [`.husky/lib/`](.husky/lib/):

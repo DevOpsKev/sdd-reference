@@ -37,7 +37,7 @@ All API keys are passed in unconditionally; each agent's entrypoint reads only t
 
 ### `vibe`
 
-[`.workflow-agents/vibe/run-vibe.sh`](.workflow-agents/vibe/run-vibe.sh) reads `SPEC` and `MISTRAL_API_KEY` and runs `vibe -p <prompt> --agent auto-approve --trust --max-turns 150 --max-price 5`. The prompt forbids the agent from touching `.sdd/`, `.skills/`, `.context/`, `.workflow-agents/`, `.forgejo/`, or `.husky/`, and from running any git commands — the workflow owns version control. `--max-turns` and `--max-price` are belt-and-braces caps so a runaway agent can't burn through tokens unbounded; `--trust` lets Vibe honour `AGENTS.md` (otherwise it skips reading it as a prompt-injection precaution).
+[`.workflow-agents/vibe/run-vibe.sh`](.workflow-agents/vibe/run-vibe.sh) reads `SPEC` and `MISTRAL_API_KEY` and runs `vibe -p <prompt> --agent auto-approve --trust --max-turns 150 --max-price 5`. The prompt forbids the agent from touching `.sdd/`, `.skills/`, `.context/`, `.scripts/`, `.workflow-agents/`, `.forgejo/`, or `.husky/`, and from running any git commands — the workflow owns version control. `--max-turns` and `--max-price` are belt-and-braces caps so a runaway agent can't burn through tokens unbounded; `--trust` lets Vibe honour `AGENTS.md` (otherwise it skips reading it as a prompt-injection precaution).
 
 The active model is pinned in [`.workflow-agents/vibe/config.toml`](.workflow-agents/vibe/config.toml) (`active_model = "devstral-2"`), baked into the image at `/root/.vibe/config.toml`. This freezes model selection across Vibe CLI upgrades — bump the alias there if a future Vibe version retires `devstral-2`.
 
@@ -60,6 +60,8 @@ The primary model is pinned to `deepseek-v4-pro[1m]`, matching DeepSeek's Claude
 The pipeline is defined in [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) using Forgejo Actions' `workflow_dispatch.inputs` feature, which exposes `AGENT` and `SPEC` as dropdown choices in the web UI. On a successful run it commits generated files to `ai/<AGENT>-<SPEC>-<run_id>` and opens a pull request against `main` via the Forgejo (Gitea-compatible) API.
 
 Set the workflow's `DEBUG` input to `true` to pass `AGENT_DEBUG=true` into the container. Debug mode prints safe container diagnostics, runner startup context, and verbose Claude Code streams for Claude Code-based agents without exposing provider API keys.
+
+For local prompt/spec runs, use [`.scripts/run-agent-local.sh`](.scripts/run-agent-local.sh). It builds the selected agent image, runs it against the current checkout by default, streams step-by-step output live, and leaves generated files on the current branch without committing, pushing, or opening a PR. Pass `--tmp` to copy the current repo to `.tmp/agent-runs/<AGENT>-<SPEC>-<timestamp>/` for a disposable smoke test. Set `AGENT_MAX_TURNS=20` for cheap early checks and raise it only once the spec/prompt path looks correct.
 
 Required repo-scoped secrets:
 
@@ -89,7 +91,7 @@ Specs may include sibling files such as `copy.yaml`, fixtures, schemas, or examp
 
 A skill is a reusable bundle of guidance that tells an agent *how* to do a kind of work well, distinct from a spec which tells it *what* to build. Skills live at `.skills/<name>/SKILL.md` and follow the [Anthropic Skills](https://www.anthropic.com/news/skills) convention (YAML frontmatter with `name` + `description`, then a markdown body). See [`.skills/README.md`](.skills/README.md) for the full convention.
 
-Workflow agents pick up `.skills/` automatically: `.workflow-agents/<agent>/run-*.sh` prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code. `.skills/` is in the no-modify list alongside `.sdd/` and `.context/`.
+Workflow agents pick up `.skills/` automatically: `.workflow-agents/<agent>/run-*.sh` prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code. `.skills/` is in the no-modify list alongside `.sdd/`, `.context/`, and `.scripts/`.
 
 To add a skill: create `.skills/<name>/SKILL.md` with valid frontmatter and a body. No further wiring is needed — workflow agents pick it up on the next run.
 
@@ -137,6 +139,7 @@ These apply to both human contributors and AI coding assistants working in this 
 - Treat `.sdd/` as read-only — specs are inputs, not outputs
 - Treat `.skills/` as read-only — skills are inputs (how to work), not outputs
 - Treat `.context/` as read-only — context is background input, not generated output
+- Treat `.scripts/` as read-only — local maintainer tooling, not generated output
 - Generated files belong at the repo root (or wherever the spec directs)
 - Never commit API keys or CI secrets to tracked files
 - Keep workflow-agent runtimes in `.workflow-agents/<agent>/`, one subdirectory per agent

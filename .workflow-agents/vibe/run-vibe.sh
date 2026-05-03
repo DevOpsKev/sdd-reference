@@ -18,6 +18,12 @@ debug_enabled() {
   [ "${AGENT_DEBUG:-false}" = "true" ] || [ "${AGENT_DEBUG:-false}" = "1" ]
 }
 
+MAX_TURNS="${AGENT_MAX_TURNS:-150}"
+OUTPUT_FORMAT="${AGENT_OUTPUT_FORMAT:-text}"
+if debug_enabled && [ -z "${AGENT_OUTPUT_FORMAT:-}" ]; then
+  OUTPUT_FORMAT="streaming"
+fi
+
 SPEC_PATH=".sdd/specifications/${SPEC}/spec.md"
 if [ ! -f "$SPEC_PATH" ]; then
   echo "Spec not found at: $SPEC_PATH" >&2
@@ -28,6 +34,8 @@ if debug_enabled; then
   echo "Starting Vibe workflow agent"
   echo "SPEC=$SPEC"
   echo "SPEC_PATH=$SPEC_PATH"
+  echo "AGENT_MAX_TURNS=$MAX_TURNS"
+  echo "AGENT_OUTPUT_FORMAT=$OUTPUT_FORMAT"
   echo "Vibe version:"
   vibe --version || true
   echo "Vibe config:"
@@ -103,7 +111,7 @@ When a spec requires a validation script or acceptance command,
 implement it early and use it as the completion gate.
 
 Hard constraints:
-- Do not modify anything under .sdd/, .skills/, .context/,
+- Do not modify anything under .sdd/, .skills/, .context/, .scripts/,
   .workflow-agents/, .forgejo/, or .husky/. Those are inputs and
   infrastructure, not agent output.
 - Do not run any git commands. Do not commit, push, fetch, or modify
@@ -116,7 +124,7 @@ EOF
 exec vibe \
   --agent auto-approve \
   --trust \
-  --max-turns 150 \
+  --max-turns "$MAX_TURNS" \
   --max-price 5 \
-  --output text \
+  --output "$OUTPUT_FORMAT" \
   -p "$PROMPT"
