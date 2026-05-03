@@ -64,17 +64,39 @@ jobs:
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
         run: |
           set -e
-          # --user aligns container UID/GID with the host so files
-          # written into the bind-mounted workspace are owned by the
-          # runner user, not root. Without this the subsequent git
-          # steps hit permission / "dubious ownership" errors.
-          docker run --rm \
-            --user "$(id -u):$(id -g)" \
-            --volume "$PWD:/work" \
-            --workdir /work \
+          # We can't bind-mount $PWD into the agent container: this job
+          # runs inside the catthehacker container, but `docker run`
+          # talks to the *host's* daemon via the mounted socket - and
+          # the host doesn't know about paths that exist only inside
+          # the runner container. Bind mounts silently create empty
+          # dirs on the host and the agent sees nothing.
+          #
+          # Instead: create the container, stream the workspace in via
+          # `docker cp` (no path translation needed - data flows over
+          # the docker API), run the agent, copy the result back, drop
+          # the container.
+          CONTAINER="vibe-run-${GITHUB_RUN_ID}"
+          docker create \
+            --name "$CONTAINER" \
             --env MISTRAL_API_KEY \
             --env SPEC \
             "${AGENT}-agent:local"
+          # shellcheck disable=SC2064
+          trap "docker rm -f '$CONTAINER' >/dev/null 2>&1 || true" EXIT
+
+          tar -C "$PWD" \
+              --exclude='./.git' \
+              --exclude='./node_modules' \
+              --exclude='./.venv' \
+              -cf - . \
+            | docker cp - "$CONTAINER:/work"
+
+          docker start --attach "$CONTAINER"
+
+          # Stream the (possibly modified) workspace back out. docker
+          # cp will overwrite existing files with identical content
+          # (no-op for git) and add any new files the agent created.
+          docker cp "$CONTAINER:/work/." "$PWD/"
 
       - name: Configure git identity
         run: |
