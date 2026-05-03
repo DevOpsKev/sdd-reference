@@ -26,8 +26,9 @@ env:
 
 jobs:
   publish:
+    # Run directly on the runner host (not inside a job container) so we can
+    # talk to the host's Docker daemon for `docker build` / `docker push`.
     runs-on: ubuntu-latest
-    container: ghcr.io/catthehacker/ubuntu:act-22.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
