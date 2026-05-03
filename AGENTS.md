@@ -33,6 +33,22 @@ The runner ([`.agents/run.py`](.agents/run.py)) wires everything together: it re
 
 The registry is in [`.agents/registry.py`](.agents/registry.py).
 
+## Containerized agents
+
+Some agents don't fit the `Agent.generate(spec) -> dict` contract because they run as autonomous CLI loops that mutate the workspace in place rather than returning a JSON file map. These live in their own track: a Dockerfile under `containers/`, a thin entrypoint script, and a parallel workflow at [`.forgejo/workflows/containerized-agents.yml`](.forgejo/workflows/containerized-agents.yml).
+
+| Agent key | Source                                                                            | Tool         | Required env var  |
+| --------- | --------------------------------------------------------------------------------- | ------------ | ----------------- |
+| `vibe`    | [`containers/mistral-vibe/`](containers/mistral-vibe/)                            | [Mistral Vibe](https://github.com/mistralai/mistral-vibe) | `MISTRAL_API_KEY` (Codestral key) |
+
+The image is built fresh in the workflow and never pushed to a registry, so this flow has no dependency on the Forgejo container registry. The workflow:
+
+1. `docker build`s `containers/mistral-<AGENT>/`
+2. `docker run`s it with the workspace bind-mounted at `/work` and `--user $(id -u):$(id -g)` so generated files are owned by the runner user
+3. Commits whatever files the agent produced to `ai/<AGENT>-<SPEC>-<run_id>` and opens a PR against `main` — same post-generation pattern as `agents.yml`
+
+The container's [`run-vibe.sh`](containers/mistral-vibe/run-vibe.sh) entrypoint reads `SPEC` and `MISTRAL_API_KEY` from the environment, locates the spec under `.sdd/specifications/`, and pipes a constrained prompt into `vibe --agent auto-approve --no-tty`. The prompt forbids the agent from touching `.sdd/`, `.agents/`, `.forgejo/`, `.husky/`, or `containers/`, and from running any git commands — the workflow owns version control.
+
 ## Running locally
 
 ```bash
@@ -43,27 +59,18 @@ Both `AGENT` and `SPEC` are required. The runner will exit with a clear error if
 
 ## CI (Forgejo)
 
-The pipeline is defined in [`.forgejo/workflows/agents.yml`](.forgejo/workflows/agents.yml) using Forgejo Actions' `workflow_dispatch.inputs` feature, which exposes `AGENT` and `SPEC` as dropdown choices when triggering the workflow manually from the web UI.
+Two workflows live under [`.forgejo/workflows/`](.forgejo/workflows/), both using Forgejo Actions' `workflow_dispatch.inputs` feature to expose `AGENT` and `SPEC` as dropdown choices in the web UI:
 
-On a successful run it:
+- [`agents.yml`](.forgejo/workflows/agents.yml) — runs the one-shot Python agents (`anthropic`, `mistral`) via `.agents/run.py`
+- [`containerized-agents.yml`](.forgejo/workflows/containerized-agents.yml) — builds and runs the agentic CLI agents (`vibe`) in a fresh container
 
-1. Commits the generated files to a new branch `ai/<AGENT>-<SPEC>-<run_id>`
-2. Opens a pull request against `main` automatically via the Forgejo (Gitea-compatible) API
+Both follow the same post-generation pattern: commit the generated files to a new branch `ai/<AGENT>-<SPEC>-<run_id>` and open a pull request against `main` via the Forgejo (Gitea-compatible) API.
 
-It expects three repo-scoped secrets: `FORGEJO_PUSH_TOKEN` (a PAT with `write:repository` and `write:package`, used for the branch push, the `pulls` API call, and pushes to the container registry) plus `ANTHROPIC_API_KEY` and `MISTRAL_API_KEY` for the agents themselves.
+Required repo-scoped secrets:
 
-## Container images
-
-Two images live under [`containers/`](containers/) and are published to the Forgejo container registry:
-
-| Image                                                                              | Source                                                                | Purpose                                                  |
-| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------- |
-| `git.kevinryan.io/kevin-ryan-associates-public/sdd-reference/basecontainer:<tag>`  | [`containers/basecontainer/Dockerfile`](containers/basecontainer/Dockerfile) | Lean CI/CD toolchain: Python 3.12, Node 20, gitleaks, ruff, pyyaml. Runs as root. |
-| `git.kevinryan.io/kevin-ryan-associates-public/sdd-reference/devcontainer:<tag>`   | [`containers/devcontainer/Dockerfile`](containers/devcontainer/Dockerfile)   | `FROM basecontainer`, adds the non-root `vscode` user with passwordless sudo, zsh, and the [starship](https://starship.rs) prompt. Consumed by [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json). |
-
-Both images are published with two tags: `latest` and the seven-character commit sha. Builds happen in [`.forgejo/workflows/containers.yml`](.forgejo/workflows/containers.yml), triggered on push to `main` when anything under `containers/`, the requirements files, or the workflow itself changes (also runnable manually via `workflow_dispatch`). The devcontainer build pins `BASE_IMAGE` to the sha tag of the basecontainer just produced in the same job, so a single workflow run can bootstrap both images from scratch.
-
-amd64 only for now. Multi-arch builds are out of scope.
+- `FORGEJO_PUSH_TOKEN` — PAT with `write:repository`, used for the branch push and the `pulls` API call
+- `ANTHROPIC_API_KEY` — for the `anthropic` agent
+- `MISTRAL_API_KEY` — for the `mistral` and `vibe` agents (the same Codestral key works for both)
 
 ## Adding a new agent
 
@@ -101,7 +108,7 @@ pnpm install
 
 `pnpm install` runs husky's `prepare` script, which points `core.hooksPath` at `.husky/`. The pinned pnpm version lives in the `packageManager` field of `package.json`; corepack takes care of fetching it.
 
-The devcontainer ships with Node 20 LTS, where corepack is still bundled, and runs both steps automatically via `postCreateCommand`. If you're working outside the devcontainer on Node 25+ (corepack is no longer bundled there), install it once with `npm install -g corepack` before the steps above.
+On Node 20–24 corepack is bundled, so `corepack enable` works out of the box. On Node 25+ corepack is no longer bundled — install it once with `npm install -g corepack` before the steps above.
 
 External tooling the hooks expect on `PATH`:
 
@@ -109,7 +116,7 @@ External tooling the hooks expect on `PATH`:
 - `python3` with `pyyaml` — YAML validation
 - `gitleaks` — secret scanning (`brew install gitleaks` or download a release)
 
-`ruff` and `pyyaml` are pinned in [`requirements-dev.txt`](requirements-dev.txt); install them with `pip install -r requirements-dev.txt` (the devcontainer does this automatically).
+`ruff` and `pyyaml` are pinned in [`requirements-dev.txt`](requirements-dev.txt); install them with `pip install -r requirements-dev.txt`.
 
 Bypass hooks for a single commit only when truly necessary: `git commit --no-verify`.
 
