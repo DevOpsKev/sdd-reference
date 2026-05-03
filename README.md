@@ -91,6 +91,18 @@ The workflow runs the selected agent against the branch, performs the configured
 
 The PR should contain the generated implementation produced from the spec branch. The spec remains the source of truth; local runs are the feedback loop, and CI/CD is the repeatable execution path.
 
+10. Abandon bad experiments cheaply.
+
+If the idea turns out to be wrong, delete the spec branch instead of carrying a half-integrated implementation forward. Because the spec and generated output live off `main`, the cleanup is just normal branch cleanup:
+
+```bash
+git switch main
+git branch -D spec/<spec-name>
+git push origin --delete spec/<spec-name> # only if the branch was pushed
+```
+
+`main` stays clean, and the failed idea leaves no architectural scar tissue.
+
 ## Local Usage
 
 Install the lightweight project tooling once:
