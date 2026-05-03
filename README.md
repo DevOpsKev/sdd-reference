@@ -109,6 +109,8 @@ SDD is also a structured learning workflow for junior engineers.
 
 Rather than using an LLM as a code vending machine, junior engineers should use it as a tutor and reviewer while writing specs. The goal is to learn how to express intent, constraints, risks, and acceptance criteria clearly enough that an agent can execute the work repeatably.
 
+> The fastest way to learn is often to argue with a very patient machine about requirements, edge cases, trade-offs, and why its first answer is wrong. That loop forces clarity. It’s just engineering prac
+
 Useful questions to ask the LLM while writing or refining a spec:
 
 - What is ambiguous in this requirement?
