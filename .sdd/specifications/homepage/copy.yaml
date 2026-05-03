@@ -1,0 +1,116 @@
+# Tech Sovereignty Radar — Homepage copy
+#
+# Source of truth for every word on the homepage. The build loads from this
+# file; agents must not generate or paraphrase prose at build time. Edit here,
+# rebuild.
+#
+# IDs in this file are referenced from spec.md (the sibling specification).
+# Do not rename without updating both files.
+
+meta:
+  version: "0.1"
+  last_updated: "2026-05-03"
+  locale: "en-GB"
+
+sections:
+
+  # ─── 1. Hero ────────────────────────────────────────────────────────────
+  hero:
+    eyebrow: "EUROPEAN TECHNOLOGY ASSESSMENT · v0.1"
+    heading: "Tech Sovereignty Radar"
+    value_prop: >-
+      A periodic, opinionated radar for European technology leaders making
+      sovereignty-aware decisions about what to adopt, trial, assess, or
+      divest from.
+    primary_cta:
+      label: "Explore the radar"
+      href: "/radar"
+    secondary_link:
+      label: "What's in v0.1"
+      href: "#preview"
+
+  # ─── 2. Why this is different ──────────────────────────────────────────
+  why_different:
+    eyebrow: "WHY THIS IS DIFFERENT"
+    heading: "Sovereignty is not maturity."
+    body:
+      - >-
+        Most technology radars ask whether a technology is mature, proven,
+        or ready. That is a useful question. It is not the question European
+        technology leaders need answered when the CLOUD Act sits across the
+        Atlantic, when the exit cost of a managed service compounds yearly,
+        and when a regulatory or geopolitical shift can revalue an entire
+        dependency overnight.
+      - >-
+        A technology can be technically excellent and still belong in Divest.
+        Sovereignty assessment weighs jurisdiction, ownership, exit cost,
+        standards posture, and supply-chain exposure — and asks whether a
+        five-year dependency is defensible. The radar's placements reflect
+        that judgement, not technical merit alone.
+
+  # ─── 3. Rings ───────────────────────────────────────────────────────────
+  rings:
+    eyebrow: "RINGS · WHAT TO DO"
+    heading: "Four rings. One question: what do you do on Monday?"
+    items:
+      - id: "adopt"
+        index: "01"
+        name: "Adopt"
+        description: "Sovereignty-safe. Recommended for new and existing systems."
+      - id: "trial"
+        index: "02"
+        name: "Trial"
+        description: "Credible. Worth piloting in a non-critical context."
+      - id: "assess"
+        index: "03"
+        name: "Assess"
+        description: "Watch and learn. Not yet ready, or signal is mixed."
+      - id: "divest"
+        index: "04"
+        name: "Divest"
+        description: "If you depend on this, plan and budget an exit."
+
+  # ─── 4. Quadrants ──────────────────────────────────────────────────────
+  quadrants:
+    eyebrow: "QUADRANTS · WHERE IT LIVES"
+    heading: "The stack, divided four ways."
+    items:
+      - id: "infra-compute"
+        index: "01"
+        name: "Infrastructure & Compute"
+        description: "Cloud, hosting, CDN, edge. Where workloads run and data lives at rest."
+      - id: "data-identity"
+        index: "02"
+        name: "Data & Identity"
+        description: "Databases, authentication, analytics, AI/ML services. The systems that hold and reason about your data."
+      - id: "developer-toolchain"
+        index: "03"
+        name: "Developer Toolchain"
+        description: "Source hosting, CI/CD, observability, package registries. The pipeline that ships software."
+      - id: "standards-protocols"
+        index: "04"
+        name: "Standards & Protocols"
+        description: "Open standards and interop layers that reduce future lock-in."
+
+  # ─── 5. Preview ────────────────────────────────────────────────────────
+  preview:
+    eyebrow: "PREVIEW · v0.1 SAMPLE"
+    heading: "A first look."
+    body: >-
+      This is a sketch of the radar's visual structure. The placements below
+      are illustrative only — they exist to convey the format, not editorial
+      assessments. Real placements arrive with v1.0, on a published cadence,
+      with rationale and dates attached.
+
+  # ─── 6. Closing ────────────────────────────────────────────────────────
+  closing:
+    body: "Stack decisions made on a published cadence — defensible to a regulator, a board, or a successor."
+    cta:
+      label: "Explore the radar"
+      href: "/radar"
+
+  # ─── 7. Footer ─────────────────────────────────────────────────────────
+  footer:
+    left: "Tech Sovereignty Radar v0.1"
+    center: "Last updated 3 May 2026"
+    right: "CC BY-SA 4.0"
