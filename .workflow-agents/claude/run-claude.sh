@@ -69,6 +69,6 @@ fi
 exec claude \
   -p "$PROMPT" \
   --model claude-sonnet-4-5 \
-  --max-turns 50 \
+  --max-turns 150 \
   "${CLAUDE_OUTPUT_ARGS[@]}" \
   --dangerously-skip-permissions

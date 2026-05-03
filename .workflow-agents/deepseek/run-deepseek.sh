@@ -100,6 +100,6 @@ fi
 exec claude \
   -p "$PROMPT" \
   --model "deepseek-v4-pro[1m]" \
-  --max-turns 50 \
+  --max-turns 150 \
   "${CLAUDE_OUTPUT_ARGS[@]}" \
   --dangerously-skip-permissions
