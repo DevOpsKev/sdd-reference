@@ -2,8 +2,8 @@
 #
 # Anthropic Claude Code coding agent, packaged for one-shot use in CI.
 #
-# Same pattern as .container-agents/vibe/: built fresh each workflow
-# run by .forgejo/workflows/container-agents.yml, never pushed to a
+# Same pattern as .workflow-agents/vibe/: built fresh each workflow
+# run by .forgejo/workflows/workflow-agents.yml, never pushed to a
 # registry. The workflow streams the workspace in via `docker cp`,
 # runs the agent, and streams results back out.
 

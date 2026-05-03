@@ -1,6 +1,6 @@
 # sdd-reference
 
-Reference implementation for the KRA Spec-Driven Development (SDD) methodology. Specs live under `.sdd/specifications/` and reusable agent guidance lives under `.skills/`; containerized agentic-CLI agents in `.container-agents/` consume both and emit code. See [`AGENTS.md`](AGENTS.md) for the architecture and contribution rules, and [`.skills/README.md`](.skills/README.md) for the skill convention.
+Reference implementation for the KRA Spec-Driven Development (SDD) methodology. Specs live under `.sdd/specifications/` and reusable agent guidance lives under `.skills/`; workflow agents in `.workflow-agents/` consume both and emit code. See [`AGENTS.md`](AGENTS.md) for the architecture and contribution rules, and [`.skills/README.md`](.skills/README.md) for the skill convention.
 
 ## Getting started
 
@@ -39,12 +39,12 @@ To run an agent you'll also need an API key for whichever provider it talks to:
 
 ## Running an agent
 
-Agents are normally run through the Forgejo workflow [`container-agents.yml`](.forgejo/workflows/container-agents.yml). Trigger it manually with:
+Agents are normally run through the Forgejo workflow [`workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml). Trigger it manually with:
 
 - `AGENT` — `vibe` or `claude`
 - `SPEC` — a directory under `.sdd/specifications/` such as `helloworld`
 
-The workflow builds the selected agent container, streams the repo into it, lets the agent generate files, then commits the result to `ai/<AGENT>-<SPEC>-<run_id>` and opens a PR against `main`. Available agents are listed in [`AGENTS.md`](AGENTS.md#containerized-agents).
+The workflow builds the selected agent container, streams the repo into it, lets the agent generate files, then commits the result to `ai/<AGENT>-<SPEC>-<run_id>` and opens a PR against `main`. Available agents are listed in [`AGENTS.md`](AGENTS.md#workflow-agents).
 
 ## Git hooks
 

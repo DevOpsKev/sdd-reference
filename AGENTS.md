@@ -4,13 +4,13 @@ This repo is a reference implementation of **Spec Driven Development (SDD)**. Sp
 
 ## How agents work
 
-Each agent is a containerized CLI runtime under `.container-agents/<AGENT>/`. The shared Forgejo workflow [`.forgejo/workflows/container-agents.yml`](.forgejo/workflows/container-agents.yml) builds the selected agent image fresh, streams the repository into `/work`, runs the agent against a spec, streams the changed workspace back out, then commits the result to a PR branch.
+Each agent is a workflow-managed CLI runtime under `.workflow-agents/<AGENT>/`. The shared Forgejo workflow [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) builds the selected agent image fresh, streams the repository into `/work`, runs the agent against a spec, streams the changed workspace back out, then commits the result to a PR branch.
 
 ```
 .sdd/specifications/<SPEC>/spec.md      .skills/*/SKILL.md
         │                                       │
         ▼                                       ▼
-              .container-agents/<AGENT>/
+              .workflow-agents/<AGENT>/
                         │
                         ▼
               Agent CLI mutates /work
@@ -19,16 +19,16 @@ Each agent is a containerized CLI runtime under `.container-agents/<AGENT>/`. Th
               Files written to repo root
 ```
 
-## Containerized agents
+## Workflow agents
 
 | Agent key | Source                                                      | Tool                                                                              | Required env var    |
 | --------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------- |
-| `vibe`    | [`.container-agents/vibe/`](.container-agents/vibe/)       | [Mistral Vibe](https://github.com/mistralai/mistral-vibe)                        | `MISTRAL_API_KEY` (Codestral key) |
-| `claude`  | [`.container-agents/claude/`](.container-agents/claude/)   | [Anthropic Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) | `ANTHROPIC_API_KEY` |
+| `vibe`    | [`.workflow-agents/vibe/`](.workflow-agents/vibe/)       | [Mistral Vibe](https://github.com/mistralai/mistral-vibe)                        | `MISTRAL_API_KEY` (Codestral key) |
+| `claude`  | [`.workflow-agents/claude/`](.workflow-agents/claude/)   | [Anthropic Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) | `ANTHROPIC_API_KEY` |
 
 Each image is built fresh in the workflow and never pushed to a registry, so this flow has no dependency on the Forgejo container registry. The workflow:
 
-1. `docker build`s `.container-agents/<AGENT>/` into an ephemeral local image
+1. `docker build`s `.workflow-agents/<AGENT>/` into an ephemeral local image
 2. `docker create`s a container, streams the workspace in via `docker cp` (a tar pipe — bind mounts don't work because the runner is itself in a container talking to the host's docker daemon), runs the agent, then streams the result back out
 3. Commits whatever files the agent produced to `ai/<AGENT>-<SPEC>-<run_id>` and opens a PR against `main`
 
@@ -36,13 +36,13 @@ Both API keys are passed in unconditionally; each agent's entrypoint reads only 
 
 ### `vibe`
 
-[`.container-agents/vibe/run-vibe.sh`](.container-agents/vibe/run-vibe.sh) reads `SPEC` and `MISTRAL_API_KEY` and runs `vibe -p <prompt> --agent auto-approve --trust --max-turns 50 --max-price 5`. The prompt forbids the agent from touching `.sdd/`, `.skills/`, `.container-agents/`, `.forgejo/`, or `.husky/`, and from running any git commands — the workflow owns version control. `--max-turns` and `--max-price` are belt-and-braces caps so a runaway agent can't burn through tokens unbounded; `--trust` lets Vibe honour `AGENTS.md` (otherwise it skips reading it as a prompt-injection precaution).
+[`.workflow-agents/vibe/run-vibe.sh`](.workflow-agents/vibe/run-vibe.sh) reads `SPEC` and `MISTRAL_API_KEY` and runs `vibe -p <prompt> --agent auto-approve --trust --max-turns 50 --max-price 5`. The prompt forbids the agent from touching `.sdd/`, `.skills/`, `.workflow-agents/`, `.forgejo/`, or `.husky/`, and from running any git commands — the workflow owns version control. `--max-turns` and `--max-price` are belt-and-braces caps so a runaway agent can't burn through tokens unbounded; `--trust` lets Vibe honour `AGENTS.md` (otherwise it skips reading it as a prompt-injection precaution).
 
-The active model is pinned in [`.container-agents/vibe/config.toml`](.container-agents/vibe/config.toml) (`active_model = "devstral-2"`), baked into the image at `/root/.vibe/config.toml`. This freezes model selection across Vibe CLI upgrades — bump the alias there if a future Vibe version retires `devstral-2`.
+The active model is pinned in [`.workflow-agents/vibe/config.toml`](.workflow-agents/vibe/config.toml) (`active_model = "devstral-2"`), baked into the image at `/root/.vibe/config.toml`. This freezes model selection across Vibe CLI upgrades — bump the alias there if a future Vibe version retires `devstral-2`.
 
 ### `claude`
 
-[`.container-agents/claude/run-claude.sh`](.container-agents/claude/run-claude.sh) reads `SPEC` and `ANTHROPIC_API_KEY` and runs `claude -p <prompt> --model claude-sonnet-4-5 --max-turns 50 --output-format text --dangerously-skip-permissions`. Same prompt and constraints as `vibe`. `--dangerously-skip-permissions` is Claude Code's auto-approve equivalent (analogous to Vibe's `--trust` plus `--agent auto-approve`); the alarmist name is by design but the trade-off is acceptable inside an ephemeral container with a constrained prompt and a hard turn cap.
+[`.workflow-agents/claude/run-claude.sh`](.workflow-agents/claude/run-claude.sh) reads `SPEC` and `ANTHROPIC_API_KEY` and runs `claude -p <prompt> --model claude-sonnet-4-5 --max-turns 50 --output-format text --dangerously-skip-permissions`. Same prompt and constraints as `vibe`. `--dangerously-skip-permissions` is Claude Code's auto-approve equivalent (analogous to Vibe's `--trust` plus `--agent auto-approve`); the alarmist name is by design but the trade-off is acceptable inside an ephemeral container with a constrained prompt and a hard turn cap.
 
 Claude Code has no built-in cost ceiling like Vibe's `--max-price`, so `--max-turns` is the only in-CLI cap. If runaway cost is a concern, set org-level limits in the Anthropic console.
 
@@ -50,7 +50,7 @@ The model is pinned via the `--model` flag rather than a config file because Cla
 
 ## CI (Forgejo)
 
-The pipeline is defined in [`.forgejo/workflows/container-agents.yml`](.forgejo/workflows/container-agents.yml) using Forgejo Actions' `workflow_dispatch.inputs` feature, which exposes `AGENT` and `SPEC` as dropdown choices in the web UI. On a successful run it commits generated files to `ai/<AGENT>-<SPEC>-<run_id>` and opens a pull request against `main` via the Forgejo (Gitea-compatible) API.
+The pipeline is defined in [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) using Forgejo Actions' `workflow_dispatch.inputs` feature, which exposes `AGENT` and `SPEC` as dropdown choices in the web UI. On a successful run it commits generated files to `ai/<AGENT>-<SPEC>-<run_id>` and opens a pull request against `main` via the Forgejo (Gitea-compatible) API.
 
 Required repo-scoped secrets:
 
@@ -60,9 +60,9 @@ Required repo-scoped secrets:
 
 ## Adding a new agent
 
-1. Create `.container-agents/<name>/Dockerfile`.
+1. Create `.workflow-agents/<name>/Dockerfile`.
 2. Add an executable entrypoint script (for example `run-<name>.sh`) that reads `SPEC` and the provider API key from the environment, loads `.sdd/specifications/<SPEC>/spec.md`, reads relevant `.skills/` guidance, and mutates `/work` in place.
-3. Add the key to `on.workflow_dispatch.inputs.AGENT.options` in [`.forgejo/workflows/container-agents.yml`](.forgejo/workflows/container-agents.yml).
+3. Add the key to `on.workflow_dispatch.inputs.AGENT.options` in [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml).
 
 ## Writing a spec
 
@@ -77,9 +77,9 @@ Specs live at `.sdd/specifications/<name>/spec.md`. Follow the structure used in
 
 A skill is a reusable bundle of guidance that tells an agent *how* to do a kind of work well, distinct from a spec which tells it *what* to build. Skills live at `.skills/<name>/SKILL.md` and follow the [Anthropic Skills](https://www.anthropic.com/news/skills) convention (YAML frontmatter with `name` + `description`, then a markdown body). See [`.skills/README.md`](.skills/README.md) for the full convention.
 
-Container agents pick up `.skills/` automatically: `.container-agents/<agent>/run-*.sh` prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code. `.skills/` is in the no-modify list alongside `.sdd/`.
+Workflow agents pick up `.skills/` automatically: `.workflow-agents/<agent>/run-*.sh` prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code. `.skills/` is in the no-modify list alongside `.sdd/`.
 
-To add a skill: create `.skills/<name>/SKILL.md` with valid frontmatter and a body. No further wiring is needed — container agents pick it up on the next run.
+To add a skill: create `.skills/<name>/SKILL.md` with valid frontmatter and a body. No further wiring is needed — workflow agents pick it up on the next run.
 
 ## Git hooks
 
@@ -114,5 +114,5 @@ These apply to both human contributors and AI coding assistants working in this 
 - Treat `.skills/` as read-only — skills are inputs (how to work), not outputs
 - Generated files belong at the repo root (or wherever the spec directs)
 - Never commit API keys or CI secrets to tracked files
-- Keep containerized-agent runtimes in `.container-agents/<agent>/`, one subdirectory per agent
+- Keep workflow-agent runtimes in `.workflow-agents/<agent>/`, one subdirectory per agent
 - Keep git-hook logic in `.husky/` — `package.json` wires up husky and lint-staged, individual checks live as helpers under `.husky/lib/`

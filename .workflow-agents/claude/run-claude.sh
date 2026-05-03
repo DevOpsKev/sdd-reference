@@ -33,7 +33,7 @@ Generate exactly the files the spec describes, at the paths it specifies, and
 satisfy its acceptance criteria literally.
 
 Hard constraints:
-- Do not modify anything under .sdd/, .skills/, .container-agents/,
+- Do not modify anything under .sdd/, .skills/, .workflow-agents/,
   .forgejo/, or .husky/. Those are inputs and infrastructure, not
   agent output.
 - Do not run any git commands. Do not commit, push, fetch, or modify
