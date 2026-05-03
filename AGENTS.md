@@ -50,7 +50,20 @@ On a successful run it:
 1. Commits the generated files to a new branch `ai/<AGENT>-<SPEC>-<run_id>`
 2. Opens a pull request against `main` automatically via the Forgejo (Gitea-compatible) API
 
-It expects three repo-scoped secrets: `FORGEJO_PUSH_TOKEN` (a PAT with `write:repository`, used for both the push and the `pulls` API call) plus `ANTHROPIC_API_KEY` and `MISTRAL_API_KEY` for the agents themselves.
+It expects three repo-scoped secrets: `FORGEJO_PUSH_TOKEN` (a PAT with `write:repository` and `write:package`, used for the branch push, the `pulls` API call, and pushes to the container registry) plus `ANTHROPIC_API_KEY` and `MISTRAL_API_KEY` for the agents themselves.
+
+## Container images
+
+Two images live under [`containers/`](containers/) and are published to the Forgejo container registry:
+
+| Image                                                                              | Source                                                                | Purpose                                                  |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------- |
+| `git.kevinryan.io/kevin-ryan-associates-public/sdd-reference/basecontainer:<tag>`  | [`containers/basecontainer/Dockerfile`](containers/basecontainer/Dockerfile) | Lean CI/CD toolchain: Python 3.12, Node 20, gitleaks, ruff, pyyaml. Runs as root. |
+| `git.kevinryan.io/kevin-ryan-associates-public/sdd-reference/devcontainer:<tag>`   | [`containers/devcontainer/Dockerfile`](containers/devcontainer/Dockerfile)   | `FROM basecontainer`, adds the non-root `vscode` user with passwordless sudo, zsh, and the [starship](https://starship.rs) prompt. Consumed by [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json). |
+
+Both images are published with two tags: `latest` and the seven-character commit sha. Builds happen in [`.forgejo/workflows/containers.yml`](.forgejo/workflows/containers.yml), triggered on push to `main` when anything under `containers/`, the requirements files, or the workflow itself changes (also runnable manually via `workflow_dispatch`). The devcontainer build pins `BASE_IMAGE` to the sha tag of the basecontainer just produced in the same job, so a single workflow run can bootstrap both images from scratch.
+
+amd64 only for now. Multi-arch builds are out of scope.
 
 ## Adding a new agent
 

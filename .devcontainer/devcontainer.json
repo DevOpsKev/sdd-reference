@@ -1,8 +1,6 @@
 {
     "name": "sdd-reference",
-    "build": {
-      "dockerfile": "Dockerfile"
-    },
+    "image": "git.kevinryan.io/kevin-ryan-associates-public/sdd-reference/devcontainer:latest",
     "remoteUser": "vscode",
     "features": {
       "ghcr.io/devcontainers/features/docker-in-docker:2": {}
