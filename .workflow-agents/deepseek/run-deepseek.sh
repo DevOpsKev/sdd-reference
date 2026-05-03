@@ -29,6 +29,15 @@ if [ ! -f "$SPEC_PATH" ]; then
   exit 1
 fi
 
+echo "Starting DeepSeek workflow agent"
+echo "SPEC=$SPEC"
+echo "SPEC_PATH=$SPEC_PATH"
+echo "ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL"
+echo "ANTHROPIC_MODEL=$ANTHROPIC_MODEL"
+echo "CLAUDE_CODE_EFFORT_LEVEL=$CLAUDE_CODE_EFFORT_LEVEL"
+echo "Claude Code version:"
+claude --version || true
+
 PROMPT=$(cat <<EOF
 Read the spec at ${SPEC_PATH}.
 

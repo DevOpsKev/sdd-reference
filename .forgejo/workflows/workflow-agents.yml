@@ -82,6 +82,9 @@ jobs:
           # the docker API), run the agent, copy the result back, drop
           # the container.
           CONTAINER="${AGENT}-run-${GITHUB_RUN_ID}"
+
+          echo "::group::Create agent container"
+          date -u
           docker create \
             --name "$CONTAINER" \
             --env ANTHROPIC_API_KEY \
@@ -89,9 +92,14 @@ jobs:
             --env MISTRAL_API_KEY \
             --env SPEC \
             "${AGENT}-agent:local"
+          docker inspect "$CONTAINER" \
+            --format 'Image={{.Image}} User={{.Config.User}} Entrypoint={{json .Config.Entrypoint}}'
+          echo "::endgroup::"
           # shellcheck disable=SC2064
           trap "docker rm -f '$CONTAINER' >/dev/null 2>&1 || true" EXIT
 
+          echo "::group::Copy workspace into container"
+          date -u
           # --owner/--group=1001 matches the non-root user in
           # Claude Code-based images (Claude Code refuses to skip
           # permissions as root). Vibe runs as root in its container
@@ -103,13 +111,35 @@ jobs:
               --exclude='./.venv' \
               -cf - . \
             | docker cp - "$CONTAINER:/work"
+          date -u
+          echo "::endgroup::"
 
-          docker start --attach "$CONTAINER"
+          echo "::group::Run agent"
+          date -u
+          set +e
+          timeout 20m docker start --attach "$CONTAINER"
+          AGENT_EXIT=$?
+          set -e
+          if [ "$AGENT_EXIT" -ne 0 ]; then
+            date -u
+            echo "Agent run failed or timed out with exit code: $AGENT_EXIT" >&2
+            docker inspect "$CONTAINER" \
+              --format 'Status={{.State.Status}} ExitCode={{.State.ExitCode}} Error={{.State.Error}}'
+            docker logs "$CONTAINER" || true
+            echo "::endgroup::"
+            exit "$AGENT_EXIT"
+          fi
+          date -u
+          echo "::endgroup::"
 
+          echo "::group::Copy workspace out of container"
+          date -u
           # Stream the (possibly modified) workspace back out. docker
           # cp will overwrite existing files with identical content
           # (no-op for git) and add any new files the agent created.
           docker cp "$CONTAINER:/work/." "$PWD/"
+          date -u
+          echo "::endgroup::"
 
       - name: Configure git identity
         run: |
