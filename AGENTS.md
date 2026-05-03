@@ -61,7 +61,7 @@ The pipeline is defined in [`.forgejo/workflows/workflow-agents.yml`](.forgejo/w
 
 Set the workflow's `DEBUG` input to `true` to pass `AGENT_DEBUG=true` into the container. Debug mode prints safe container diagnostics, runner startup context, and verbose Claude Code streams for Claude Code-based agents without exposing provider API keys.
 
-For local prompt/spec runs, use [`.scripts/run-agent-local.sh`](.scripts/run-agent-local.sh). It builds the selected agent image, runs it against the current checkout by default, streams step-by-step output live, and leaves generated files on the current branch without committing, pushing, or opening a PR. Pass `--tmp` to copy the current repo to `.tmp/agent-runs/<AGENT>-<SPEC>-<timestamp>/` for a disposable smoke test. Set `AGENT_MAX_TURNS=20` for cheap early checks and raise it only once the spec/prompt path looks correct.
+For local prompt/spec runs, use `pnpm execute spec <agent> <spec>` (which dispatches to [`.scripts/run-agent-local.sh`](.scripts/run-agent-local.sh)). It builds the selected agent image, runs it against the current checkout by default, pretty-prints step-by-step output live, and leaves generated files on the current branch without committing, pushing, or opening a PR. Pass `--tmp` after `spec` to copy the current repo to `.tmp/agent-runs/<AGENT>-<SPEC>-<timestamp>/` for a disposable smoke test. Set `AGENT_MAX_TURNS=20` for cheap early checks and raise it only once the spec/prompt path looks correct.
 
 Required repo-scoped secrets:
 

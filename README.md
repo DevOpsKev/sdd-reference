@@ -53,40 +53,50 @@ The workflow builds the selected agent container, streams the repo into it, lets
 For day-to-day development, run an agent locally against your current checkout:
 
 ```bash
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh vibe homepage
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec vibe homepage
 ```
 
-The runner builds `.workflow-agents/<AGENT>/`, mounts the current repo into the container, and leaves generated files directly on your current branch. It does not commit, push, or open a PR; create or switch branches yourself before running it when you want that isolation.
+The runner builds `.workflow-agents/<AGENT>/`, mounts the current repo into the container, and leaves generated files directly on your current branch. It does not commit, push, or open a PR; create or switch branches yourself before running it. As a safety catch, it refuses to run on `main`.
 
-Local runs stream the agent's step-by-step output live and save the raw stream to `agent-output.log`. By default the runner uses Vibe's `streaming` output and Claude Code's `stream-json --verbose` output. Override this only when you want quieter logs:
+Local runs stream the agent's step-by-step output live in a readable format. By default the runner uses Vibe's `streaming` output and Claude Code's `stream-json --verbose` output, then pretty-prints tool calls, tool results, assistant messages, and final status. Override the output format only when you want quieter logs:
 
 ```bash
-AGENT_OUTPUT_FORMAT=text .scripts/run-agent-local.sh vibe homepage
+AGENT_OUTPUT_FORMAT=text pnpm execute spec vibe homepage
 ```
 
-Set the provider key for the agent you are testing:
+To see the raw provider stream instead of the pretty terminal output:
+
+```bash
+AGENT_PRETTY_OUTPUT=false pnpm execute spec vibe homepage
+```
+
+Set the provider key for the agent you are testing before running it locally. Each agent requires its own local environment variable:
+
+- `MISTRAL_API_KEY` for `vibe`
+- `ANTHROPIC_API_KEY` for `claude`
+- `DEEPSEEK_API_KEY` for `deepseek`
 
 ```bash
 export MISTRAL_API_KEY="..."
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh vibe homepage
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec vibe homepage
 
 export ANTHROPIC_API_KEY="..."
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh claude homepage
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec claude homepage
 
 export DEEPSEEK_API_KEY="..."
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh deepseek homepage
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec deepseek homepage
 ```
 
 Use a low turn cap first to catch prompt/spec mistakes cheaply. If the agent reads the right files and starts correctly, rerun with the normal cap:
 
 ```bash
-AGENT_DEBUG=true AGENT_MAX_TURNS=150 .scripts/run-agent-local.sh vibe homepage
+AGENT_DEBUG=true AGENT_MAX_TURNS=150 pnpm execute spec vibe homepage
 ```
 
 For a disposable smoke test that does not mutate your current checkout, pass `--tmp`:
 
 ```bash
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh --tmp vibe homepage
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec --tmp vibe homepage
 ```
 
 Tmp runs copy the current repo to `.tmp/agent-runs/<AGENT>-<SPEC>-<timestamp>/`, run the agent there, and leave the output for review. Inspect the full tmp diff with:

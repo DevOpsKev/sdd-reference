@@ -28,6 +28,8 @@ Environment:
   AGENT_OUTPUT_FORMAT
                     Override agent output mode. Local defaults:
                     vibe=streaming, claude/deepseek=stream-json.
+  AGENT_PRETTY_OUTPUT
+                    Set to false/0 to print the raw agent stream.
 
 Required provider keys:
   vibe      MISTRAL_API_KEY
@@ -80,11 +82,9 @@ BASELINE_DIR="${RUN_DIR}.baseline"
 if [ "$USE_TMP" = "true" ]; then
   MODE="tmp"
   WORK_DIR="$RUN_DIR"
-  LOG_FILE="$RUN_DIR/agent-output.log"
 else
   MODE="in-place"
   WORK_DIR="$REPO_ROOT"
-  LOG_FILE="$REPO_ROOT/agent-output.log"
 fi
 
 case "$AGENT" in
@@ -114,6 +114,13 @@ if [ ! -f "$SPEC_PATH" ]; then
   exit 1
 fi
 
+CURRENT_BRANCH="$(git -C "$REPO_ROOT" branch --show-current 2>/dev/null || true)"
+if [ "$CURRENT_BRANCH" = "main" ]; then
+  echo "Refusing to run a local agent on the main branch." >&2
+  echo "Switch to a working branch first, then rerun this command." >&2
+  exit 1
+fi
+
 if [ -z "${!REQUIRED_KEY:-}" ]; then
   echo "Missing required environment variable: $REQUIRED_KEY" >&2
   exit 1
@@ -132,10 +139,12 @@ fi
 echo "Agent: $AGENT"
 echo "Spec: $SPEC"
 echo "Mode: $MODE"
+echo "Branch: ${CURRENT_BRANCH:-detached HEAD}"
 echo "Image: $IMAGE_TAG"
 echo "Workspace: $WORK_DIR"
 echo "AGENT_DEBUG=${AGENT_DEBUG:-true}"
 echo "AGENT_MAX_TURNS=${AGENT_MAX_TURNS:-150}"
+echo "AGENT_PRETTY_OUTPUT=${AGENT_PRETTY_OUTPUT:-true}"
 
 case "$AGENT" in
   vibe)
@@ -189,30 +198,50 @@ if [ "$USE_TMP" = "true" ]; then
 else
   echo "Running agent in current checkout..."
 fi
-echo "Streaming agent output live and writing raw output to: $LOG_FILE"
-DOCKER_TTY_ARGS=()
-if [ -t 0 ]; then
-  DOCKER_TTY_ARGS=(--interactive --tty)
+if [ "${AGENT_PRETTY_OUTPUT:-true}" = "false" ] || [ "${AGENT_PRETTY_OUTPUT:-true}" = "0" ]; then
+  echo "Streaming raw agent output live..."
+  PRETTY_OUTPUT=false
+else
+  echo "Streaming pretty agent output live..."
+  PRETTY_OUTPUT=true
 fi
-
 set +e
-docker run --rm "${DOCKER_TTY_ARGS[@]}" \
-  --env SPEC="$SPEC" \
-  --env AGENT_DEBUG="${AGENT_DEBUG:-true}" \
-  --env AGENT_MAX_TURNS="${AGENT_MAX_TURNS:-150}" \
-  --env AGENT_OUTPUT_FORMAT="$LOCAL_OUTPUT_FORMAT" \
-  --env ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}" \
-  --env DEEPSEEK_API_KEY="${DEEPSEEK_API_KEY:-}" \
-  --env MISTRAL_API_KEY="${MISTRAL_API_KEY:-}" \
-  --volume "$WORK_DIR:/work" \
-  "$IMAGE_TAG" 2>&1 | tee "$LOG_FILE"
-AGENT_EXIT=${PIPESTATUS[0]}
+if [ "$PRETTY_OUTPUT" = "true" ]; then
+  docker run --rm \
+    --env SPEC="$SPEC" \
+    --env AGENT_DEBUG="${AGENT_DEBUG:-true}" \
+    --env AGENT_MAX_TURNS="${AGENT_MAX_TURNS:-150}" \
+    --env AGENT_OUTPUT_FORMAT="$LOCAL_OUTPUT_FORMAT" \
+    --env ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}" \
+    --env DEEPSEEK_API_KEY="${DEEPSEEK_API_KEY:-}" \
+    --env MISTRAL_API_KEY="${MISTRAL_API_KEY:-}" \
+    --volume "$WORK_DIR:/work" \
+    "$IMAGE_TAG" 2>&1 | "$REPO_ROOT/.scripts/pretty-agent-stream.mjs"
+  AGENT_EXIT=${PIPESTATUS[0]}
+else
+  DOCKER_TTY_ARGS=""
+  if [ -t 0 ]; then
+    DOCKER_TTY_ARGS="--interactive --tty"
+  fi
+
+  # shellcheck disable=SC2086
+  docker run --rm $DOCKER_TTY_ARGS \
+    --env SPEC="$SPEC" \
+    --env AGENT_DEBUG="${AGENT_DEBUG:-true}" \
+    --env AGENT_MAX_TURNS="${AGENT_MAX_TURNS:-150}" \
+    --env AGENT_OUTPUT_FORMAT="$LOCAL_OUTPUT_FORMAT" \
+    --env ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}" \
+    --env DEEPSEEK_API_KEY="${DEEPSEEK_API_KEY:-}" \
+    --env MISTRAL_API_KEY="${MISTRAL_API_KEY:-}" \
+    --volume "$WORK_DIR:/work" \
+    "$IMAGE_TAG"
+  AGENT_EXIT=$?
+fi
 set -e
 
 echo
 echo "Agent exit code: $AGENT_EXIT"
 echo "Output workspace: $WORK_DIR"
-echo "Agent output log: $LOG_FILE"
 
 if [ "$USE_TMP" = "true" ]; then
   echo
@@ -237,9 +266,6 @@ Next steps:
   Run project checks in the output workspace if applicable:
     cd "$WORK_DIR" && pnpm install && pnpm run build
 
-  Re-read the raw streamed agent output:
-    less "$LOG_FILE"
-
   Copy selected files back manually only after review.
 EOF
 else
@@ -261,9 +287,6 @@ Next steps:
 
   Run project checks if applicable:
     pnpm install && pnpm run build
-
-  Re-read the raw streamed agent output:
-    less "$LOG_FILE"
 EOF
 fi
 
