@@ -2,11 +2,12 @@
 #
 # Mistral Vibe coding agent, packaged for one-shot use in CI.
 #
-# The container is built fresh each workflow run (see
-# .forgejo/workflows/containerized-agents.yml) so it is never pushed to a
-# registry. The workflow bind-mounts the repo into /work and runs the
-# agent as the host UID/GID; the agent mutates files in-place and the
-# workflow handles git commit/push/PR afterwards.
+# The container is built fresh each workflow run by
+# .forgejo/workflows/container-agents.yml, so it is never pushed to a
+# registry. The workflow streams the workspace into /work via
+# `docker cp`, runs the agent, then streams the result back out.
+# The agent mutates files in-place and the workflow handles git
+# commit/push/PR afterwards.
 
 FROM python:3.12-slim
 

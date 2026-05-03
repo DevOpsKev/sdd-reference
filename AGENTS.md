@@ -4,18 +4,18 @@ This repo is a reference implementation of **Spec Driven Development (SDD)**. Sp
 
 ## How agents work
 
-Each agent implements a single contract defined in [`.agents/base.py`](.agents/base.py):
+Each agent implements a single contract defined in [`.api-agents/base.py`](.api-agents/base.py):
 
 - **Input:** `spec: str` — the raw text of a `spec.md` file
 - **Output:** `dict[str, str]` — repo-relative file paths mapped to their contents
 
-The runner ([`.agents/run.py`](.agents/run.py)) wires everything together: it reads the `AGENT` and `SPEC` environment variables, loads the spec from `.sdd/specifications/<SPEC>/spec.md`, calls `agent.generate(spec)`, and writes the returned files to disk.
+The runner ([`.api-agents/run.py`](.api-agents/run.py)) wires everything together: it reads the `AGENT` and `SPEC` environment variables, loads the spec from `.sdd/specifications/<SPEC>/spec.md`, calls `agent.generate(spec)`, and writes the returned files to disk.
 
 ```
 .sdd/specifications/<SPEC>/spec.md
         │
         ▼
-  .agents/run.py
+  .api-agents/run.py
         │
         ▼
   Agent.generate(spec)
@@ -31,30 +31,43 @@ The runner ([`.agents/run.py`](.agents/run.py)) wires everything together: it re
 | `anthropic` | `AnthropicAgent` | `claude-sonnet-4-5` | `ANTHROPIC_API_KEY` |
 | `mistral`   | `MistralAgent`   | `codestral-latest`  | `MISTRAL_API_KEY`   |
 
-The registry is in [`.agents/registry.py`](.agents/registry.py).
+The registry is in [`.api-agents/registry.py`](.api-agents/registry.py).
 
 ## Containerized agents
 
-Some agents don't fit the `Agent.generate(spec) -> dict` contract because they run as autonomous CLI loops that mutate the workspace in place rather than returning a JSON file map. These live in their own track: a Dockerfile under `containers/`, a thin entrypoint script, and a parallel workflow at [`.forgejo/workflows/containerized-agents.yml`](.forgejo/workflows/containerized-agents.yml).
+Some agents don't fit the `Agent.generate(spec) -> dict` contract because they run as autonomous CLI loops that mutate the workspace in place rather than returning a JSON file map. These live in their own track: a Dockerfile under `.container-agents/<AGENT>/`, a thin entrypoint script, and a shared workflow at [`.forgejo/workflows/container-agents.yml`](.forgejo/workflows/container-agents.yml).
 
-| Agent key | Source                                                                            | Tool         | Required env var  |
-| --------- | --------------------------------------------------------------------------------- | ------------ | ----------------- |
-| `vibe`    | [`containers/mistral-vibe/`](containers/mistral-vibe/)                            | [Mistral Vibe](https://github.com/mistralai/mistral-vibe) | `MISTRAL_API_KEY` (Codestral key) |
+| Agent key | Source                                                      | Tool                                                                              | Required env var    |
+| --------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------- |
+| `vibe`    | [`.container-agents/vibe/`](.container-agents/vibe/)       | [Mistral Vibe](https://github.com/mistralai/mistral-vibe)                        | `MISTRAL_API_KEY` (Codestral key) |
+| `claude`  | [`.container-agents/claude/`](.container-agents/claude/)   | [Anthropic Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) | `ANTHROPIC_API_KEY` |
 
-The image is built fresh in the workflow and never pushed to a registry, so this flow has no dependency on the Forgejo container registry. The workflow:
+Each image is built fresh in the workflow and never pushed to a registry, so this flow has no dependency on the Forgejo container registry. The workflow:
 
-1. `docker build`s `containers/mistral-<AGENT>/`
-2. `docker run`s it with the workspace bind-mounted at `/work` and `--user $(id -u):$(id -g)` so generated files are owned by the runner user
-3. Commits whatever files the agent produced to `ai/<AGENT>-<SPEC>-<run_id>` and opens a PR against `main` — same post-generation pattern as `agents.yml`
+1. `docker build`s `.container-agents/<AGENT>/` into an ephemeral local image
+2. `docker create`s a container, streams the workspace in via `docker cp` (a tar pipe — bind mounts don't work because the runner is itself in a container talking to the host's docker daemon), runs the agent, then streams the result back out
+3. Commits whatever files the agent produced to `ai/<AGENT>-<SPEC>-<run_id>` and opens a PR against `main` — same post-generation pattern as `api-agents.yml`
 
-The container's [`run-vibe.sh`](containers/mistral-vibe/run-vibe.sh) entrypoint reads `SPEC` and `MISTRAL_API_KEY` from the environment, locates the spec under `.sdd/specifications/`, and runs `vibe -p <prompt> --agent auto-approve --trust --max-turns 50 --max-price 5`. The prompt forbids the agent from touching `.sdd/`, `.agents/`, `.forgejo/`, `.husky/`, or `containers/`, and from running any git commands — the workflow owns version control. `--max-turns` and `--max-price` are belt-and-braces caps so a runaway agent can't burn through tokens unbounded; `--trust` lets Vibe honour `AGENTS.md` (otherwise it skips reading it as a prompt-injection precaution).
+Both API keys are passed in unconditionally; each agent's entrypoint reads only the one it needs.
 
-The active model is pinned in [`containers/mistral-vibe/config.toml`](containers/mistral-vibe/config.toml) (`active_model = "devstral-2"`), baked into the image at `/root/.vibe/config.toml`. This freezes model selection across Vibe CLI upgrades — bump the alias there if a future Vibe version retires `devstral-2`.
+### `vibe`
+
+[`.container-agents/vibe/run-vibe.sh`](.container-agents/vibe/run-vibe.sh) reads `SPEC` and `MISTRAL_API_KEY` and runs `vibe -p <prompt> --agent auto-approve --trust --max-turns 50 --max-price 5`. The prompt forbids the agent from touching `.sdd/`, `.api-agents/`, `.container-agents/`, `.forgejo/`, or `.husky/`, and from running any git commands — the workflow owns version control. `--max-turns` and `--max-price` are belt-and-braces caps so a runaway agent can't burn through tokens unbounded; `--trust` lets Vibe honour `AGENTS.md` (otherwise it skips reading it as a prompt-injection precaution).
+
+The active model is pinned in [`.container-agents/vibe/config.toml`](.container-agents/vibe/config.toml) (`active_model = "devstral-2"`), baked into the image at `/root/.vibe/config.toml`. This freezes model selection across Vibe CLI upgrades — bump the alias there if a future Vibe version retires `devstral-2`.
+
+### `claude`
+
+[`.container-agents/claude/run-claude.sh`](.container-agents/claude/run-claude.sh) reads `SPEC` and `ANTHROPIC_API_KEY` and runs `claude -p <prompt> --model claude-sonnet-4-5 --max-turns 50 --output-format text --dangerously-skip-permissions`. Same prompt and constraints as `vibe`. `--dangerously-skip-permissions` is Claude Code's auto-approve equivalent (analogous to Vibe's `--trust` plus `--agent auto-approve`); the alarmist name is by design but the trade-off is acceptable inside an ephemeral container with a constrained prompt and a hard turn cap.
+
+Claude Code has no built-in cost ceiling like Vibe's `--max-price`, so `--max-turns` is the only in-CLI cap. If runaway cost is a concern, set org-level limits in the Anthropic console.
+
+The model is pinned via the `--model` flag rather than a config file because Claude Code's config (`~/.claude/`) is heavier and stateful. To pin a different model, edit the flag in `run-claude.sh`.
 
 ## Running locally
 
 ```bash
-AGENT=anthropic SPEC=helloworld python .agents/run.py
+AGENT=anthropic SPEC=helloworld python .api-agents/run.py
 ```
 
 Both `AGENT` and `SPEC` are required. The runner will exit with a clear error if either is missing or invalid.
@@ -63,8 +76,8 @@ Both `AGENT` and `SPEC` are required. The runner will exit with a clear error if
 
 Two workflows live under [`.forgejo/workflows/`](.forgejo/workflows/), both using Forgejo Actions' `workflow_dispatch.inputs` feature to expose `AGENT` and `SPEC` as dropdown choices in the web UI:
 
-- [`agents.yml`](.forgejo/workflows/agents.yml) — runs the one-shot Python agents (`anthropic`, `mistral`) via `.agents/run.py`
-- [`containerized-agents.yml`](.forgejo/workflows/containerized-agents.yml) — builds and runs the agentic CLI agents (`vibe`) in a fresh container
+- [`api-agents.yml`](.forgejo/workflows/api-agents.yml) — runs the one-shot Python agents (`anthropic`, `mistral`) via `.api-agents/run.py`
+- [`container-agents.yml`](.forgejo/workflows/container-agents.yml) — builds and runs the agentic CLI agents (`vibe`, `claude`) in a fresh container
 
 Both follow the same post-generation pattern: commit the generated files to a new branch `ai/<AGENT>-<SPEC>-<run_id>` and open a pull request against `main` via the Forgejo (Gitea-compatible) API.
 
@@ -76,9 +89,9 @@ Required repo-scoped secrets:
 
 ## Adding a new agent
 
-1. Create `.agents/<name>.py` — subclass `Agent`, set the `name` class attribute, implement `generate()`
-2. Register it in `.agents/registry.py` under the key you want users to pass as `AGENT`
-3. Add that key to the `options` list for `on.workflow_dispatch.inputs.AGENT` in [`.forgejo/workflows/agents.yml`](.forgejo/workflows/agents.yml)
+1. Create `.api-agents/<name>.py` — subclass `Agent`, set the `name` class attribute, implement `generate()`
+2. Register it in [`.api-agents/registry.py`](.api-agents/registry.py) under the key you want users to pass as `AGENT`
+3. Add that key to the `options` list for `on.workflow_dispatch.inputs.AGENT` in [`.forgejo/workflows/api-agents.yml`](.forgejo/workflows/api-agents.yml)
 
 **System prompt.** `Agent` defines a default `system_prompt` class attribute that instructs the model to return a bare JSON object. Most agents inherit it unchanged. Override it as a class attribute only when a model genuinely needs different phrasing — `AnthropicAgent` is the reference example, adding an explicit boundary instruction because Claude tends to wrap output in prose or fences despite the base instruction:
 
@@ -129,6 +142,7 @@ These apply to both human contributors and AI coding assistants working in this 
 - Treat `.sdd/` as read-only — specs are inputs, not outputs
 - Generated files belong at the repo root (or wherever the spec directs)
 - Never commit API keys or CI secrets to tracked files
-- Keep agent implementations in `.agents/`, one file per agent
-- Do not modify `.agents/run.py` or `.agents/base.py` to work around a broken agent — fix the agent instead
+- Keep API-agent implementations in `.api-agents/`, one file per agent
+- Keep containerized-agent runtimes in `.container-agents/<agent>/`, one subdirectory per agent
+- Do not modify `.api-agents/run.py` or `.api-agents/base.py` to work around a broken agent — fix the agent instead
 - Keep git-hook logic in `.husky/` — `package.json` wires up husky and lint-staged, individual checks live as helpers under `.husky/lib/`

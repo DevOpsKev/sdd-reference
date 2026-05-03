@@ -1,7 +1,7 @@
 """Pipeline entry point: run an agent against a spec.
 
 Run from repo root with:
-  AGENT=mistral SPEC=helloworld python .agents/run.py
+  AGENT=mistral SPEC=helloworld python .api-agents/run.py
 
 Environment variables (both required):
   AGENT  — name of the agent to run
@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 def _load_agents_package() -> None:
-    """Register .agents as importable under the name 'agents'."""
+    """Register .api-agents as importable under the name 'agents'."""
     if "agents" in sys.modules:
         return
     agents_dir = Path(__file__).resolve().parent
@@ -25,7 +25,7 @@ def _load_agents_package() -> None:
         submodule_search_locations=[str(agents_dir)],
     )
     if spec is None or spec.loader is None:
-        raise ImportError(f"Could not load .agents from {agents_dir}")
+        raise ImportError(f"Could not load .api-agents from {agents_dir}")
     module = importlib.util.module_from_spec(spec)
     sys.modules["agents"] = module
     spec.loader.exec_module(module)

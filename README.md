@@ -1,26 +1,15 @@
 # sdd-reference
 
-Reference implementation for the KRA Spec-Driven Development (SDD) methodology. Specs live under `.sdd/specifications/`; agents in `.agents/` consume a spec and emit code. See [`AGENTS.md`](AGENTS.md) for the architecture and contribution rules.
+Reference implementation for the KRA Spec-Driven Development (SDD) methodology. Specs live under `.sdd/specifications/`; one-shot Python agents in `.api-agents/` and containerized agentic-CLI agents in `.container-agents/` consume a spec and emit code. See [`AGENTS.md`](AGENTS.md) for the architecture and contribution rules.
 
 ## Getting started
-
-### Option A: Devcontainer (recommended)
-
-Open the repo in any Dev Containers-aware editor (VS Code, Cursor, JetBrains Gateway, etc.) and reopen in the container. The image installs Python 3.12, Node.js 20 LTS, gitleaks, ruff, and runs `pnpm install` automatically — git hooks are wired up by the time the container is ready.
-
-Required environment variables (forwarded from your host):
-
-- `ANTHROPIC_API_KEY`
-- `MISTRAL_API_KEY`
-- `OPENAI_API_KEY`
-
-### Option B: Local
 
 Prerequisites:
 
 - **Python ≥ 3.12**
 - **Node.js** (any recent version; LTS recommended) for husky + lint-staged
 - **[gitleaks](https://github.com/gitleaks/gitleaks)** on `PATH` for secret scanning (`brew install gitleaks` on macOS)
+- **Docker** (only required if you intend to run containerized agents like `vibe` or `claude` locally)
 
 Then, from the repo root:
 
@@ -43,12 +32,17 @@ If you'd rather not use a venv (e.g. on macOS with Homebrew Python you'll otherw
 pip install --user --break-system-packages -r requirements-dev.txt
 ```
 
+To run an agent you'll also need an API key for whichever provider it talks to:
+
+- `ANTHROPIC_API_KEY` — for the `anthropic` and `claude` agents
+- `MISTRAL_API_KEY` — for the `mistral` and `vibe` agents (one Codestral key covers both)
+
 ## Running an agent
 
 Both `AGENT` and `SPEC` are required:
 
 ```bash
-AGENT=anthropic SPEC=helloworld python .agents/run.py
+AGENT=anthropic SPEC=helloworld python .api-agents/run.py
 ```
 
 The runner reads `.sdd/specifications/<SPEC>/spec.md`, calls the chosen agent, and writes the returned files to the repo root. Available agents are listed in [`AGENTS.md`](AGENTS.md#available-agents).

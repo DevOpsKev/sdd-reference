@@ -1,13 +1,15 @@
-name: containerized-agents
+name: container-agents
 
 # Builds an agent container in-job and runs it against a spec, then
 # commits + pushes + opens a PR with whatever the agent produced. The
 # image is never pushed to a registry; this sidesteps the registry
 # entirely and avoids any reverse-proxy / TLS / quota concerns.
 #
-# Mirrors the post-generation pattern in agents.yml but uses an
-# agentic CLI (Mistral Vibe) that mutates the workspace in place
-# instead of returning a JSON file map.
+# Mirrors the post-generation pattern in api-agents.yml but uses an
+# agentic CLI (Mistral Vibe, Claude Code) that mutates the workspace
+# in place instead of returning a JSON file map. Each agent has its
+# own subdirectory under .container-agents/<AGENT>/ with a Dockerfile
+# and entrypoint script.
 
 on:
   workflow_dispatch:
@@ -18,6 +20,7 @@ on:
         default: vibe
         options:
           - vibe
+          - claude
       SPEC:
         description: "Which spec to run against"
         type: choice
@@ -26,7 +29,7 @@ on:
           - helloworld
 
 concurrency:
-  group: containerized-agents-${{ inputs.AGENT }}-${{ inputs.SPEC }}
+  group: container-agents-${{ inputs.AGENT }}-${{ inputs.SPEC }}
   cancel-in-progress: false
 
 jobs:
@@ -57,10 +60,13 @@ jobs:
           set -e
           docker build \
             --tag "${AGENT}-agent:local" \
-            "containers/mistral-${AGENT}"
+            ".container-agents/${AGENT}"
 
       - name: Run agent
         env:
+          # Pass both API keys; each agent's entrypoint reads only the
+          # one it needs and ignores the other.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
         run: |
           set -e
@@ -75,9 +81,10 @@ jobs:
           # `docker cp` (no path translation needed - data flows over
           # the docker API), run the agent, copy the result back, drop
           # the container.
-          CONTAINER="vibe-run-${GITHUB_RUN_ID}"
+          CONTAINER="${AGENT}-run-${GITHUB_RUN_ID}"
           docker create \
             --name "$CONTAINER" \
+            --env ANTHROPIC_API_KEY \
             --env MISTRAL_API_KEY \
             --env SPEC \
             "${AGENT}-agent:local"
