@@ -27,9 +27,19 @@ RUN apt-get update \
 
 RUN npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
 
+# Claude Code refuses --dangerously-skip-permissions when its process
+# is uid 0 (root), as a deliberate Anthropic safety check. Run the
+# agent as a non-root user with /work owned by it; the workflow tars
+# the workspace in with matching ownership (--owner=1001 --group=1001)
+# so claude can read and write the files it gets.
+RUN useradd --create-home --uid 1001 --shell /bin/bash claude \
+ && mkdir -p /work \
+ && chown claude:claude /work
+
 COPY run-claude.sh /usr/local/bin/run-claude
 RUN chmod +x /usr/local/bin/run-claude
 
 WORKDIR /work
+USER claude
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/run-claude"]
