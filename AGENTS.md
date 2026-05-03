@@ -59,6 +59,8 @@ The primary model is pinned to `deepseek-v4-pro[1m]`, matching DeepSeek's Claude
 
 The pipeline is defined in [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) using Forgejo Actions' `workflow_dispatch.inputs` feature, which exposes `AGENT` and `SPEC` as dropdown choices in the web UI. On a successful run it commits generated files to `ai/<AGENT>-<SPEC>-<run_id>` and opens a pull request against `main` via the Forgejo (Gitea-compatible) API.
 
+Set the workflow's `DEBUG` input to `true` to pass `AGENT_DEBUG=true` into the container. Debug mode prints safe container diagnostics, runner startup context, and verbose Claude Code streams for Claude Code-based agents without exposing provider API keys.
+
 Required repo-scoped secrets:
 
 - `FORGEJO_PUSH_TOKEN` — PAT with `write:repository`, used for the branch push and the `pulls` API call

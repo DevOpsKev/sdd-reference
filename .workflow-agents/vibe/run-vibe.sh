@@ -14,10 +14,22 @@ set -euo pipefail
 : "${SPEC:?SPEC env var is required (e.g. SPEC=helloworld)}"
 : "${MISTRAL_API_KEY:?MISTRAL_API_KEY env var is required}"
 
+debug_enabled() {
+  [ "${AGENT_DEBUG:-false}" = "true" ] || [ "${AGENT_DEBUG:-false}" = "1" ]
+}
+
 SPEC_PATH=".sdd/specifications/${SPEC}/spec.md"
 if [ ! -f "$SPEC_PATH" ]; then
   echo "Spec not found at: $SPEC_PATH" >&2
   exit 1
+fi
+
+if debug_enabled; then
+  echo "Starting Vibe workflow agent"
+  echo "SPEC=$SPEC"
+  echo "SPEC_PATH=$SPEC_PATH"
+  echo "Vibe version:"
+  vibe --version || true
 fi
 
 PROMPT=$(cat <<EOF

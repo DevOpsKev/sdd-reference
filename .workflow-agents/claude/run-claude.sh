@@ -14,10 +14,23 @@ set -euo pipefail
 : "${SPEC:?SPEC env var is required (e.g. SPEC=helloworld)}"
 : "${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY env var is required}"
 
+debug_enabled() {
+  [ "${AGENT_DEBUG:-false}" = "true" ] || [ "${AGENT_DEBUG:-false}" = "1" ]
+}
+
 SPEC_PATH=".sdd/specifications/${SPEC}/spec.md"
 if [ ! -f "$SPEC_PATH" ]; then
   echo "Spec not found at: $SPEC_PATH" >&2
   exit 1
+fi
+
+if debug_enabled; then
+  echo "Starting Claude workflow agent"
+  echo "SPEC=$SPEC"
+  echo "SPEC_PATH=$SPEC_PATH"
+  echo "CLAUDE_MODEL=claude-sonnet-4-5"
+  echo "Claude Code version:"
+  claude --version || true
 fi
 
 PROMPT=$(cat <<EOF
@@ -43,9 +56,14 @@ Hard constraints:
 EOF
 )
 
+CLAUDE_OUTPUT_ARGS=(--output-format text)
+if debug_enabled; then
+  CLAUDE_OUTPUT_ARGS=(--output-format stream-json --verbose)
+fi
+
 exec claude \
   -p "$PROMPT" \
   --model claude-sonnet-4-5 \
   --max-turns 50 \
-  --output-format text \
+  "${CLAUDE_OUTPUT_ARGS[@]}" \
   --dangerously-skip-permissions

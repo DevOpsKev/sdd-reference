@@ -26,6 +26,13 @@ on:
         default: helloworld
         options:
           - helloworld
+      DEBUG:
+        description: "Enable verbose agent diagnostics"
+        type: choice
+        default: "false"
+        options:
+          - "false"
+          - "true"
 
 concurrency:
   group: workflow-agents-${{ inputs.AGENT }}-${{ inputs.SPEC }}
@@ -48,6 +55,7 @@ jobs:
     timeout-minutes: 30
     env:
       AGENT: ${{ inputs.AGENT }}
+      AGENT_DEBUG: ${{ inputs.DEBUG }}
       SPEC: ${{ inputs.SPEC }}
     steps:
       - uses: actions/checkout@v4
@@ -83,23 +91,46 @@ jobs:
           # the container.
           CONTAINER="${AGENT}-run-${GITHUB_RUN_ID}"
 
-          echo "::group::Create agent container"
-          date -u
+          debug_enabled() {
+            [ "${AGENT_DEBUG:-false}" = "true" ] || [ "${AGENT_DEBUG:-false}" = "1" ]
+          }
+
+          debug_group_start() {
+            if debug_enabled; then
+              echo "::group::$1"
+              date -u
+            fi
+          }
+
+          debug_group_end() {
+            if debug_enabled; then
+              date -u
+              echo "::endgroup::"
+            fi
+          }
+
+          debug_run() {
+            if debug_enabled; then
+              "$@"
+            fi
+          }
+
+          debug_group_start "Create agent container"
           docker create \
             --name "$CONTAINER" \
+            --env AGENT_DEBUG \
             --env ANTHROPIC_API_KEY \
             --env DEEPSEEK_API_KEY \
             --env MISTRAL_API_KEY \
             --env SPEC \
             "${AGENT}-agent:local"
-          docker inspect "$CONTAINER" \
+          debug_run docker inspect "$CONTAINER" \
             --format 'Image={{.Image}} User={{.Config.User}} Entrypoint={{json .Config.Entrypoint}}'
-          echo "::endgroup::"
+          debug_group_end
           # shellcheck disable=SC2064
           trap "docker rm -f '$CONTAINER' >/dev/null 2>&1 || true" EXIT
 
-          echo "::group::Copy workspace into container"
-          date -u
+          debug_group_start "Copy workspace into container"
           # --owner/--group=1001 matches the non-root user in
           # Claude Code-based images (Claude Code refuses to skip
           # permissions as root). Vibe runs as root in its container
@@ -111,11 +142,9 @@ jobs:
               --exclude='./.venv' \
               -cf - . \
             | docker cp - "$CONTAINER:/work"
-          date -u
-          echo "::endgroup::"
+          debug_group_end
 
-          echo "::group::Run agent"
-          date -u
+          debug_group_start "Run agent"
           set +e
           timeout 20m docker start --attach "$CONTAINER"
           AGENT_EXIT=$?
@@ -126,20 +155,17 @@ jobs:
             docker inspect "$CONTAINER" \
               --format 'Status={{.State.Status}} ExitCode={{.State.ExitCode}} Error={{.State.Error}}'
             docker logs "$CONTAINER" || true
-            echo "::endgroup::"
+            debug_group_end
             exit "$AGENT_EXIT"
           fi
-          date -u
-          echo "::endgroup::"
+          debug_group_end
 
-          echo "::group::Copy workspace out of container"
-          date -u
+          debug_group_start "Copy workspace out of container"
           # Stream the (possibly modified) workspace back out. docker
           # cp will overwrite existing files with identical content
           # (no-op for git) and add any new files the agent created.
           docker cp "$CONTAINER:/work/." "$PWD/"
-          date -u
-          echo "::endgroup::"
+          debug_group_end
 
       - name: Configure git identity
         run: |

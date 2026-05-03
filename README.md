@@ -44,6 +44,7 @@ Agents are normally run through the Forgejo workflow [`workflow-agents.yml`](.fo
 
 - `AGENT` — `vibe`, `claude`, or `deepseek`
 - `SPEC` — a directory under `.sdd/specifications/` such as `helloworld`
+- `DEBUG` — set to `true` for verbose container and agent diagnostics
 
 The workflow builds the selected agent container, streams the repo into it, lets the agent generate files, then commits the result to `ai/<AGENT>-<SPEC>-<run_id>` and opens a PR against `main`. Available agents are listed in [`AGENTS.md`](AGENTS.md#workflow-agents).
 
