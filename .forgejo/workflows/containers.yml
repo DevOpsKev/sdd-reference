@@ -26,9 +26,23 @@ env:
 
 jobs:
   publish:
-    # Run directly on the runner host (not inside a job container) so we can
-    # talk to the host's Docker daemon for `docker build` / `docker push`.
     runs-on: ubuntu-latest
+    # We run inside catthehacker's image because it ships with the docker CLI;
+    # the bind mount lets the CLI talk to the host's Docker daemon (the only
+    # daemon available on the runner host). For this to work the runner's
+    # `act_runner` config.yaml must allow the socket mount, e.g.
+    #   container:
+    #     valid_volumes:
+    #       - /var/run/docker.sock
+    # or, even simpler:
+    #   container:
+    #     docker_host: automount
+    # (which auto-mounts the socket and exports DOCKER_HOST into the job
+    # container, in which case the explicit `options:` line below becomes
+    # unnecessary).
+    container:
+      image: ghcr.io/catthehacker/ubuntu:act-22.04
+      options: --volume /var/run/docker.sock:/var/run/docker.sock
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
