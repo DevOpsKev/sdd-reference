@@ -42,6 +42,6 @@ Remember: extraordinary creative work is possible. Don't hold back, show what ca
 
 ## Repo-specific notes
 
-- Bundle assets locally — the spec for this repo forbids external CDN calls.
-- If the spec asks for a containerised app, keep the rendered design self-contained (web fonts as `@font-face` from local files, or pick system-stack fallbacks that still feel deliberate).
+- Bundle app assets locally by default. Google Fonts are allowed when the spec or project context calls for them, but do not introduce arbitrary external CDNs for scripts, images, stylesheets, or other runtime assets.
+- If the spec asks for a containerised app, keep the rendered design self-contained except for explicitly permitted font providers such as Google Fonts.
 - Don't introduce a build toolchain (webpack, vite, etc.) unless the spec calls for one. Static HTML/CSS/JS is fine and often better for the kind of work this repo generates.

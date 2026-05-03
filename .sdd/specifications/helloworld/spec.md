@@ -8,15 +8,15 @@ A containerised single-page "Hello, World!" that someone would actually screensh
 - Renders "Hello, World!" as the centerpiece — prominent, not buried.
 - Commit to one coherent aesthetic direction and execute with conviction. Bold maximalism and refined minimalism both qualify; "centered text on white with no other decisions" does not. Pick a direction, then do it well.
 - Typography, palette, layout, and motion should each reflect a deliberate choice — not a default. The page should feel designed, not assembled.
-- All design assets bundled in the image — no external CDN calls. Custom fonts loaded via `@font-face` from local files.
+- All app assets bundled in the image, except Google Fonts are allowed for typography. Do not use other external CDN calls for scripts, images, stylesheets, or runtime assets.
 - Container exposes port 8080. Configure the web server to listen on 8080 (override any default port).
 - `docker build -t hello . && docker run -p 8080:8080 hello` serves the app at http://localhost:8080.
 
 ## Acceptance criteria
 - `Dockerfile` at repo root.
-- Static assets under `app/` — at minimum `index.html` and `styles.css`. Custom font files (if used) under `app/fonts/`.
+- Static assets under `app/` — at minimum `index.html` and `styles.css`. Custom font files are optional if fonts are self-hosted rather than loaded from Google Fonts.
 - `app/DESIGN.md` — 3–6 sentences naming the aesthetic direction, the typographic and palette decisions, and the one detail intended to be memorable. The agent's own articulation of intent, not boilerplate.
-- Final image under 75 MB (allows headroom for one or two custom font files).
+- Final image under 75 MB.
 - HTTP GET to / returns 200 with body containing "Hello, World!".
 - No AI-default tells: no Inter / Roboto / Arial / system-only typography, no purple-gradient-on-white, no untreated centered-flex-stack layout, no generic glassmorphism card.
 

@@ -1,22 +1,22 @@
 # Agents
 
-This repo is a reference implementation of **Spec Driven Development (SDD)**. Specs are written by humans and live under `.sdd/specifications/`. Reusable cross-spec guidance for agents lives under `.skills/` (see [`.skills/README.md`](.skills/README.md)). Agents consume both and generate code — no manual scaffolding required.
+This repo is a reference implementation of **Spec Driven Development (SDD)**. Specs are written by humans and live under `.sdd/specifications/`. Reusable cross-spec guidance for agents lives under `.skills/` (see [`.skills/README.md`](.skills/README.md)). Project background context lives under `.context/`. Agents consume these inputs and generate code — no manual scaffolding required.
 
 ## How agents work
 
 Each agent is a workflow-managed CLI runtime under `.workflow-agents/<AGENT>/`. The shared Forgejo workflow [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) builds the selected agent image fresh, streams the repository into `/work`, runs the agent against a spec, streams the changed workspace back out, then commits the result to a PR branch.
 
 ```
-.sdd/specifications/<SPEC>/spec.md      .skills/*/SKILL.md
-        │                                       │
-        ▼                                       ▼
-              .workflow-agents/<AGENT>/
-                        │
-                        ▼
-              Agent CLI mutates /work
-                        │
-                        ▼
-              Files written to repo root
+.sdd/specifications/<SPEC>/spec.md      .skills/*/SKILL.md      .context/*.md
+        │                                       │                       │
+        ▼                                       ▼                       ▼
+                      .workflow-agents/<AGENT>/
+                                │
+                                ▼
+                      Agent CLI mutates /work
+                                │
+                                ▼
+                      Files written to repo root
 ```
 
 ## Workflow agents
@@ -37,7 +37,7 @@ All API keys are passed in unconditionally; each agent's entrypoint reads only t
 
 ### `vibe`
 
-[`.workflow-agents/vibe/run-vibe.sh`](.workflow-agents/vibe/run-vibe.sh) reads `SPEC` and `MISTRAL_API_KEY` and runs `vibe -p <prompt> --agent auto-approve --trust --max-turns 50 --max-price 5`. The prompt forbids the agent from touching `.sdd/`, `.skills/`, `.workflow-agents/`, `.forgejo/`, or `.husky/`, and from running any git commands — the workflow owns version control. `--max-turns` and `--max-price` are belt-and-braces caps so a runaway agent can't burn through tokens unbounded; `--trust` lets Vibe honour `AGENTS.md` (otherwise it skips reading it as a prompt-injection precaution).
+[`.workflow-agents/vibe/run-vibe.sh`](.workflow-agents/vibe/run-vibe.sh) reads `SPEC` and `MISTRAL_API_KEY` and runs `vibe -p <prompt> --agent auto-approve --trust --max-turns 50 --max-price 5`. The prompt forbids the agent from touching `.sdd/`, `.skills/`, `.context/`, `.workflow-agents/`, `.forgejo/`, or `.husky/`, and from running any git commands — the workflow owns version control. `--max-turns` and `--max-price` are belt-and-braces caps so a runaway agent can't burn through tokens unbounded; `--trust` lets Vibe honour `AGENTS.md` (otherwise it skips reading it as a prompt-injection precaution).
 
 The active model is pinned in [`.workflow-agents/vibe/config.toml`](.workflow-agents/vibe/config.toml) (`active_model = "devstral-2"`), baked into the image at `/root/.vibe/config.toml`. This freezes model selection across Vibe CLI upgrades — bump the alias there if a future Vibe version retires `devstral-2`.
 
@@ -71,7 +71,7 @@ Required repo-scoped secrets:
 ## Adding a new agent
 
 1. Create `.workflow-agents/<name>/Dockerfile`.
-2. Add an executable entrypoint script (for example `run-<name>.sh`) that reads `SPEC` and the provider API key from the environment, loads `.sdd/specifications/<SPEC>/spec.md`, reads relevant `.skills/` guidance, and mutates `/work` in place.
+2. Add an executable entrypoint script (for example `run-<name>.sh`) that reads `SPEC` and the provider API key from the environment, loads `.sdd/specifications/<SPEC>/spec.md`, reads relevant `.skills/` and `.context/` guidance, and mutates `/work` in place.
 3. Add the key to `on.workflow_dispatch.inputs.AGENT.options` in [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml).
 
 ## Writing a spec
@@ -87,9 +87,21 @@ Specs live at `.sdd/specifications/<name>/spec.md`. Follow the structure used in
 
 A skill is a reusable bundle of guidance that tells an agent *how* to do a kind of work well, distinct from a spec which tells it *what* to build. Skills live at `.skills/<name>/SKILL.md` and follow the [Anthropic Skills](https://www.anthropic.com/news/skills) convention (YAML frontmatter with `name` + `description`, then a markdown body). See [`.skills/README.md`](.skills/README.md) for the full convention.
 
-Workflow agents pick up `.skills/` automatically: `.workflow-agents/<agent>/run-*.sh` prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code. `.skills/` is in the no-modify list alongside `.sdd/`.
+Workflow agents pick up `.skills/` automatically: `.workflow-agents/<agent>/run-*.sh` prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code. `.skills/` is in the no-modify list alongside `.sdd/` and `.context/`.
 
 To add a skill: create `.skills/<name>/SKILL.md` with valid frontmatter and a body. No further wiring is needed — workflow agents pick it up on the next run.
+
+## Context
+
+Project background context lives under `.context/`:
+
+- `.context/product.md` — product goals, users, and assumptions
+- `.context/architecture.md` — system boundaries and technical constraints
+- `.context/design-system.md` — brand, UI, and content conventions
+- `.context/deployment.md` — runtime, hosting, and operational notes
+- `.context/glossary.md` — domain terms and naming conventions
+
+Context tells agents background knowledge about this repo/product. It does not replace spec requirements or acceptance criteria, and agents must treat `.context/` as read-only input.
 
 ## Git hooks
 
@@ -122,6 +134,7 @@ These apply to both human contributors and AI coding assistants working in this 
 
 - Treat `.sdd/` as read-only — specs are inputs, not outputs
 - Treat `.skills/` as read-only — skills are inputs (how to work), not outputs
+- Treat `.context/` as read-only — context is background input, not generated output
 - Generated files belong at the repo root (or wherever the spec directs)
 - Never commit API keys or CI secrets to tracked files
 - Keep workflow-agent runtimes in `.workflow-agents/<agent>/`, one subdirectory per agent

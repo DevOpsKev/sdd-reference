@@ -41,13 +41,18 @@ guidance where relevant. Skills describe *how* to do work well (e.g.
 visual design quality); the spec describes *what* to build. Skills do
 not change scope.
 
+If a \`.context/\` directory exists at the repo root, read relevant
+\`.context/*.md\` files before generating code. Context describes
+project/product background; it does not change the scope or acceptance
+criteria in the spec.
+
 Generate exactly the files the spec describes, at the paths it specifies, and
 satisfy its acceptance criteria literally.
 
 Hard constraints:
-- Do not modify anything under .sdd/, .skills/, .workflow-agents/,
-  .forgejo/, or .husky/. Those are inputs and infrastructure, not
-  agent output.
+- Do not modify anything under .sdd/, .skills/, .context/,
+  .workflow-agents/, .forgejo/, or .husky/. Those are inputs and
+  infrastructure, not agent output.
 - Do not run any git commands. Do not commit, push, fetch, or modify
   remotes. The surrounding CI workflow handles all version control.
 - When the acceptance criteria appear satisfied, stop. Do not keep

@@ -26,6 +26,7 @@ on:
         default: helloworld
         options:
           - helloworld
+          - homepage
       DEBUG:
         description: "Enable verbose agent diagnostics"
         type: choice

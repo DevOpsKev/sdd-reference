@@ -1,6 +1,6 @@
 # sdd-reference
 
-Reference implementation for the KRA Spec-Driven Development (SDD) methodology. Specs live under `.sdd/specifications/` and reusable agent guidance lives under `.skills/`; workflow agents in `.workflow-agents/` consume both and emit code. See [`AGENTS.md`](AGENTS.md) for the architecture and contribution rules, and [`.skills/README.md`](.skills/README.md) for the skill convention.
+Reference implementation for the KRA Spec-Driven Development (SDD) methodology. Specs live under `.sdd/specifications/`, reusable agent guidance lives under `.skills/`, and project background context lives under `.context/`; workflow agents in `.workflow-agents/` consume these inputs and emit code. See [`AGENTS.md`](AGENTS.md) for the architecture, context convention, and contribution rules, and [`.skills/README.md`](.skills/README.md) for the skill convention.
 
 ## Getting started
 
