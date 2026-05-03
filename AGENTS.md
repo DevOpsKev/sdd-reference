@@ -25,6 +25,7 @@ Each agent is a workflow-managed CLI runtime under `.workflow-agents/<AGENT>/`. 
 | --------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------- |
 | `vibe`    | [`.workflow-agents/vibe/`](.workflow-agents/vibe/)       | [Mistral Vibe](https://github.com/mistralai/mistral-vibe)                        | `MISTRAL_API_KEY` (Codestral key) |
 | `claude`  | [`.workflow-agents/claude/`](.workflow-agents/claude/)   | [Anthropic Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) | `ANTHROPIC_API_KEY` |
+| `deepseek` | [`.workflow-agents/deepseek/`](.workflow-agents/deepseek/) | [Claude Code via DeepSeek API](https://api-docs.deepseek.com/quick_start/agent_integrations/claude_code) | `DEEPSEEK_API_KEY` |
 
 Each image is built fresh in the workflow and never pushed to a registry, so this flow has no dependency on the Forgejo container registry. The workflow:
 
@@ -32,7 +33,7 @@ Each image is built fresh in the workflow and never pushed to a registry, so thi
 2. `docker create`s a container, streams the workspace in via `docker cp` (a tar pipe — bind mounts don't work because the runner is itself in a container talking to the host's docker daemon), runs the agent, then streams the result back out
 3. Commits whatever files the agent produced to `ai/<AGENT>-<SPEC>-<run_id>` and opens a PR against `main`
 
-Both API keys are passed in unconditionally; each agent's entrypoint reads only the one it needs.
+All API keys are passed in unconditionally; each agent's entrypoint reads only the one it needs.
 
 ### `vibe`
 
@@ -48,6 +49,12 @@ Claude Code has no built-in cost ceiling like Vibe's `--max-price`, so `--max-tu
 
 The model is pinned via the `--model` flag rather than a config file because Claude Code's config (`~/.claude/`) is heavier and stateful. To pin a different model, edit the flag in `run-claude.sh`.
 
+### `deepseek`
+
+[`.workflow-agents/deepseek/run-deepseek.sh`](.workflow-agents/deepseek/run-deepseek.sh) reads `SPEC` and `DEEPSEEK_API_KEY`, configures Claude Code to use DeepSeek's Anthropic-compatible API (`https://api.deepseek.com/anthropic`), and runs `claude -p <prompt> --model deepseek-v4-pro[1m] --max-turns 50 --output-format text --dangerously-skip-permissions`. It uses the same constrained prompt as `claude` and `vibe`.
+
+The primary model is pinned to `deepseek-v4-pro[1m]`, matching DeepSeek's Claude Code integration guidance for the long-context Pro model. Subagents and lower-tier defaults are pointed at `deepseek-v4-flash` to keep background work cheaper and faster.
+
 ## CI (Forgejo)
 
 The pipeline is defined in [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) using Forgejo Actions' `workflow_dispatch.inputs` feature, which exposes `AGENT` and `SPEC` as dropdown choices in the web UI. On a successful run it commits generated files to `ai/<AGENT>-<SPEC>-<run_id>` and opens a pull request against `main` via the Forgejo (Gitea-compatible) API.
@@ -56,6 +63,7 @@ Required repo-scoped secrets:
 
 - `FORGEJO_PUSH_TOKEN` — PAT with `write:repository`, used for the branch push and the `pulls` API call
 - `ANTHROPIC_API_KEY` — for the `claude` agent
+- `DEEPSEEK_API_KEY` — for the `deepseek` agent
 - `MISTRAL_API_KEY` — for the `vibe` agent (Codestral key)
 
 ## Adding a new agent

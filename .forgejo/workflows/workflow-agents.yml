@@ -19,6 +19,7 @@ on:
         options:
           - vibe
           - claude
+          - deepseek
       SPEC:
         description: "Which spec to run against"
         type: choice
@@ -62,9 +63,10 @@ jobs:
 
       - name: Run agent
         env:
-          # Pass both API keys; each agent's entrypoint reads only the
-          # one it needs and ignores the other.
+          # Pass all API keys; each agent's entrypoint reads only the
+          # one it needs and ignores the rest.
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
         run: |
           set -e
@@ -83,16 +85,17 @@ jobs:
           docker create \
             --name "$CONTAINER" \
             --env ANTHROPIC_API_KEY \
+            --env DEEPSEEK_API_KEY \
             --env MISTRAL_API_KEY \
             --env SPEC \
             "${AGENT}-agent:local"
           # shellcheck disable=SC2064
           trap "docker rm -f '$CONTAINER' >/dev/null 2>&1 || true" EXIT
 
-          # --owner/--group=1001 matches the non-root `claude` user in
-          # the claude image (Claude Code refuses to skip permissions
-          # as root). Vibe runs as root in its container and ignores
-          # ownership, so the same tar works for both agents.
+          # --owner/--group=1001 matches the non-root user in
+          # Claude Code-based images (Claude Code refuses to skip
+          # permissions as root). Vibe runs as root in its container
+          # and ignores ownership, so the same tar works for all agents.
           tar -C "$PWD" \
               --owner=1001 --group=1001 \
               --exclude='./.git' \

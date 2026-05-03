@@ -35,13 +35,14 @@ pip install --user --break-system-packages -r requirements-dev.txt
 To run an agent you'll also need an API key for whichever provider it talks to:
 
 - `ANTHROPIC_API_KEY` — for the `claude` agent
+- `DEEPSEEK_API_KEY` — for the `deepseek` agent
 - `MISTRAL_API_KEY` — for the `vibe` agent (Codestral key)
 
 ## Running an agent
 
 Agents are normally run through the Forgejo workflow [`workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml). Trigger it manually with:
 
-- `AGENT` — `vibe` or `claude`
+- `AGENT` — `vibe`, `claude`, or `deepseek`
 - `SPEC` — a directory under `.sdd/specifications/` such as `helloworld`
 
 The workflow builds the selected agent container, streams the repo into it, lets the agent generate files, then commits the result to `ai/<AGENT>-<SPEC>-<run_id>` and opens a PR against `main`. Available agents are listed in [`AGENTS.md`](AGENTS.md#workflow-agents).
