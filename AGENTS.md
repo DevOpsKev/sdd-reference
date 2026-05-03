@@ -47,7 +47,7 @@ The image is built fresh in the workflow and never pushed to a registry, so this
 2. `docker run`s it with the workspace bind-mounted at `/work` and `--user $(id -u):$(id -g)` so generated files are owned by the runner user
 3. Commits whatever files the agent produced to `ai/<AGENT>-<SPEC>-<run_id>` and opens a PR against `main` — same post-generation pattern as `agents.yml`
 
-The container's [`run-vibe.sh`](containers/mistral-vibe/run-vibe.sh) entrypoint reads `SPEC` and `MISTRAL_API_KEY` from the environment, locates the spec under `.sdd/specifications/`, and pipes a constrained prompt into `vibe --agent auto-approve --no-tty`. The prompt forbids the agent from touching `.sdd/`, `.agents/`, `.forgejo/`, `.husky/`, or `containers/`, and from running any git commands — the workflow owns version control.
+The container's [`run-vibe.sh`](containers/mistral-vibe/run-vibe.sh) entrypoint reads `SPEC` and `MISTRAL_API_KEY` from the environment, locates the spec under `.sdd/specifications/`, and runs `vibe -p <prompt> --agent auto-approve --max-turns 50 --max-price 5`. The prompt forbids the agent from touching `.sdd/`, `.agents/`, `.forgejo/`, `.husky/`, or `containers/`, and from running any git commands — the workflow owns version control. `--max-turns` and `--max-price` are belt-and-braces caps so a runaway agent can't burn through tokens unbounded.
 
 ## Running locally
 

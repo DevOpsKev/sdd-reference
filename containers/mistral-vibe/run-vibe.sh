@@ -2,8 +2,9 @@
 # Container entrypoint for the Mistral Vibe agent.
 #
 # Reads SPEC and MISTRAL_API_KEY from the environment, locates the spec
-# under .sdd/specifications/, and pipes a constrained prompt into vibe
-# running non-interactively in auto-approve mode. Exits when vibe exits.
+# under .sdd/specifications/, and runs vibe in programmatic mode (-p)
+# with the auto-approve agent profile and hard turn/cost ceilings.
+# Exits when vibe exits.
 #
 # This script does NOT touch git. The workflow that invokes the
 # container is responsible for committing, pushing and opening the PR.
@@ -37,5 +38,7 @@ EOF
 
 exec vibe \
   --agent auto-approve \
-  --model codestral-latest \
-  --no-tty <<<"$PROMPT"
+  --max-turns 50 \
+  --max-price 5 \
+  --output text \
+  -p "$PROMPT"
