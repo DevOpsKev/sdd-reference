@@ -103,6 +103,27 @@ git push origin --delete spec/<spec-name> # only if the branch was pushed
 
 `main` stays clean, and the failed idea leaves no architectural scar tissue.
 
+## Limited Blast Radius
+
+Keep specs tightly scoped.
+
+A spec should describe one coherent change with clear boundaries and acceptance criteria. Broad specs burn tokens, cost money, and produce large generated diffs that are hard to review.
+
+Large, unfocused specs create two problems:
+
+- Human reviewers hit cognitive overload. They have to understand too many decisions, files, and trade-offs at once.
+- AI reviewers hit context overload. The review becomes a token-heavy context explosion, increasing cost while reducing review quality.
+
+Prefer several small specs over one sprawling spec. Each spec should be small enough that:
+
+- The intent is obvious.
+- The generated diff is reviewable.
+- Acceptance criteria are concrete.
+- Failures can be traced back to a specific requirement.
+- The branch can be abandoned cheaply if the idea is wrong.
+
+Small specs are not just cheaper. They are safer, easier to learn from, and easier to trust.
+
 ## Learning With Specs
 
 SDD is also a structured learning workflow for junior engineers.
