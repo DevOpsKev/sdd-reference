@@ -1,15 +1,13 @@
 name: container-agents
 
-# Builds an agent container in-job and runs it against a spec, then
+# Builds a containerized agent in-job and runs it against a spec, then
 # commits + pushes + opens a PR with whatever the agent produced. The
 # image is never pushed to a registry; this sidesteps the registry
 # entirely and avoids any reverse-proxy / TLS / quota concerns.
 #
-# Mirrors the post-generation pattern in api-agents.yml but uses an
-# agentic CLI (Mistral Vibe, Claude Code) that mutates the workspace
-# in place instead of returning a JSON file map. Each agent has its
-# own subdirectory under .container-agents/<AGENT>/ with a Dockerfile
-# and entrypoint script.
+# Runs an agentic CLI (Mistral Vibe, Claude Code) that mutates the
+# workspace in place. Each agent has its own subdirectory under
+# .container-agents/<AGENT>/ with a Dockerfile and entrypoint script.
 
 on:
   workflow_dispatch:

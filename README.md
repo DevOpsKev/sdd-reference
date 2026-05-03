@@ -1,6 +1,6 @@
 # sdd-reference
 
-Reference implementation for the KRA Spec-Driven Development (SDD) methodology. Specs live under `.sdd/specifications/` and reusable agent guidance lives under `.skills/`; one-shot Python agents in `.api-agents/` and containerized agentic-CLI agents in `.container-agents/` consume both and emit code. See [`AGENTS.md`](AGENTS.md) for the architecture and contribution rules, and [`.skills/README.md`](.skills/README.md) for the skill convention.
+Reference implementation for the KRA Spec-Driven Development (SDD) methodology. Specs live under `.sdd/specifications/` and reusable agent guidance lives under `.skills/`; containerized agentic-CLI agents in `.container-agents/` consume both and emit code. See [`AGENTS.md`](AGENTS.md) for the architecture and contribution rules, and [`.skills/README.md`](.skills/README.md) for the skill convention.
 
 ## Getting started
 
@@ -9,7 +9,7 @@ Prerequisites:
 - **Python ≥ 3.12**
 - **Node.js** (any recent version; LTS recommended) for husky + lint-staged
 - **[gitleaks](https://github.com/gitleaks/gitleaks)** on `PATH` for secret scanning (`brew install gitleaks` on macOS)
-- **Docker** (only required if you intend to run containerized agents like `vibe` or `claude` locally)
+- **Docker** (only required if you intend to run agents locally; CI builds and runs them in containers)
 
 Then, from the repo root:
 
@@ -34,18 +34,17 @@ pip install --user --break-system-packages -r requirements-dev.txt
 
 To run an agent you'll also need an API key for whichever provider it talks to:
 
-- `ANTHROPIC_API_KEY` — for the `anthropic` and `claude` agents
-- `MISTRAL_API_KEY` — for the `mistral` and `vibe` agents (one Codestral key covers both)
+- `ANTHROPIC_API_KEY` — for the `claude` agent
+- `MISTRAL_API_KEY` — for the `vibe` agent (Codestral key)
 
 ## Running an agent
 
-Both `AGENT` and `SPEC` are required:
+Agents are normally run through the Forgejo workflow [`container-agents.yml`](.forgejo/workflows/container-agents.yml). Trigger it manually with:
 
-```bash
-AGENT=anthropic SPEC=helloworld python .api-agents/run.py
-```
+- `AGENT` — `vibe` or `claude`
+- `SPEC` — a directory under `.sdd/specifications/` such as `helloworld`
 
-The runner reads `.sdd/specifications/<SPEC>/spec.md`, calls the chosen agent, and writes the returned files to the repo root. Available agents are listed in [`AGENTS.md`](AGENTS.md#available-agents).
+The workflow builds the selected agent container, streams the repo into it, lets the agent generate files, then commits the result to `ai/<AGENT>-<SPEC>-<run_id>` and opens a PR against `main`. Available agents are listed in [`AGENTS.md`](AGENTS.md#containerized-agents).
 
 ## Git hooks
 

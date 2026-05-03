@@ -33,9 +33,9 @@ Generate exactly the files the spec describes, at the paths it specifies, and
 satisfy its acceptance criteria literally.
 
 Hard constraints:
-- Do not modify anything under .sdd/, .skills/, .api-agents/,
-  .container-agents/, .forgejo/, or .husky/. Those are inputs and
-  infrastructure, not agent output.
+- Do not modify anything under .sdd/, .skills/, .container-agents/,
+  .forgejo/, or .husky/. Those are inputs and infrastructure, not
+  agent output.
 - Do not run any git commands. Do not commit, push, fetch, or modify
   remotes. The surrounding CI workflow handles all version control.
 - When the acceptance criteria appear satisfied, stop. Do not keep
