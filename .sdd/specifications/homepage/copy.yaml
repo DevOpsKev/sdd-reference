@@ -1,0 +1,128 @@
+# Verbatim site copy for the homepage. Implementers must use these strings exactly.
+
+meta:
+  document_title: "Tech Sovereignty Radar"
+  html_lang: "en-GB"
+
+masthead:
+  wordmark: "Tech Sovereignty Radar"
+  nav:
+    - { label: "Radar", href: "/radar" }
+    - { label: "About", href: "/about" }
+    - { label: "Methodology", href: "/methodology" }
+    - { label: "Releases", href: "/releases" }
+
+hero:
+  eyebrow: "EUROPEAN TECHNOLOGY ASSESSMENT · v0.1 · MAY 2026"
+  title: "Tech Sovereignty Radar"
+  value_prop: >-
+    A periodic, opinionated radar for European technology leaders making
+    sovereignty-aware decisions about what to adopt, trial, assess, or
+    divest from.
+  primary_cta:
+    label: "Explore the radar →"
+    href: "/radar"
+  secondary_link:
+    label: "Read the methodology"
+    href: "/methodology"
+  hero_metadata:
+    lines:
+      - "NEXT RELEASE"
+      - "Q3 2026"
+      - "47 entries under review"
+
+thesis:
+  pull_quote: >-
+    Sovereignty is not maturity. A technology can be technically excellent
+    and still belong in Divest.
+  attribution: "— EDITORIAL POSITION, v0.1"
+
+why_different:
+  eyebrow: "01 / METHODOLOGY"
+  heading: "Why this is different"
+  body_paragraphs:
+    - >-
+      Most technology radars ask whether a technology is mature, proven,
+      or ready. That is a useful question. It is not the question European
+      technology leaders need answered when the CLOUD Act sits across the
+      Atlantic, when the exit cost of a managed service compounds yearly,
+      and when a regulatory or geopolitical shift can revalue an entire
+      dependency overnight.
+    - >-
+      A technology can be technically excellent and still belong in Divest.
+      Sovereignty assessment weighs jurisdiction, ownership, exit cost,
+      standards posture, and supply-chain exposure — and asks whether a
+      five-year dependency is defensible.
+  factors_panel:
+    - { index: "01", title: "Jurisdiction", gloss: "Where data lives and which laws reach it." }
+    - { index: "02", title: "Ownership", gloss: "Who controls the roadmap and the exit." }
+    - { index: "03", title: "Exit cost", gloss: "What it would take to leave." }
+    - { index: "04", title: "Standards posture", gloss: "Open protocols vs. proprietary lock-in." }
+    - { index: "05", title: "Supply-chain exposure", gloss: "Dependencies, components, and their origins." }
+
+rings:
+  eyebrow: "02 / RINGS · WHAT TO DO"
+  heading: "Four rings. One question: what do you do on Monday?"
+  items:
+    - id: adopt
+      name: "Adopt"
+      description: "Sovereignty-safe. Recommended for new and existing systems."
+    - id: trial
+      name: "Trial"
+      description: "Credible. Worth piloting in a non-critical context."
+    - id: assess
+      name: "Assess"
+      description: "Watch and learn. Not yet ready, or signal is mixed."
+    - id: divest
+      name: "Divest"
+      description: "If you depend on this, plan and budget an exit."
+
+quadrants:
+  eyebrow: "03 / QUADRANTS · WHERE IT LIVES"
+  heading: "The stack, divided four ways."
+  items:
+    - label_mono: "INFRA"
+      name: "Infrastructure & Compute"
+      description: "Cloud, hosting, CDN, edge."
+    - label_mono: "DATA"
+      name: "Data & Identity"
+      description: "Databases, authentication, analytics, AI/ML services."
+    - label_mono: "TOOLS"
+      name: "Developer Toolchain"
+      description: "Source hosting, CI/CD, observability, package registries."
+    - label_mono: "STANDARDS"
+      name: "Standards & Protocols"
+      description: "Open standards and interop layers that reduce future lock-in."
+
+preview:
+  eyebrow: "04 / PREVIEW · v0.1 SAMPLE"
+  heading: "A first look."
+  body: >-
+    This is a sketch of the radar's visual structure. The placements below
+    are illustrative only — they exist to convey the format, not editorial
+    assessments. Real placements arrive with v1.0, on a published cadence,
+    with rationale and dates attached.
+  figure_caption: "FIG. 1 — SAMPLE RADAR, ILLUSTRATIVE ONLY. v1.0 RELEASE Q3 2026."
+
+closing_thesis:
+  pull_quote: >-
+    Stack decisions made on a published cadence — defensible to a regulator,
+    a board, or a successor.
+
+final_cta:
+  eyebrow: "READY?"
+  heading: "See the radar."
+  primary_cta:
+    label: "Explore the radar →"
+    href: "/radar"
+  subscribe_note: "Or subscribe for release notifications. One email per quarter, no marketing."
+
+footer:
+  left: "Tech Sovereignty Radar v0.1"
+  centre: "Last updated 3 May 2026"
+  right: "CC BY-SA 4.0"
+  links:
+    - { label: "Methodology", href: "/methodology" }
+    - { label: "Releases", href: "/releases" }
+    - { label: "RSS", href: "/rss" }
+    - { label: "Contact", href: "/contact" }

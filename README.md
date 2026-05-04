@@ -20,7 +20,7 @@ In normal use, a developer chooses an agent and a spec. The agent container read
 
 | Path | Purpose |
 | --- | --- |
-| `.sdd/specifications/` | SDD specs such as `helloworld`, `vite-baseline`, and `design-baseline` |
+| `.sdd/specifications/` | SDD specs such as `helloworld`, `vite-baseline`, `design-baseline`, and `homepage` |
 | `.skills/` | Reusable guidance consumed by agents |
 | `.context/` | Product and technical background for generated work |
 | `.workflow-agents/` | Docker images and entrypoints for each supported agent |
@@ -203,7 +203,7 @@ Local runs:
 Use a low turn cap first to catch prompt or spec mistakes cheaply. If the run starts correctly, use the normal cap:
 
 ```bash
-AGENT_DEBUG=true AGENT_MAX_TURNS=150 pnpm execute spec vibe design-baseline
+AGENT_DEBUG=true AGENT_MAX_TURNS=150 pnpm execute spec vibe homepage
 ```
 
 For a disposable smoke test that does not mutate your checkout, pass `--tmp`:

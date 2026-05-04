@@ -10,7 +10,7 @@ Usage:
 
 Examples:
   pnpm execute spec vibe vite-baseline
-  AGENT_MAX_TURNS=20 pnpm execute spec vibe design-baseline
+  AGENT_MAX_TURNS=20 pnpm execute spec vibe homepage
   pnpm execute spec --tmp vibe vite-baseline
 EOF
 }
