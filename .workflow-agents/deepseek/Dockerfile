@@ -14,6 +14,7 @@ ARG CLAUDE_CODE_VERSION=2.1.126
 # the repo root. The agent runs as a non-root user, so it cannot
 # self-install pnpm at runtime — it must already be on PATH.
 ARG PNPM_VERSION=10.33.2
+ARG PLAYWRIGHT_VERSION=1.50.1
 
 ENV NODE_ENV=production \
     NPM_CONFIG_UPDATE_NOTIFIER=false \
@@ -50,6 +51,12 @@ RUN mkdir -p "$COREPACK_HOME" \
 RUN useradd --create-home --uid 1001 --shell /bin/bash deepseek \
  && mkdir -p /work \
  && chown deepseek:deepseek /work
+
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN npm install -g "playwright@${PLAYWRIGHT_VERSION}" \
+ && playwright install-deps chromium \
+ && playwright install chromium \
+ && chown -R deepseek:deepseek /ms-playwright
 
 COPY run-deepseek.sh /usr/local/bin/run-deepseek
 RUN chmod +x /usr/local/bin/run-deepseek

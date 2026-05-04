@@ -38,6 +38,28 @@ For deeper agent architecture and contribution rules, see [`AGENTS.md`](AGENTS.m
 | `claude` | Anthropic Claude Code | `ANTHROPIC_API_KEY` |
 | `deepseek` | Claude Code via DeepSeek API | `DEEPSEEK_API_KEY` |
 
+## Agent roles (`dev` and `qa`)
+
+Local runs and CI pass a **role** as the third argument to `pnpm execute spec` (or set `AGENT_ROLE` in Forgejo when `PIPELINE` is `agent-only`):
+
+| Role | Purpose |
+| --- | --- |
+| **`dev`** | Implements from the spec: product files, scripts, and (per agent rules) overwrites **`.sdd/provenance/<SPEC>/provenance.md`**. |
+| **`qa`** | Verifies against the spec: runs acceptance checks, commits **runnable** tests (often Playwright under `e2e/` with a `package.json` script such as `test:e2e`), writes **`.sdd/scenarios/<SPEC>/scenarios.md`**, and **appends** to provenance. |
+
+**Examples**
+
+```bash
+pnpm execute spec claude vite-baseline dev
+pnpm execute spec claude vite-baseline qa
+```
+
+Use **`claude`** or **`deepseek`** for **qa** when the spec needs Node, Playwright, or browser checks. The **`vibe`** image is Python-only (no pnpm in-container), so it is a poor fit for Playwright-based QA against this repo.
+
+In Forgejo, set **`PIPELINE`** to **`dev-then-qa`** to run **dev** then **qa** on the same tree before a single commit (see [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml)).
+
+Full rules: [`AGENTS.md`](AGENTS.md) and [`.workflow-agents/base/prompt-role-dev.md`](.workflow-agents/base/prompt-role-dev.md) / [`prompt-role-qa.md`](.workflow-agents/base/prompt-role-qa.md).
+
 ## Developer Workflow
 
 The normal SDD loop starts with the spec, not the implementation.
@@ -58,7 +80,7 @@ Interactive problem solving with an LLM is encouraged here. The human owns the i
 .sdd/specifications/<spec-name>/spec.md
 ```
 
-4. Execute the spec locally.
+4. Execute the spec locally (use **`dev`** to implement, **`qa`** to verify — see [Agent roles](#agent-roles-dev-and-qa)).
 
 ```bash
 AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec <agent> <spec-name> dev
@@ -197,11 +219,20 @@ pnpm install
 
 To run agents locally, Docker must be running and the provider API key for the selected agent must be set.
 
+The third argument is the **role**: **`dev`** (implement) or **`qa`** (verify, scenarios, runnable tests). See [Agent roles](#agent-roles-dev-and-qa).
+
 Run a spec against your current branch:
 
 ```bash
 export MISTRAL_API_KEY="..."
 AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec vibe vite-baseline dev
+```
+
+For **qa** with Playwright-capable agents (requires `ANTHROPIC_API_KEY` or `DEEPSEEK_API_KEY`):
+
+```bash
+export ANTHROPIC_API_KEY="..."
+pnpm execute spec claude vite-baseline qa
 ```
 
 Local runs:
@@ -229,6 +260,18 @@ To see the raw provider stream instead of the pretty terminal output:
 ```bash
 AGENT_PRETTY_OUTPUT=false pnpm execute spec vibe vite-baseline dev
 ```
+
+### Playwright / e2e tests
+
+If the repo has a Playwright-based script (for example **`pnpm test:e2e`**, often added by a **qa** agent run), install browser binaries **once per machine** (and again after upgrading `@playwright/test`):
+
+```bash
+pnpm exec playwright install chromium
+```
+
+If tests still fail to launch the browser, run the full install: `pnpm exec playwright install`.
+
+Playwright writes artefacts under **`test-results/`**, which is **gitignored** — do not commit that directory.
 
 ## CI/CD Usage
 

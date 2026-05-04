@@ -13,7 +13,7 @@ require a rebuild.
 | `prompt-prelude.md` | every `run-*.sh` | Shared opening of the agent prompt: spec/skills/context reading rules, "generate exactly", validation-first guidance. |
 | `prompt-postlude.md` | every `run-*.sh` | Hard constraints, no-modify list (with `.sdd/` exceptions by `AGENT_ROLE`), required provenance/scenarios behaviour, no-git, stop-when-done. |
 | `prompt-role-dev.md` | every `run-*.sh` | Framing for `AGENT_ROLE=dev` (implementation). |
-| `prompt-role-qa.md` | every `run-*.sh` | Framing for `AGENT_ROLE=qa` (verification, scenarios file, append-only provenance). |
+| `prompt-role-qa.md` | every `run-*.sh` | Framing for `AGENT_ROLE=qa` (verification, committed runnable tests, scenarios file, append-only provenance). |
 | `lib/print-toolchain.sh` | every `run-*.sh` debug block | Sourced bash library that defines `print_toolchain <tool>...`, printing each requested binary's presence and version. |
 | `lib/load-agent-role.sh` | every `run-*.sh` | Validates `AGENT_ROLE` (`dev` or `qa`, default `dev`) and checks the matching `prompt-role-*.md` exists. |
 

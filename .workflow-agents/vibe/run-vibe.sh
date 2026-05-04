@@ -124,10 +124,10 @@ Tools that are NOT available:
   acceptance criterion is "`docker build` works" or "image is under
   N MB", implement the Dockerfile and trust the surrounding CI to
   verify — do not try to build or measure the image yourself.
-- Any browser, headless renderer, playwright, or puppeteer. If a spec
-  says "renders correctly in a modern browser" or "no console errors",
-  inspect the HTML/CSS/JS yourself and ship it; do not attempt visual
-  or runtime browser checks.
+- Playwright, Puppeteer, or headless browser checks against the
+  **workspace** (this image is Python-only for Node tooling). If a spec
+  needs committed browser automation, use the `claude` or `deepseek`
+  workflow agents instead, or validate by inspecting static HTML/CSS/JS.
 
 This container runs as root, so `apt-get install` and `pip install`
 technically work. Avoid using them: each install costs turns and

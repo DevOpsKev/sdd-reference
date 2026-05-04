@@ -93,6 +93,14 @@ Available tools in this container:
 - node 22, npm, pnpm 10.33.2, npx, corepack
 - git, ripgrep (`rg`), jq, curl, sed, awk, grep, find, wc, plus
   standard GNU coreutils
+- **Playwright / headless Chromium** — global `playwright` CLI; shared
+  browsers under `PLAYWRIGHT_BROWSERS_PATH=/ms-playwright` (baked into
+  this image). Add `@playwright/test` to the **workspace** with pnpm,
+  then run `pnpm exec playwright test` (or `pnpm exec playwright
+  install` if the workspace pins a different Playwright minor and
+  needs its own browser download). Prefer pinning `@playwright/test` to
+  the same **major** as the image Playwright (see Dockerfile
+  `PLAYWRIGHT_VERSION`) to reuse the shared install.
 
 Tools that are NOT available (do not attempt to install them — this
 container runs as a non-root user and `apt-get install`,
@@ -101,10 +109,6 @@ container runs as a non-root user and `apt-get install`,
   acceptance criterion is "`docker build` works" or "image is under
   N MB", implement the Dockerfile and trust the surrounding CI to
   verify — do not try to build or measure the image yourself.
-- Any browser, headless renderer, playwright, or puppeteer. If a spec
-  says "renders correctly in a modern browser" or "no console errors",
-  inspect the HTML/CSS/JS yourself and ship it; do not attempt visual
-  or runtime browser checks.
 - python, ruby, go, rust, java toolchains.
 
 Plan the work using only the tools listed as available. Probing for
