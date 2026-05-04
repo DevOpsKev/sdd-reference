@@ -70,10 +70,16 @@ Required repo-scoped secrets:
 - `DEEPSEEK_API_KEY` — for the `deepseek` agent
 - `MISTRAL_API_KEY` — for the `vibe` agent (Codestral key)
 
+## Shared workflow-agent base
+
+Cross-agent prompt fragments and shell helpers live at [`.workflow-agents/base/`](.workflow-agents/base/) and are read **at runtime** from the streamed workspace — they are not copied into any agent's container image. Each `run-*.sh` sources `lib/print-toolchain.sh` for its `AGENT_DEBUG=true` toolchain probe and concatenates `prompt-prelude.md` + an agent-specific tool manifest + `prompt-postlude.md` to assemble the prompt it passes to the agent CLI.
+
+This keeps the shared prompt body (spec/skills/context reading rules, hard constraints) in one place while leaving each agent's tool manifest local to that agent — the manifest describes the tools that *that particular container* actually has. Editing the shared fragments does not require rebuilding any image. See [`.workflow-agents/base/README.md`](.workflow-agents/base/README.md) for the full convention.
+
 ## Adding a new agent
 
 1. Create `.workflow-agents/<name>/Dockerfile`.
-2. Add an executable entrypoint script (for example `run-<name>.sh`) that reads `SPEC` and the provider API key from the environment, loads `.sdd/specifications/<SPEC>/spec.md`, reads relevant `.skills/` and `.context/` guidance, and mutates `/work` in place.
+2. Add an executable entrypoint script (for example `run-<name>.sh`) that reads `SPEC` and the provider API key from the environment, loads `.sdd/specifications/<SPEC>/spec.md`, sources `/work/.workflow-agents/base/lib/print-toolchain.sh`, assembles its prompt from the shared `/work/.workflow-agents/base/prompt-{prelude,postlude}.md` fragments plus a container-specific tool manifest, and mutates `/work` in place.
 3. Add the key to `on.workflow_dispatch.inputs.AGENT.options` in [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml).
 
 ## Writing a spec

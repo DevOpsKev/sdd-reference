@@ -34,6 +34,20 @@ if [ ! -f "$SPEC_PATH" ]; then
   exit 1
 fi
 
+# Shared cross-agent prompt fragments and shell helpers, read at
+# runtime from the streamed workspace. See
+# /work/.workflow-agents/base/README.md.
+BASE_DIR="/work/.workflow-agents/base"
+for f in "$BASE_DIR/prompt-prelude.md" "$BASE_DIR/prompt-postlude.md" "$BASE_DIR/lib/print-toolchain.sh"; do
+  if [ ! -f "$f" ]; then
+    echo "Missing shared workflow-agent base file: $f" >&2
+    echo "Expected .workflow-agents/base/ to be present in the streamed workspace at /work." >&2
+    exit 1
+  fi
+done
+# shellcheck source=/dev/null
+source "$BASE_DIR/lib/print-toolchain.sh"
+
 if debug_enabled; then
   echo "Starting DeepSeek workflow agent"
   echo "SPEC=$SPEC"
@@ -44,6 +58,9 @@ if debug_enabled; then
   echo "AGENT_MAX_TURNS=$MAX_TURNS"
   echo "Claude Code version:"
   claude --version || true
+
+  print_toolchain node npm pnpm npx corepack git rg ripgrep jq curl \
+    sed awk grep find wc python python3 docker chromium playwright
 
   echo "Checking DeepSeek Anthropic endpoint reachability"
   curl -sS --connect-timeout 10 --max-time 20 \
@@ -66,40 +83,39 @@ if debug_enabled; then
     "https://api.deepseek.com/chat/completions" || true
 fi
 
-PROMPT=$(cat <<EOF
-Read the spec at ${SPEC_PATH}.
+# Tool manifest is agent-specific (it describes *this* container).
+# Quoted heredoc so backticks and dollar signs in the body stay literal.
+TOOL_MANIFEST=$(cat <<'EOF'
+Available tools in this container:
+- node 22, npm, pnpm 10.33.2, npx, corepack
+- git, ripgrep (`rg`), jq, curl, sed, awk, grep, find, wc, plus
+  standard GNU coreutils
 
-If the spec references sibling files, schemas, fixtures, copy files,
-data files, or examples, read those files before implementing. Treat
-referenced files as part of the spec.
+Tools that are NOT available (do not attempt to install them — this
+container runs as a non-root user and `apt-get install`,
+`brew install`, and `sudo` will all fail):
+- docker, podman, or any container build/run CLI. If a spec
+  acceptance criterion is "`docker build` works" or "image is under
+  N MB", implement the Dockerfile and trust the surrounding CI to
+  verify — do not try to build or measure the image yourself.
+- Any browser, headless renderer, playwright, or puppeteer. If a spec
+  says "renders correctly in a modern browser" or "no console errors",
+  inspect the HTML/CSS/JS yourself and ship it; do not attempt visual
+  or runtime browser checks.
+- python, ruby, go, rust, java toolchains.
 
-If a \`.skills/\` directory exists at the repo root, read every
-\`.skills/<name>/SKILL.md\` file before generating code, and apply the
-guidance where relevant. Skills describe *how* to do work well (e.g.
-visual design quality); the spec describes *what* to build. Skills do
-not change scope.
-
-If a \`.context/\` directory exists at the repo root, read relevant
-\`.context/*.md\` files before generating code. Context describes
-project/product background; it does not change the scope or acceptance
-criteria in the spec.
-
-Generate exactly the files the spec describes, at the paths it specifies, and
-satisfy its acceptance criteria literally.
-
-When a spec requires a validation script or acceptance command,
-implement it early and use it as the completion gate.
-
-Hard constraints:
-- Do not modify anything under .sdd/, .skills/, .context/, .scripts/,
-  .workflow-agents/, .forgejo/, or .husky/. Those are inputs and
-  infrastructure, not agent output.
-- Do not run any git commands. Do not commit, push, fetch, or modify
-  remotes. The surrounding CI workflow handles all version control.
-- When the acceptance criteria appear satisfied, stop. Do not keep
-  exploring or refactoring beyond what the spec asks for.
+Plan the work using only the tools listed as available. Probing for
+missing tools wastes turns; trust this manifest.
 EOF
 )
+
+PROMPT="Read the spec at ${SPEC_PATH}.
+
+$(cat "$BASE_DIR/prompt-prelude.md")
+
+${TOOL_MANIFEST}
+
+$(cat "$BASE_DIR/prompt-postlude.md")"
 
 CLAUDE_OUTPUT_ARGS=(--output-format text)
 if debug_enabled; then
