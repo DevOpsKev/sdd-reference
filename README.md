@@ -77,6 +77,34 @@ docker run --rm -p 8080:80 <spec-name>
 
 If the generated output is wrong, update the spec and rerun the agent. Avoid hand-fixing generated files as the primary path; the goal is for the spec to reliably reproduce the desired solution.
 
+### Revert agent output on a spec branch
+
+To iterate on the **spec** while **dropping uncommitted agent changes** and matching the **last commit** on your branch (discard tracked edits and remove untracked files such as agent-added directories):
+
+```bash
+# Discard changes to tracked files
+git restore .
+
+# Remove untracked files and directories (e.g. agent-added folders)
+git clean -fd
+```
+
+Safer dry run first (shows what would be deleted):
+
+```bash
+git clean -fdn
+```
+
+Then run `git clean -fd` without `n` when the list looks right.
+
+Confirm a clean tree:
+
+```bash
+git status
+```
+
+This does **not** remove commits; it only resets uncommitted work to `HEAD`.
+
 7. Push the working branch upstream.
 
 ```bash

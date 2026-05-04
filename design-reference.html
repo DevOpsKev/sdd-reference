@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Design baseline — Tech Sovereignty Radar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    >
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Skip to content</a>
+
+    <main id="main" class="container" style="padding-top: 48px; padding-bottom: 96px;">
+
+      <!-- Header -->
+      <header style="margin-bottom: 64px;">
+        <h1 class="type-display">Design baseline</h1>
+        <p class="type-body" style="margin-top: 16px; color: var(--ink-muted);">
+          Visual system reference for Tech Sovereignty Radar — tokens, typography, components, and motion.
+        </p>
+      </header>
+
+      <!-- Colour -->
+      <section class="section">
+        <h2 class="type-h1 section-title">Colour</h2>
+
+        <div style="margin-bottom: 48px;">
+          <h3 class="type-h2" style="margin-bottom: 24px;">Surface</h3>
+          <div class="swatch-grid">
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--surface);"></div>
+              <span class="swatch-label">--surface</span>
+              <span class="swatch-label">#FFFFFF</span>
+            </div>
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--surface-raised);"></div>
+              <span class="swatch-label">--surface-raised</span>
+              <span class="swatch-label">#FAFAF8</span>
+            </div>
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--surface-sunken);"></div>
+              <span class="swatch-label">--surface-sunken</span>
+              <span class="swatch-label">#F4F4F2</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 48px;">
+          <h3 class="type-h2" style="margin-bottom: 24px;">Ink</h3>
+          <div class="swatch-grid">
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--ink);"></div>
+              <span class="swatch-label">--ink</span>
+              <span class="swatch-label">#0A0A0A</span>
+            </div>
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--ink-secondary);"></div>
+              <span class="swatch-label">--ink-secondary</span>
+              <span class="swatch-label">#3A3A3A</span>
+            </div>
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--ink-muted);"></div>
+              <span class="swatch-label">--ink-muted</span>
+              <span class="swatch-label">#6B6B6B</span>
+            </div>
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--ink-faint);"></div>
+              <span class="swatch-label">--ink-faint</span>
+              <span class="swatch-label">#9A9A9A</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 48px;">
+          <h3 class="type-h2" style="margin-bottom: 24px;">Rules</h3>
+          <div class="swatch-grid">
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--rule);"></div>
+              <span class="swatch-label">--rule</span>
+              <span class="swatch-label">#E5E5E2</span>
+            </div>
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--rule-strong);"></div>
+              <span class="swatch-label">--rule-strong</span>
+              <span class="swatch-label">#0A0A0A</span>
+            </div>
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--rule-faint);"></div>
+              <span class="swatch-label">--rule-faint</span>
+              <span class="swatch-label">#F0F0ED</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 48px;">
+          <h3 class="type-h2" style="margin-bottom: 24px;">Brand accent</h3>
+          <div class="swatch-grid">
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--accent);"></div>
+              <span class="swatch-label">--accent</span>
+              <span class="swatch-label">#1B3A6B</span>
+            </div>
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--accent-hover);"></div>
+              <span class="swatch-label">--accent-hover</span>
+              <span class="swatch-label">#0F2848</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="type-h2" style="margin-bottom: 24px;">Ring semantics</h3>
+          <div class="swatch-grid">
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--ring-adopt-fill); border-color: var(--ring-adopt-edge);"></div>
+              <span class="swatch-label">Adopt</span>
+              <span class="swatch-label">#1F5F4A / #143F30</span>
+            </div>
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--ring-trial-fill); border-color: var(--ring-trial-edge);"></div>
+              <span class="swatch-label">Trial</span>
+              <span class="swatch-label">#1B3A6B / #0F2848</span>
+            </div>
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--ring-assess-fill); border-color: var(--ring-assess-edge);"></div>
+              <span class="swatch-label">Assess</span>
+              <span class="swatch-label">#A66E12 / #6B470A</span>
+            </div>
+            <div class="swatch">
+              <div class="swatch-color" style="background-color: var(--ring-divest-fill); border-color: var(--ring-divest-edge);"></div>
+              <span class="swatch-label">Divest</span>
+              <span class="swatch-label">#7A2419 / #4D160F</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Typography -->
+      <section class="section">
+        <h2 class="type-h1 section-title">Typography</h2>
+
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 8px;">DISPLAY</p>
+            <p class="type-display">Strategic intelligence</p>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 8px;">H1</p>
+            <p class="type-h1">Section headings</p>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 8px;">H2</p>
+            <p class="type-h2">Subsection and entry titles</p>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 8px;">H3</p>
+            <p class="type-h3">Minor headings and panel titles</p>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 8px;">BODY LARGE</p>
+            <p class="type-body-lg">Lede paragraphs and entry rationale. Used for emphasis on key content that requires more prominence than standard body text.</p>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 8px;">BODY</p>
+            <p class="type-body">Default body text for paragraphs, descriptions, and general content. The workhorse typeface of the system with optimal readability at 15px.</p>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 8px;">SMALL</p>
+            <p class="type-small">Captions, table cells, and secondary content requiring higher information density.</p>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 8px;">MICRO</p>
+            <p class="type-micro">QUADRANT · DATA & IDENTITY</p>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 8px;">MONO</p>
+            <p class="type-mono">v0.4.1 · 2026-05-04 · Identifiers and dates</p>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 8px;">MONO SMALL</p>
+            <p class="type-mono-small">0123456789 for dense tables</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Grid / Layout -->
+      <section class="section">
+        <h2 class="type-h1 section-title">Grid and layout</h2>
+
+        <p class="type-body" style="margin-bottom: 24px; color: var(--ink-muted);">
+          Asymmetric layout example with label and content columns.
+        </p>
+
+        <div class="layout-asymmetric">
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted);">METADATA</p>
+          </div>
+          <div>
+            <h3 class="type-h2" style="margin-bottom: 16px;">Asymmetric balance</h3>
+            <p class="type-body" style="margin-bottom: 16px;">
+              The default page composition uses asymmetric grid placement. Navigation elements align left at fixed width; primary content offsets right. Tension comes from grid structure, not centered alignment.
+            </p>
+            <p class="type-body">
+              Centered compositions are reserved for the radar canvas itself, modal overlays, and empty states. All measurements align to the 4px baseline grid.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Buttons -->
+      <section class="section">
+        <h2 class="type-h1 section-title">Buttons</h2>
+
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 12px;">PRIMARY</p>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <button class="btn btn-primary">Primary action</button>
+              <button class="btn btn-primary btn-large">Large primary</button>
+              <button class="btn btn-primary btn-compact">Compact</button>
+            </div>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 12px;">SECONDARY</p>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <button class="btn btn-secondary">Secondary action</button>
+              <button class="btn btn-secondary btn-large">Large secondary</button>
+            </div>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 12px;">TERTIARY</p>
+            <button class="btn btn-tertiary">Tertiary inline action</button>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 12px;">DISABLED</p>
+            <button class="btn btn-primary" disabled>Disabled button</button>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 12px;">FOCUS STATE</p>
+            <p class="type-small" style="color: var(--ink-muted);">Tab through buttons to see 2px accent outline with 2px offset.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Inputs -->
+      <section class="section">
+        <h2 class="type-h1 section-title">Inputs</h2>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px;">
+          <div class="input-group">
+            <label class="input-label">Technology name</label>
+            <input type="text" class="input" placeholder="Enter technology name" />
+            <span class="input-helper">Helper text provides additional context.</span>
+          </div>
+
+          <div class="input-group">
+            <label class="input-label">Ring placement</label>
+            <input type="text" class="input input-error" value="Invalid entry" />
+            <span class="input-error-text">Error state with validation feedback.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Table -->
+      <section class="section">
+        <h2 class="type-h1 section-title">Table</h2>
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Technology</th>
+              <th>Ring</th>
+              <th>Quadrant</th>
+              <th class="numeric">Version</th>
+              <th class="numeric">Last reviewed</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Sovereign Cloud Stack</td>
+              <td>Adopt</td>
+              <td>Platforms</td>
+              <td class="numeric">v7.1.0</td>
+              <td class="numeric">2026-04-28</td>
+            </tr>
+            <tr>
+              <td>Nextcloud Hub</td>
+              <td>Trial</td>
+              <td>Data & Identity</td>
+              <td class="numeric">v29.0.2</td>
+              <td class="numeric">2026-04-15</td>
+            </tr>
+            <tr>
+              <td>Gaia-X Federation</td>
+              <td>Assess</td>
+              <td>Standards</td>
+              <td class="numeric">v0.8.3</td>
+              <td class="numeric">2026-03-30</td>
+            </tr>
+            <tr>
+              <td>Proprietary Hyperscaler</td>
+              <td>Divest</td>
+              <td>Infrastructure</td>
+              <td class="numeric">n/a</td>
+              <td class="numeric">2026-05-01</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p class="type-small" style="margin-top: 16px; color: var(--ink-muted);">
+          Tabular numerals ensure alignment in version and date columns.
+        </p>
+      </section>
+
+      <!-- Card -->
+      <section class="section">
+        <h2 class="type-h1 section-title">Card</h2>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+          <div class="card">
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 8px;">PLATFORMS</p>
+            <h3 class="type-h2" style="margin-bottom: 12px;">Sovereign Cloud Stack</h3>
+            <p class="type-body">
+              Federated cloud infrastructure framework designed for digital sovereignty. Implements European regulatory requirements at the infrastructure layer.
+            </p>
+          </div>
+
+          <div class="card card-raised">
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 8px;">DATA & IDENTITY</p>
+            <h3 class="type-h2" style="margin-bottom: 12px;">Nextcloud Hub</h3>
+            <p class="type-body">
+              Self-hosted collaboration platform. Strong GDPR alignment and on-premises deployment model, but federation capabilities remain nascent.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Motion -->
+      <section class="section">
+        <h2 class="type-h1 section-title">Motion</h2>
+
+        <p class="type-body" style="margin-bottom: 24px; color: var(--ink-muted);">
+          All transitions use design system tokens. Motion respects <code>prefers-reduced-motion</code>.
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 32px;">
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 12px;">CSS TRANSITIONS</p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <button class="btn btn-primary">Hover me (instant 80ms)</button>
+              <button class="btn btn-secondary">Secondary hover</button>
+            </div>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 12px;">SCRIPTED MOTION WITH REDUCED-MOTION SUPPORT</p>
+            <div style="display: flex; gap: 16px; align-items: center;">
+              <button id="motion-trigger" class="btn btn-primary">Animate box</button>
+              <div id="motion-box" style="width: 48px; height: 48px; background-color: var(--accent); border-radius: var(--radius-1);"></div>
+            </div>
+            <p class="type-small" style="margin-top: 8px; color: var(--ink-muted);">
+              Enable "Reduce motion" in your OS settings to see the animation disabled.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filter chips (optional) -->
+      <section class="section">
+        <h2 class="type-h1 section-title">Filter chips</h2>
+
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 12px;">DEFAULT</p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="chip">All quadrants</button>
+              <button class="chip chip-active">Platforms</button>
+              <button class="chip">Data & Identity</button>
+              <button class="chip">Standards</button>
+            </div>
+          </div>
+
+          <div>
+            <p class="type-micro" style="color: var(--ink-muted); margin-bottom: 12px;">RING FILTERS</p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="chip chip-ring-adopt">Adopt</button>
+              <button class="chip chip-ring-trial">Trial</button>
+              <button class="chip chip-ring-assess">Assess</button>
+              <button class="chip chip-ring-divest">Divest</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer style="margin-top: 96px; padding-top: 32px; border-top: 1px solid var(--rule);">
+        <p class="type-small" style="color: var(--ink-muted);">
+          Design baseline reference · <a href="/" style="color: var(--accent); text-decoration: none;">Return to app</a>
+        </p>
+      </footer>
+
+    </main>
+
+    <script type="module" src="/src/design-reference.ts"></script>
+  </body>
+</html>

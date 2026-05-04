@@ -1,10 +1,10 @@
-# Design baseline — design system in CSS, motion in TS, review page
+# Design baseline — design system in CSS, motion in TS, design reference page
 
 ## Intent
 
 Implement the project **visual system** from [`.context/design-system.md`](../../../.context/design-system.md) as **plain CSS** (custom properties, layout, components) and **TypeScript** only where **motion or interaction** cannot be satisfied cleanly with CSS alone, while respecting the design system’s **Motion**, **Accessibility**, and **Anti-patterns** rules.
 
-Update **`index.html`** into a single **developer review page**: structured sections that exercise **representative** patterns so a developer can visually verify tokens, typography, components, and motion in one place. This is **not** the product homepage or radar UI.
+Add a **dedicated** page **`design-reference.html`** at the project root: a **developer-only** overview of tokens and components that you can open for a **quick visual check** whenever design rules change. Keep **`index.html`** as the **minimal** app shell (e.g. product entry or vite-baseline placeholder) — **do not** put the full design inventory in `index.html`. A short link from `index.html` to `design-reference.html` is allowed and recommended.
 
 ## Prerequisites
 
@@ -14,15 +14,20 @@ If `vite-baseline` outputs are missing, implement minimal missing pieces only as
 
 ## References
 
-- [`.context/design-system.md`](../../../.context/design-system.md) — **Normative** for tokens, typography, grid, components, motion, voice (sample copy on the review page may use short neutral placeholders; do not paraphrase the product spec).
+- [`.context/design-system.md`](../../../.context/design-system.md) — **Normative** for tokens, typography, grid, components, motion, voice (sample copy on the reference page may use short neutral placeholders; do not paraphrase the product spec).
 - [`.context/architecture.md`](../../../.context/architecture.md) — Vite, vanilla HTML/CSS/TS, `dist/`, no new UI framework.
 
 ## Requirements
 
+### Vite (multi-page)
+
+- Add **`design-reference.html`** as a **second** HTML entry at the **repository root** (sibling to `index.html`).
+- Configure **Vite** so both `index.html` and `design-reference.html` are build inputs (Multi-Page App / MPA), e.g. `build.rollupOptions.input` including both files, so `pnpm build` emits both in **`dist/`** and `pnpm dev` serves both (e.g. `/design-reference.html`). Shared CSS/TS may be imported from each page’s script module as needed.
+
 ### CSS
 
 - **Custom properties** for colours, type scale, spacing, grid/radius/shadow, and **motion** tokens, aligned to the design system (no ad-hoc hex outside documented exceptions).
-- **Google Fonts** — Load **Inter** and **JetBrains Mono** using the `<link>` pattern from the design system (or equivalent single bundle).
+- **Google Fonts** — Load **Inter** and **JetBrains Mono** using the `<link>` pattern from the design system (or equivalent single bundle). The reference page must load the same system the app uses.
 - **`font-feature-settings`** including **`tnum`** on appropriate roots per the doc.
 - Organise styles into predictable modules (e.g. under `src/styles/`): at minimum separate **tokens** from **base** from **component/layout** helpers; exact filenames are left to the implementer.
 - No Tailwind, Sass, or component frameworks unless already approved elsewhere.
@@ -30,9 +35,13 @@ If `vite-baseline` outputs are missing, implement minimal missing pieces only as
 ### TypeScript (motion and interaction)
 
 - **Prefer CSS** for transitions: use **`var(--motion-*)`** durations/easing; only **`opacity`**, **`transform`**, **`background-color`**, **`border-color`** as transition targets unless the design system explicitly allows otherwise.
-- Use **TypeScript** where script adds clear value: e.g. **`prefers-reduced-motion`** coordination, focus traps not needed for this page, or small demos that need **`requestAnimationFrame`** / attribute-driven state. Do **not** add scroll-jacking, parallax, elastic animations, or forbidden curves from the design system.
+- Use **TypeScript** where script adds clear value: e.g. **`prefers-reduced-motion`** coordination, or small demos that need **`requestAnimationFrame`** / attribute-driven state. Do **not** add scroll-jacking, parallax, elastic animations, or forbidden curves from the design system.
 
-### Review page (`index.html`)
+### `index.html`
+
+- Remains a **small** entry (title, short copy, root mount if used). **No** full design-system gallery here.
+
+### Design reference page (`design-reference.html`)
 
 The document must be **semantic** (`skip` link, `main`, `section`, headings) and include **distinct labeled sections** so reviewers can scan top-to-bottom. Minimum content:
 
@@ -49,7 +58,7 @@ The document must be **semantic** (`skip` link, `main`, `section`, headings) and
 | Motion | At least one **CSS transition** using motion tokens; if JS is used, a small demo that **respects** `prefers-reduced-motion: reduce`. |
 | Filter chips (optional) | If included, match **Filter chips** / ring rules. |
 
-The page is allowed to be long; **do not** add additional routes or SPAs.
+The reference page is allowed to be long. **Do not** add a SPA router; at most these two static HTML entry points plus shared assets.
 
 ### Provenance
 
@@ -57,10 +66,11 @@ Per agent rules, create or overwrite **`.sdd/provenance/design-baseline/provenan
 
 ## Acceptance criteria
 
-- [ ] `pnpm build` succeeds; `pnpm dev` shows the review page with no **console errors** on load.
-- [ ] `index.html` (and any linked assets) implements the **section table** above; the string **`Design baseline`** appears in `<title>` or an `h1`.
+- [ ] `pnpm build` succeeds; `dist/` includes **`design-reference.html`** (and `index.html`) with no **console errors** on first load of the reference page in `pnpm dev`.
+- [ ] **`design-reference.html`** (and its linked assets) implements the **section table** above; the string **`Design baseline`** appears in that page’s `<title>` or an `h1`.
+- [ ] **`index.html`** stays minimal and does **not** duplicate the full section inventory (that lives only on **`design-reference.html`**).
 - [ ] Design-system **forbidden** items (e.g. glassmorphism, gradient decoration, pill radius abuse, disallowed fonts) are not used.
-- [ ] **Motion** rules from the design system are followed; reduced-motion behaviour is **observable** (transitions damped or disabled where required).
+- [ ] **Motion** rules from the design system are followed; reduced-motion behaviour is **observable** on the reference page where transitions apply.
 - [ ] `.sdd/provenance/design-baseline/provenance.md` exists and documents actions, validation, and artifacts for this run.
 
 ## Out of scope
@@ -73,4 +83,4 @@ Per agent rules, create or overwrite **`.sdd/provenance/design-baseline/provenan
 ### Notes
 
 - If this spec and [`.context/design-system.md`](../../../.context/design-system.md) disagree, the **design system** wins; record the conflict in **provenance** and follow the design system.
-- The review page is for **engineering verification**; keep copy minimal and neutral.
+- **`design-reference.html`** is for **engineering verification** against the design system; keep copy minimal and neutral. When design rules change, open this file in dev or production build to compare quickly.
