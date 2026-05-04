@@ -61,7 +61,7 @@ Interactive problem solving with an LLM is encouraged here. The human owns the i
 4. Execute the spec locally.
 
 ```bash
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec <agent> <spec-name>
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec <agent> <spec-name> dev
 ```
 
 5. Test the generated result locally.
@@ -201,7 +201,7 @@ Run a spec against your current branch:
 
 ```bash
 export MISTRAL_API_KEY="..."
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec vibe vite-baseline
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec vibe vite-baseline dev
 ```
 
 Local runs:
@@ -215,19 +215,19 @@ Local runs:
 Use a low turn cap first to catch prompt or spec mistakes cheaply. If the run starts correctly, use the normal cap:
 
 ```bash
-AGENT_DEBUG=true AGENT_MAX_TURNS=150 pnpm execute spec vibe homepage
+AGENT_DEBUG=true AGENT_MAX_TURNS=150 pnpm execute spec vibe homepage dev
 ```
 
 For a disposable smoke test that does not mutate your checkout, pass `--tmp`:
 
 ```bash
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec --tmp vibe vite-baseline
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec --tmp vibe vite-baseline dev
 ```
 
 To see the raw provider stream instead of the pretty terminal output:
 
 ```bash
-AGENT_PRETTY_OUTPUT=false pnpm execute spec vibe vite-baseline
+AGENT_PRETTY_OUTPUT=false pnpm execute spec vibe vite-baseline dev
 ```
 
 ## CI/CD Usage
@@ -238,9 +238,11 @@ Trigger the workflow manually with:
 
 - `AGENT`: `vibe`, `claude`, or `deepseek`
 - `SPEC`: a spec directory under `.sdd/specifications/`
+- `PIPELINE`: `agent-only` (one run using `AGENT_ROLE`) or `dev-then-qa` (runs **dev** then **qa** on the same tree before commit)
+- `AGENT_ROLE`: `dev` or `qa` (used when `PIPELINE` is `agent-only`)
 - `DEBUG`: `true` for verbose diagnostics
 
-The workflow builds the selected agent image, copies the repository into the container, runs the agent against the spec, commits the generated files to an `ai/<AGENT>-<SPEC>-<run_id>` branch, and opens a pull request against `main`.
+The workflow builds the selected agent image, copies the repository into the container, runs the agent (once or twice per `PIPELINE`), commits the generated files to an `ai/<AGENT>-<SPEC>-<run_id>` branch, and opens a pull request against `main`.
 
 Required repo secrets:
 

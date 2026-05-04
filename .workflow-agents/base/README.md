@@ -11,13 +11,16 @@ require a rebuild.
 | Path | Used by | Purpose |
 | --- | --- | --- |
 | `prompt-prelude.md` | every `run-*.sh` | Shared opening of the agent prompt: spec/skills/context reading rules, "generate exactly", validation-first guidance. |
-| `prompt-postlude.md` | every `run-*.sh` | Hard constraints, no-modify list (with `.sdd/provenance` exception), required provenance file, no-git, stop-when-done. |
+| `prompt-postlude.md` | every `run-*.sh` | Hard constraints, no-modify list (with `.sdd/` exceptions by `AGENT_ROLE`), required provenance/scenarios behaviour, no-git, stop-when-done. |
+| `prompt-role-dev.md` | every `run-*.sh` | Framing for `AGENT_ROLE=dev` (implementation). |
+| `prompt-role-qa.md` | every `run-*.sh` | Framing for `AGENT_ROLE=qa` (verification, scenarios file, append-only provenance). |
 | `lib/print-toolchain.sh` | every `run-*.sh` debug block | Sourced bash library that defines `print_toolchain <tool>...`, printing each requested binary's presence and version. |
+| `lib/load-agent-role.sh` | every `run-*.sh` | Validates `AGENT_ROLE` (`dev` or `qa`, default `dev`) and checks the matching `prompt-role-*.md` exists. |
 
 The agent-specific tool manifest (which tools are available *in this
 particular container*) and any agent-specific framing stay inside each
 agent's own `run-*.sh`, sandwiched between the shared prelude and
-postlude.
+postlude (with the role block injected before the prelude).
 
 ## Why runtime read, not image bake
 
@@ -44,7 +47,8 @@ Three reasons:
   this directory.
 - The shell library targets bash 5+ (every agent base image ships
   bash). It does not aim for POSIX `sh` portability.
-- Agents may **write** only `.sdd/provenance/<SPEC>/provenance.md` under
-  `.sdd/`; all other paths there are off limits (see `prompt-postlude.md`).
-- Files here must not depend on agent-specific environment variables.
-  Agent-specific framing belongs in the calling `run-*.sh`.
+- Agents may **write** only the `.sdd/` paths allowed for the active
+  **`AGENT_ROLE`** (see `prompt-postlude.md` and `AGENTS.md`).
+- Static files under `base/` must not embed secrets. **`AGENT_ROLE`**
+  is chosen by the runner (`run-*.sh` reads the environment); role
+  bodies live in separate `prompt-role-*.md` files.

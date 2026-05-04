@@ -29,7 +29,7 @@ fi
 # runtime from the streamed workspace. See
 # /work/.workflow-agents/base/README.md.
 BASE_DIR="/work/.workflow-agents/base"
-for f in "$BASE_DIR/prompt-prelude.md" "$BASE_DIR/prompt-postlude.md" "$BASE_DIR/lib/print-toolchain.sh"; do
+for f in "$BASE_DIR/prompt-prelude.md" "$BASE_DIR/prompt-postlude.md" "$BASE_DIR/lib/print-toolchain.sh" "$BASE_DIR/lib/load-agent-role.sh" "$BASE_DIR/prompt-role-dev.md" "$BASE_DIR/prompt-role-qa.md"; do
   if [ ! -f "$f" ]; then
     echo "Missing shared workflow-agent base file: $f" >&2
     echo "Expected .workflow-agents/base/ to be present in the streamed workspace at /work." >&2
@@ -38,10 +38,13 @@ for f in "$BASE_DIR/prompt-prelude.md" "$BASE_DIR/prompt-postlude.md" "$BASE_DIR
 done
 # shellcheck source=/dev/null
 source "$BASE_DIR/lib/print-toolchain.sh"
+# shellcheck source=/dev/null
+source "$BASE_DIR/lib/load-agent-role.sh"
 
 if debug_enabled; then
   echo "Starting Claude workflow agent"
   echo "SPEC=$SPEC"
+  echo "AGENT_ROLE=$AGENT_ROLE"
   echo "SPEC_PATH=$SPEC_PATH"
   echo "CLAUDE_MODEL=claude-sonnet-4-5"
   echo "AGENT_MAX_TURNS=$MAX_TURNS"
@@ -102,7 +105,11 @@ missing tools wastes turns; trust this manifest.
 EOF
 )
 
-PROMPT="Read the spec at ${SPEC_PATH}.
+PROMPT="**AGENT_ROLE:** ${AGENT_ROLE}
+
+$(cat "$BASE_DIR/prompt-role-${AGENT_ROLE}.md")
+
+Read the spec at ${SPEC_PATH}.
 
 $(cat "$BASE_DIR/prompt-prelude.md")
 
