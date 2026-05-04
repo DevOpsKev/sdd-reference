@@ -51,9 +51,9 @@ The model is pinned via the `--model` flag rather than a config file because Cla
 
 ### `deepseek`
 
-[`.workflow-agents/deepseek/run-deepseek.sh`](.workflow-agents/deepseek/run-deepseek.sh) reads `SPEC` and `DEEPSEEK_API_KEY`, configures Claude Code to use DeepSeek's Anthropic-compatible API (`https://api.deepseek.com/anthropic`), and runs `claude -p <prompt> --model deepseek-v4-pro[1m] --max-turns 150 --output-format text --dangerously-skip-permissions`. It uses the same constrained prompt as `claude` and `vibe`.
+[`.workflow-agents/deepseek/run-deepseek.sh`](.workflow-agents/deepseek/run-deepseek.sh) reads `SPEC` and `DEEPSEEK_API_KEY`, configures Claude Code to use DeepSeek's Anthropic-compatible API (`https://api.deepseek.com/anthropic`), and runs `claude -p <prompt> --model deepseek-v4-flash --max-turns 150 --output-format text --dangerously-skip-permissions`. It uses the same constrained prompt as `claude` and `vibe`.
 
-The primary model is pinned to `deepseek-v4-pro[1m]`, matching DeepSeek's Claude Code integration guidance for the long-context Pro model. Subagents and lower-tier defaults are pointed at `deepseek-v4-flash` to keep background work cheaper and faster.
+The primary model is pinned to `deepseek-v4-flash` for lower latency and cost in CI; subagents use the same tier. To switch back to the long-context Pro model, change the `ANTHROPIC_*_MODEL` exports and the `--model` flag in `run-deepseek.sh` to `deepseek-v4-pro[1m]` per DeepSeek's Claude Code integration docs.
 
 ## CI (Forgejo)
 

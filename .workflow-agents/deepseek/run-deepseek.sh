@@ -21,9 +21,9 @@ debug_enabled() {
 MAX_TURNS="${AGENT_MAX_TURNS:-150}"
 export ANTHROPIC_BASE_URL="https://api.deepseek.com/anthropic"
 export ANTHROPIC_AUTH_TOKEN="$DEEPSEEK_API_KEY"
-export ANTHROPIC_MODEL="deepseek-v4-pro[1m]"
-export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-pro[1m]"
-export ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek-v4-pro[1m]"
+export ANTHROPIC_MODEL="deepseek-v4-flash"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="deepseek-v4-flash"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="deepseek-v4-flash"
 export ANTHROPIC_DEFAULT_HAIKU_MODEL="deepseek-v4-flash"
 export CLAUDE_CODE_SUBAGENT_MODEL="deepseek-v4-flash"
 export CLAUDE_CODE_EFFORT_LEVEL="max"
@@ -130,7 +130,7 @@ fi
 
 exec claude \
   -p "$PROMPT" \
-  --model "deepseek-v4-pro[1m]" \
+  --model "deepseek-v4-flash" \
   --max-turns "$MAX_TURNS" \
   "${CLAUDE_OUTPUT_ARGS[@]}" \
   --dangerously-skip-permissions
