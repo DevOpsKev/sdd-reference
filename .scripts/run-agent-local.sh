@@ -14,7 +14,7 @@ Usage:
 
 Examples:
   AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh vibe vite-baseline
-  AGENT_DEBUG=true .scripts/run-agent-local.sh claude vite-baseline
+  AGENT_DEBUG=true .scripts/run-agent-local.sh claude design-baseline
   .scripts/run-agent-local.sh deepseek helloworld
   AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh --tmp vibe vite-baseline
 
