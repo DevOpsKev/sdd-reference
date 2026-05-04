@@ -15,7 +15,7 @@ Each skill lives at `.skills/<name>/SKILL.md` and follows the [Anthropic Skills]
 
 ## How agents pick up skills
 
-Workflow agents consume `.skills/` automatically — no per-spec configuration needed. The `.workflow-agents/<agent>/run-*.sh` entrypoint prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code, and `.skills/` is added to the read-only list alongside `.sdd/`.
+Workflow agents consume `.skills/` automatically — no per-spec configuration needed. The `.workflow-agents/<agent>/run-*.sh` entrypoint prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code, and `.skills/` is read-only for agents, like most of `.sdd/` (see [AGENTS.md](../AGENTS.md#provenance) for the single `.sdd` output exception).
 
 ## Adding a new skill
 
@@ -26,7 +26,7 @@ Skills should be **task-shaped**, not project-specific lore. `frontend-design` (
 
 ## Conventions
 
-- Treat `.skills/` as read-only from an agent's perspective — like `.sdd/`, it's an input.
+- Treat `.skills/` as read-only from an agent's perspective — like most of `.sdd/`, it's an input (see [AGENTS.md](../AGENTS.md#provenance) for the one `.sdd` output file).
 - Keep each skill focused and short. The whole `SKILL.md` is loaded into context every run; bloat costs tokens on every invocation.
 - The skill `name` in the frontmatter should match the directory name.
 - Skills are domain-agnostic — the same skill should be usable across multiple specs in this repo or others.

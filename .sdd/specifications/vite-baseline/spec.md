@@ -56,6 +56,7 @@ Operators run **`pnpm install`**, **`pnpm dev`**, and **`pnpm build`**; pnpm run
 - [ ] `pnpm build` produces a `dist/` directory with `index.html` and referenced assets.
 - [ ] `Dockerfile` at repo root builds and runs; `GET /` returns **200** and a body containing **`Vite baseline`**.
 - [ ] Final runtime image serves static files only (no Node server at runtime).
+- [ ] `.sdd/provenance/vite-baseline/provenance.md` exists (created or overwritten per agent rules), documenting actions, validation, and artifacts from this run.
 
 ## Out of scope
 

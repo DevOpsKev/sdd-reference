@@ -1,6 +1,6 @@
 # Agents
 
-This repo is a reference implementation of **Spec Driven Development (SDD)**. Specs are written by humans and live under `.sdd/specifications/`. Reusable cross-spec guidance for agents lives under `.skills/` (see [`.skills/README.md`](.skills/README.md)). Project background context lives under `.context/`. Agents consume these inputs and generate code — no manual scaffolding required.
+This repo is a reference implementation of **Spec Driven Development (SDD)**. Specs are written by humans and live under `.sdd/specifications/`. Reusable cross-spec guidance for agents lives under `.skills/` (see [`.skills/README.md`](.skills/README.md)). Project background context lives under `.context/`. Agents consume these inputs and generate code — no manual scaffolding required. After each workflow-agent run, the agent must write **`.sdd/provenance/<SPEC>/provenance.md`** (see [Provenance](#provenance)).
 
 ## How agents work
 
@@ -37,7 +37,7 @@ All API keys are passed in unconditionally; each agent's entrypoint reads only t
 
 ### `vibe`
 
-[`.workflow-agents/vibe/run-vibe.sh`](.workflow-agents/vibe/run-vibe.sh) reads `SPEC` and `MISTRAL_API_KEY` and runs `vibe -p <prompt> --agent auto-approve --trust --max-turns 150 --max-price 5`. The prompt forbids the agent from touching `.sdd/`, `.skills/`, `.context/`, `.scripts/`, `.workflow-agents/`, `.forgejo/`, or `.husky/`, and from running any git commands — the workflow owns version control. `--max-turns` and `--max-price` are belt-and-braces caps so a runaway agent can't burn through tokens unbounded; `--trust` lets Vibe honour `AGENTS.md` (otherwise it skips reading it as a prompt-injection precaution).
+[`.workflow-agents/vibe/run-vibe.sh`](.workflow-agents/vibe/run-vibe.sh) reads `SPEC` and `MISTRAL_API_KEY` and runs `vibe -p <prompt> --agent auto-approve --trust --max-turns 150 --max-price 5`. The prompt forbids the agent from touching most of `.sdd/` (see [Provenance](#provenance) for the single exception), plus `.skills/`, `.context/`, `.scripts/`, `.workflow-agents/`, `.forgejo/`, and `.husky/`, and from running any git commands — the workflow owns version control. `--max-turns` and `--max-price` are belt-and-braces caps so a runaway agent can't burn through tokens unbounded; `--trust` lets Vibe honour `AGENTS.md` (otherwise it skips reading it as a prompt-injection precaution).
 
 The active model is pinned in [`.workflow-agents/vibe/config.toml`](.workflow-agents/vibe/config.toml) (`active_model = "devstral-2"`), baked into the image at `/root/.vibe/config.toml`. This freezes model selection across Vibe CLI upgrades — bump the alias there if a future Vibe version retires `devstral-2`.
 
@@ -97,7 +97,7 @@ Specs may include sibling files such as `copy.yaml`, fixtures, schemas, or examp
 
 A skill is a reusable bundle of guidance that tells an agent *how* to do a kind of work well, distinct from a spec which tells it *what* to build. Skills live at `.skills/<name>/SKILL.md` and follow the [Anthropic Skills](https://www.anthropic.com/news/skills) convention (YAML frontmatter with `name` + `description`, then a markdown body). See [`.skills/README.md`](.skills/README.md) for the full convention.
 
-Workflow agents pick up `.skills/` automatically: `.workflow-agents/<agent>/run-*.sh` prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code. `.skills/` is in the no-modify list alongside `.sdd/`, `.context/`, and `.scripts/`.
+Workflow agents pick up `.skills/` automatically: `.workflow-agents/<agent>/run-*.sh` prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code. `.skills/` is in the no-modify list alongside most of `.sdd/`, `.context/`, and `.scripts/` (see [Provenance](#provenance) for the `.sdd` exception).
 
 To add a skill: create `.skills/<name>/SKILL.md` with valid frontmatter and a body. No further wiring is needed — workflow agents pick it up on the next run.
 
@@ -138,11 +138,15 @@ External tooling the hooks expect on `PATH`:
 
 Bypass hooks for a single commit only when truly necessary: `git commit --no-verify`.
 
+## Provenance
+
+Each run of a workflow agent against a spec must leave an **audit record** at **`.sdd/provenance/<SPEC>/provenance.md`**, where `<SPEC>` is the spec directory name (the same as `SPEC` in CI and `pnpm execute spec <agent> <spec>`). The agent **creates or overwrites** this file; there is no separate versioned filename — **Git** is the version history. The file should summarize actions, decisions, validation, and notable artifacts (see [`.workflow-agents/base/prompt-postlude.md`](.workflow-agents/base/prompt-postlude.md)). No other files may be added under `.sdd/provenance/<SPEC>/` and no other paths under `.sdd/` may be modified by the agent (specs remain human-authored inputs).
+
 ## Conventions
 
 These apply to both human contributors and AI coding assistants working in this repo:
 
-- Treat `.sdd/` as read-only — specs are inputs, not outputs
+- **Workflow agents** must not modify anything under `.sdd/` except creating or overwriting **`.sdd/provenance/<SPEC>/provenance.md`** for the active `SPEC` (see [Provenance](#provenance)). **Humans** maintain specs under `.sdd/specifications/`.
 - Treat `.skills/` as read-only — skills are inputs (how to work), not outputs
 - Treat `.context/` as read-only — context is background input, not generated output
 - Treat `.scripts/` as read-only — local maintainer tooling, not generated output
