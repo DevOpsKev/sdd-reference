@@ -131,6 +131,18 @@ git push origin --delete spec/<spec-name> # only if the branch was pushed
 
 `main` stays clean, and the failed idea leaves no architectural scar tissue.
 
+## Context changes
+
+> **Implementation is the new ground truth.**
+
+Specs tell agents what to build; once generated code lands, the **repo layout and stack are facts**. Keep [`.context/`](.context/)—especially [`.context/architecture.md`](.context/architecture.md)—aligned with those facts. Out-of-date context makes agents infer structure from scattered files, which wastes tokens and invites wrong assumptions.
+
+- **Update context when implementation changes.** After a spec materially changes tooling, directories, CSS layering, Docker, or runtime behaviour, refresh the relevant `.context/*.md` files in the same branch or in a quick follow-up commit.
+- **Context changes over time.** Product and technical background is not frozen on day one; treat context updates as normal maintenance.
+- **Branch naming:** For focused context-only work (or a clear context refresh bundled with a feature), use **`context/<short-topic>`** (for example `context/architecture-vite-mpa`) so reviewers and history show when background docs were brought in line with the tree.
+
+For which files live under `.context/` and how workflow agents read them, see [`AGENTS.md`](AGENTS.md).
+
 ## Limited Blast Radius
 
 Keep specs tightly scoped.
