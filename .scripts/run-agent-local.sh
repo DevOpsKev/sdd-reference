@@ -10,13 +10,15 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  .scripts/run-agent-local.sh [--tmp] <agent> <spec>
+  .scripts/run-agent-local.sh [--tmp] <agent> <spec> <role>
 
 Examples:
-  AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh vibe vite-baseline
-  AGENT_DEBUG=true .scripts/run-agent-local.sh claude homepage
-  .scripts/run-agent-local.sh deepseek helloworld
-  AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh --tmp vibe vite-baseline
+  AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh vibe vite-baseline dev
+  AGENT_DEBUG=true .scripts/run-agent-local.sh claude homepage qa
+  .scripts/run-agent-local.sh deepseek helloworld dev
+  AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh --tmp vibe vite-baseline dev
+
+  <role> is "dev" (implement from spec) or "qa" (verify; write scenarios; append provenance).
 
 Options:
   --tmp             Run in an isolated .tmp/agent-runs workspace instead of
@@ -30,6 +32,8 @@ Environment:
                     vibe=streaming, claude/deepseek=stream-json.
   AGENT_PRETTY_OUTPUT
                     Set to false/0 to print the raw agent stream.
+
+  The third positional argument sets AGENT_ROLE inside the container (dev or qa).
 
 Required provider keys:
   vibe      MISTRAL_API_KEY
@@ -64,20 +68,28 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-if [ "$#" -ne 2 ]; then
+if [ "$#" -ne 3 ]; then
   usage >&2
   exit 2
 fi
 
 AGENT="$1"
 SPEC="$2"
+AGENT_ROLE="$3"
+case "$AGENT_ROLE" in
+  dev | qa) ;;
+  *)
+    echo "Invalid role: $AGENT_ROLE (expected dev or qa)" >&2
+    exit 2
+    ;;
+esac
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 AGENT_DIR="$REPO_ROOT/.workflow-agents/$AGENT"
 SPEC_PATH="$REPO_ROOT/.sdd/specifications/$SPEC/spec.md"
 IMAGE_TAG="${AGENT}-agent:local"
 RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)"
 RUN_ROOT="$REPO_ROOT/.tmp/agent-runs"
-RUN_DIR="$RUN_ROOT/${AGENT}-${SPEC}-${RUN_ID}"
+RUN_DIR="$RUN_ROOT/${AGENT}-${SPEC}-${AGENT_ROLE}-${RUN_ID}"
 BASELINE_DIR="${RUN_DIR}.baseline"
 if [ "$USE_TMP" = "true" ]; then
   MODE="tmp"
@@ -138,6 +150,7 @@ fi
 
 echo "Agent: $AGENT"
 echo "Spec: $SPEC"
+echo "Role: $AGENT_ROLE"
 echo "Mode: $MODE"
 echo "Branch: ${CURRENT_BRANCH:-detached HEAD}"
 echo "Image: $IMAGE_TAG"
@@ -209,6 +222,7 @@ set +e
 if [ "$PRETTY_OUTPUT" = "true" ]; then
   docker run --rm \
     --env SPEC="$SPEC" \
+    --env AGENT_ROLE="$AGENT_ROLE" \
     --env AGENT_DEBUG="${AGENT_DEBUG:-true}" \
     --env AGENT_MAX_TURNS="${AGENT_MAX_TURNS:-150}" \
     --env AGENT_OUTPUT_FORMAT="$LOCAL_OUTPUT_FORMAT" \
@@ -227,6 +241,7 @@ else
   # shellcheck disable=SC2086
   docker run --rm $DOCKER_TTY_ARGS \
     --env SPEC="$SPEC" \
+    --env AGENT_ROLE="$AGENT_ROLE" \
     --env AGENT_DEBUG="${AGENT_DEBUG:-true}" \
     --env AGENT_MAX_TURNS="${AGENT_MAX_TURNS:-150}" \
     --env AGENT_OUTPUT_FORMAT="$LOCAL_OUTPUT_FORMAT" \

@@ -1,16 +1,24 @@
 Hard constraints:
-- Do not modify anything under `.sdd/` except **one** allowed output path: **`.sdd/provenance/<SPEC>/provenance.md`** where `<SPEC>` equals the `SPEC` environment value for this run (same name as `.sdd/specifications/<SPEC>/`). **Create or fully overwrite** that file once before stopping — overwrite replaces prior content; Git retains history. Do not add any other files under `.sdd/` (including under `.sdd/provenance/` besides that single `provenance.md`).
+
+The environment variable **`AGENT_ROLE`** is either **`dev`** or **`qa`** (see the Role section at the top of this prompt). Your allowed writes under `.sdd/` depend on it:
+
+- **`dev`:** You may write **only** **`.sdd/provenance/<SPEC>/provenance.md`** under `.sdd/`, where `<SPEC>` equals the `SPEC` environment value (same name as `.sdd/specifications/<SPEC>/`). **Create or fully overwrite** that file once before stopping. Do **not** create or modify **`.sdd/scenarios/`** on a dev run.
+
+- **`qa`:** You may write **`.sdd/scenarios/<SPEC>/scenarios.md`** (create or fully overwrite that single file). You may update **`.sdd/provenance/<SPEC>/provenance.md`** **only by appending:** read the existing file if it exists, then write **the entire previous file content unchanged in order**, followed immediately by a new trailing section starting with a line `---` on its own line, then a heading **`## QA pass — <ISO-8601 UTC timestamp>`** (replace the placeholder with the actual UTC time), then your QA audit content (checks run, results, findings). Do **not** delete, reorder, or edit any bytes that appeared in the file before your append. If the provenance file does not exist yet, create it with the normal provenance structure (you may treat that as a new file, not an append). Accurate **fail** results are acceptable and often desirable; do not omit checks, weaken assertions, or patch product code solely to force green unless the spec explicitly authorizes that fix.
+
+- For **both** roles: do **not** modify anything else under `.sdd/` (including `.sdd/specifications/`, other paths under `.sdd/provenance/`, or extra files under `.sdd/scenarios/` beyond **`scenarios.md`** in the `<SPEC>` directory).
+
 - Do not modify `.skills/`, `.context/`, `.scripts/`, `.workflow-agents/`, `.forgejo/`, or `.husky/`. Those are inputs and infrastructure, not agent output.
 - Do not run any git commands. Do not commit, push, fetch, or modify remotes. The surrounding CI workflow handles all version control.
-- When the acceptance criteria appear satisfied, stop. Do not keep exploring or refactoring beyond what the spec asks for.
+- When the acceptance criteria appear satisfied (dev) or when your QA pass and required files are complete (qa), stop. Do not keep exploring or refactoring beyond what the role and spec ask for.
 
-Provenance file (required):
+Provenance file (required for every run):
 
-Before finishing, write **`.sdd/provenance/<SPEC>/provenance.md`** with audit data from this run. Use Markdown; YAML frontmatter with a `title` line is recommended. Include sections appropriate to the work, for example:
+Before finishing, update **`.sdd/provenance/<SPEC>/provenance.md`** per the **dev** vs **qa** rules above. Use Markdown; YAML frontmatter with a `title` line is recommended when creating the initial file. Include sections appropriate to the work, for example:
 
 - **Spec** — path to `.sdd/specifications/<SPEC>/spec.md`
 - **Executed** — date (ISO 8601) of the run
-- **Agent** — how this run was executed (e.g. agent key, model or tool if known, branch or session id if provided in the environment)
+- **Agent** — how this run was executed (e.g. agent key, `AGENT_ROLE`, model or tool if known, branch or session id if provided in the environment)
 - **Actions taken** — numbered list of substantive file reads, creates, edits, deletions
 - **Decisions made** — non-obvious choices among allowed options
 - **Deviations from spec** — any departure from the spec, or "None"

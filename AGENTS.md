@@ -1,10 +1,10 @@
 # Agents
 
-This repo is a reference implementation of **Spec Driven Development (SDD)**. Specs are written by humans and live under `.sdd/specifications/`. Reusable cross-spec guidance for agents lives under `.skills/` (see [`.skills/README.md`](.skills/README.md)). Project background context lives under `.context/`. Agents consume these inputs and generate code — no manual scaffolding required. After each workflow-agent run, the agent must write **`.sdd/provenance/<SPEC>/provenance.md`** (see [Provenance](#provenance)).
+This repo is a reference implementation of **Spec Driven Development (SDD)**. Specs are written by humans and live under `.sdd/specifications/`. Reusable cross-spec guidance for agents lives under `.skills/` (see [`.skills/README.md`](.skills/README.md)). Project background context lives under `.context/`. Agents consume these inputs and generate code — no manual scaffolding required. Each workflow-agent run must update audit output under `.sdd/` per **`AGENT_ROLE`** (see [Provenance and scenarios](#provenance-and-scenarios)): **dev** overwrites provenance; **qa** also writes scenarios and **appends** to provenance.
 
 ## How agents work
 
-Each agent is a workflow-managed CLI runtime under `.workflow-agents/<AGENT>/`. The shared Forgejo workflow [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) builds the selected agent image fresh, streams the repository into `/work`, runs the agent against a spec, streams the changed workspace back out, then commits the result to a PR branch.
+Each agent is a workflow-managed CLI runtime under `.workflow-agents/<AGENT>/`. The shared Forgejo workflow [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) builds the selected agent image fresh, streams the repository into `/work`, runs the agent against a spec (optionally **dev** then **qa** on the same workspace when `PIPELINE` is `dev-then-qa`), streams the changed workspace back out, then commits the result to a PR branch.
 
 ```
 .sdd/specifications/<SPEC>/spec.md      .skills/*/SKILL.md      .context/*.md
@@ -37,13 +37,13 @@ All API keys are passed in unconditionally; each agent's entrypoint reads only t
 
 ### `vibe`
 
-[`.workflow-agents/vibe/run-vibe.sh`](.workflow-agents/vibe/run-vibe.sh) reads `SPEC` and `MISTRAL_API_KEY` and runs `vibe -p <prompt> --agent auto-approve --trust --max-turns 150 --max-price 5`. The prompt forbids the agent from touching most of `.sdd/` (see [Provenance](#provenance) for the single exception), plus `.skills/`, `.context/`, `.scripts/`, `.workflow-agents/`, `.forgejo/`, and `.husky/`, and from running any git commands — the workflow owns version control. `--max-turns` and `--max-price` are belt-and-braces caps so a runaway agent can't burn through tokens unbounded; `--trust` lets Vibe honour `AGENTS.md` (otherwise it skips reading it as a prompt-injection precaution).
+[`.workflow-agents/vibe/run-vibe.sh`](.workflow-agents/vibe/run-vibe.sh) reads `SPEC`, `AGENT_ROLE` (default `dev` in-container), and `MISTRAL_API_KEY` and runs `vibe -p <prompt> --agent auto-approve --trust --max-turns 150 --max-price 5`. The prompt forbids the agent from touching most of `.sdd/` except role-allowed outputs (see [Provenance and scenarios](#provenance-and-scenarios)), plus `.skills/`, `.context/`, `.scripts/`, `.workflow-agents/`, `.forgejo/`, and `.husky/`, and from running any git commands — the workflow owns version control. This image is **Python-only** (no Node in-container): browser automation against the workspace belongs to **`claude`** / **`deepseek`**, not `vibe`. `--max-turns` and `--max-price` are belt-and-braces caps so a runaway agent can't burn through tokens unbounded; `--trust` lets Vibe honour `AGENTS.md` (otherwise it skips reading it as a prompt-injection precaution).
 
 The active model is pinned in [`.workflow-agents/vibe/config.toml`](.workflow-agents/vibe/config.toml) (`active_model = "devstral-2"`), baked into the image at `/root/.vibe/config.toml`. This freezes model selection across Vibe CLI upgrades — bump the alias there if a future Vibe version retires `devstral-2`.
 
 ### `claude`
 
-[`.workflow-agents/claude/run-claude.sh`](.workflow-agents/claude/run-claude.sh) reads `SPEC` and `ANTHROPIC_API_KEY` and runs `claude -p <prompt> --model claude-sonnet-4-5 --max-turns 150 --output-format text --dangerously-skip-permissions`. Same prompt and constraints as `vibe`. `--dangerously-skip-permissions` is Claude Code's auto-approve equivalent (analogous to Vibe's `--trust` plus `--agent auto-approve`); the alarmist name is by design but the trade-off is acceptable inside an ephemeral container with a constrained prompt and a hard turn cap.
+[`.workflow-agents/claude/run-claude.sh`](.workflow-agents/claude/run-claude.sh) reads `SPEC`, `AGENT_ROLE`, and `ANTHROPIC_API_KEY` and runs `claude -p <prompt> --model claude-sonnet-4-5 --max-turns 150 --output-format text --dangerously-skip-permissions`. It shares the same cross-agent prompt fragments as `vibe` but uses this image’s **Node-based** tool manifest. The image includes **Playwright** with headless **Chromium** (see `PLAYWRIGHT_VERSION` in its Dockerfile) for browser-based QA. `--dangerously-skip-permissions` is Claude Code's auto-approve equivalent (analogous to Vibe's `--trust` plus `--agent auto-approve`); the alarmist name is by design but the trade-off is acceptable inside an ephemeral container with a constrained prompt and a hard turn cap.
 
 Claude Code has no built-in cost ceiling like Vibe's `--max-price`, so `--max-turns` is the only in-CLI cap. If runaway cost is a concern, set org-level limits in the Anthropic console.
 
@@ -51,17 +51,17 @@ The model is pinned via the `--model` flag rather than a config file because Cla
 
 ### `deepseek`
 
-[`.workflow-agents/deepseek/run-deepseek.sh`](.workflow-agents/deepseek/run-deepseek.sh) reads `SPEC` and `DEEPSEEK_API_KEY`, configures Claude Code to use DeepSeek's Anthropic-compatible API (`https://api.deepseek.com/anthropic`), and runs `claude -p <prompt> --model deepseek-v4-flash --max-turns 150 --output-format text --dangerously-skip-permissions`. It uses the same constrained prompt as `claude` and `vibe`.
+[`.workflow-agents/deepseek/run-deepseek.sh`](.workflow-agents/deepseek/run-deepseek.sh) reads `SPEC`, `AGENT_ROLE`, and `DEEPSEEK_API_KEY`, configures Claude Code to use DeepSeek's Anthropic-compatible API (`https://api.deepseek.com/anthropic`), and runs `claude -p <prompt> --model deepseek-v4-flash --max-turns 150 --output-format text --dangerously-skip-permissions`. It uses the same constrained prompt as `claude` and `vibe`, including Playwright/Chromium in the image (same Dockerfile pattern as `claude`).
 
 The primary model is pinned to `deepseek-v4-flash` for lower latency and cost in CI; subagents use the same tier. To switch back to the long-context Pro model, change the `ANTHROPIC_*_MODEL` exports and the `--model` flag in `run-deepseek.sh` to `deepseek-v4-pro[1m]` per DeepSeek's Claude Code integration docs.
 
 ## CI (Forgejo)
 
-The pipeline is defined in [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) using Forgejo Actions' `workflow_dispatch.inputs` feature, which exposes `AGENT` and `SPEC` as dropdown choices in the web UI. On a successful run it commits generated files to `ai/<AGENT>-<SPEC>-<run_id>` and opens a pull request against `main` via the Forgejo (Gitea-compatible) API.
+The pipeline is defined in [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) using Forgejo Actions' `workflow_dispatch.inputs` feature, which exposes `AGENT`, `SPEC`, `PIPELINE`, `AGENT_ROLE`, and `DEBUG`. `PIPELINE` may be `agent-only` (one container run using `AGENT_ROLE`) or `dev-then-qa` (runs **dev** then **qa** sequentially on the same workspace before commit). On a successful run it commits generated files to `ai/<AGENT>-<SPEC>-<run_id>` and opens a pull request against `main` via the Forgejo (Gitea-compatible) API.
 
 Set the workflow's `DEBUG` input to `true` to pass `AGENT_DEBUG=true` into the container. Debug mode prints safe container diagnostics, runner startup context, and verbose Claude Code streams for Claude Code-based agents without exposing provider API keys.
 
-For local prompt/spec runs, use `pnpm execute spec <agent> <spec>` (which dispatches to [`.scripts/run-agent-local.sh`](.scripts/run-agent-local.sh)). It builds the selected agent image, runs it against the current checkout by default, pretty-prints step-by-step output live, and leaves generated files on the current branch without committing, pushing, or opening a PR. Pass `--tmp` after `spec` to copy the current repo to `.tmp/agent-runs/<AGENT>-<SPEC>-<timestamp>/` for a disposable smoke test. Set `AGENT_MAX_TURNS=20` for cheap early checks and raise it only once the spec/prompt path looks correct.
+For local prompt/spec runs, use `pnpm execute spec <agent> <spec> <role>` (which dispatches to [`.scripts/run-agent-local.sh`](.scripts/run-agent-local.sh)). Third argument **`<role>`** is `dev` or `qa`. It builds the selected agent image, runs it against the current checkout by default, pretty-prints step-by-step output live, and leaves generated files on the current branch without committing, pushing, or opening a PR. Pass `--tmp` after `spec` to copy the current repo to `.tmp/agent-runs/<AGENT>-<SPEC>-<role>-<timestamp>/` for a disposable smoke test. Set `AGENT_MAX_TURNS=20` for cheap early checks and raise it only once the spec/prompt path looks correct.
 
 Required repo-scoped secrets:
 
@@ -72,14 +72,14 @@ Required repo-scoped secrets:
 
 ## Shared workflow-agent base
 
-Cross-agent prompt fragments and shell helpers live at [`.workflow-agents/base/`](.workflow-agents/base/) and are read **at runtime** from the streamed workspace — they are not copied into any agent's container image. Each `run-*.sh` sources `lib/print-toolchain.sh` for its `AGENT_DEBUG=true` toolchain probe and concatenates `prompt-prelude.md` + an agent-specific tool manifest + `prompt-postlude.md` to assemble the prompt it passes to the agent CLI.
+Cross-agent prompt fragments and shell helpers live at [`.workflow-agents/base/`](.workflow-agents/base/) and are read **at runtime** from the streamed workspace — they are not copied into any agent's container image. Each `run-*.sh` sources `lib/print-toolchain.sh` and `lib/load-agent-role.sh`, injects `prompt-role-<AGENT_ROLE>.md`, and concatenates `prompt-prelude.md` + an agent-specific tool manifest + `prompt-postlude.md` to assemble the prompt it passes to the agent CLI.
 
 This keeps the shared prompt body (spec/skills/context reading rules, hard constraints) in one place while leaving each agent's tool manifest local to that agent — the manifest describes the tools that *that particular container* actually has. Editing the shared fragments does not require rebuilding any image. See [`.workflow-agents/base/README.md`](.workflow-agents/base/README.md) for the full convention.
 
 ## Adding a new agent
 
 1. Create `.workflow-agents/<name>/Dockerfile`.
-2. Add an executable entrypoint script (for example `run-<name>.sh`) that reads `SPEC` and the provider API key from the environment, loads `.sdd/specifications/<SPEC>/spec.md`, sources `/work/.workflow-agents/base/lib/print-toolchain.sh`, assembles its prompt from the shared `/work/.workflow-agents/base/prompt-{prelude,postlude}.md` fragments plus a container-specific tool manifest, and mutates `/work` in place.
+2. Add an executable entrypoint script (for example `run-<name>.sh`) that reads `SPEC`, `AGENT_ROLE` (default `dev`), and the provider API key from the environment, loads `.sdd/specifications/<SPEC>/spec.md`, sources `/work/.workflow-agents/base/lib/print-toolchain.sh` and `lib/load-agent-role.sh`, assembles its prompt from `prompt-role-${AGENT_ROLE}.md` plus the shared `/work/.workflow-agents/base/prompt-{prelude,postlude}.md` fragments plus a container-specific tool manifest, and mutates `/work` in place.
 3. Add the key to `on.workflow_dispatch.inputs.AGENT.options` in [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml).
 
 ## Writing a spec
@@ -97,7 +97,7 @@ Specs may include sibling files such as `copy.yaml`, fixtures, schemas, or examp
 
 A skill is a reusable bundle of guidance that tells an agent *how* to do a kind of work well, distinct from a spec which tells it *what* to build. Skills live at `.skills/<name>/SKILL.md` and follow the [Anthropic Skills](https://www.anthropic.com/news/skills) convention (YAML frontmatter with `name` + `description`, then a markdown body). See [`.skills/README.md`](.skills/README.md) for the full convention.
 
-Workflow agents pick up `.skills/` automatically: `.workflow-agents/<agent>/run-*.sh` prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code. `.skills/` is in the no-modify list alongside most of `.sdd/`, `.context/`, and `.scripts/` (see [Provenance](#provenance) for the `.sdd` exception).
+Workflow agents pick up `.skills/` automatically: `.workflow-agents/<agent>/run-*.sh` prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code. `.skills/` is in the no-modify list alongside most of `.sdd/`, `.context/`, and `.scripts/` (see [Provenance and scenarios](#provenance-and-scenarios) for which `.sdd/` paths agents may write by role).
 
 To add a skill: create `.skills/<name>/SKILL.md` with valid frontmatter and a body. No further wiring is needed — workflow agents pick it up on the next run.
 
@@ -138,15 +138,25 @@ External tooling the hooks expect on `PATH`:
 
 Bypass hooks for a single commit only when truly necessary: `git commit --no-verify`.
 
-## Provenance
+## Provenance and scenarios
 
-Each run of a workflow agent against a spec must leave an **audit record** at **`.sdd/provenance/<SPEC>/provenance.md`**, where `<SPEC>` is the spec directory name (the same as `SPEC` in CI and `pnpm execute spec <agent> <spec>`). The agent **creates or overwrites** this file; there is no separate versioned filename — **Git** is the version history. The file should summarize actions, decisions, validation, and notable artifacts (see [`.workflow-agents/base/prompt-postlude.md`](.workflow-agents/base/prompt-postlude.md)). No other files may be added under `.sdd/provenance/<SPEC>/` and no other paths under `.sdd/` may be modified by the agent (specs remain human-authored inputs).
+Workflow agents read **`AGENT_ROLE`** from the environment (`dev` or `qa`; local runs pass it as the third argument to `pnpm execute spec <agent> <spec> <role>`).
+
+- **`dev`:** Must create or **fully overwrite** **`.sdd/provenance/<SPEC>/provenance.md`** once per run. Must **not** write under `.sdd/scenarios/`.
+
+- **`qa`:** Must create or **fully overwrite** **`.sdd/scenarios/<SPEC>/scenarios.md`** with Markdown describing test scenarios (see [`.workflow-agents/base/prompt-role-qa.md`](.workflow-agents/base/prompt-role-qa.md)). Must add **committed runnable automated tests** at the repo root when applicable (for example `e2e/` + `package.json` script), not only narrative scenarios. Truthful **failing** checks that reflect spec gaps are an acceptable and often desired outcome; do not optimize for green by weakening coverage or hiding failures. Must update **`.sdd/provenance/<SPEC>/provenance.md`** **only by appending** after the existing bytes (read the file first; do not delete or rewrite earlier content). If provenance does not exist yet, create it normally.
+
+`<SPEC>` is the spec directory name (same as `SPEC` in CI and `pnpm execute spec <agent> <spec> <role>`). Version history is **Git**; multiple QA passes append sections over time.
+
+No other paths under `.sdd/` may be modified by the agent (specs remain human-authored inputs). Do not add extra files under `.sdd/provenance/<SPEC>/` or `.sdd/scenarios/<SPEC>/` beyond **`provenance.md`** and **`scenarios.md`** respectively.
+
+See [`.workflow-agents/base/prompt-postlude.md`](.workflow-agents/base/prompt-postlude.md) for the exact prompt wording.
 
 ## Conventions
 
 These apply to both human contributors and AI coding assistants working in this repo:
 
-- **Workflow agents** must not modify anything under `.sdd/` except creating or overwriting **`.sdd/provenance/<SPEC>/provenance.md`** for the active `SPEC` (see [Provenance](#provenance)). **Humans** maintain specs under `.sdd/specifications/`.
+- **Workflow agents** must not modify anything under `.sdd/` except as allowed for the active **`AGENT_ROLE`** (see [Provenance and scenarios](#provenance-and-scenarios)). **Humans** maintain specs under `.sdd/specifications/`.
 - Treat `.skills/` as read-only — skills are inputs (how to work), not outputs
 - Treat `.context/` as read-only — context is background input, not generated output
 - Treat `.scripts/` as read-only — local maintainer tooling, not generated output

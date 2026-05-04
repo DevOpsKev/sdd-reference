@@ -62,7 +62,8 @@ Operators run **`pnpm install`**, **`pnpm dev`**, and **`pnpm build`**; pnpm run
 
 - Product features, radar data, JSON catalogues, multiple pages/routes beyond the single entry.
 - Full [`.context/design-system.md`](../../../.context/design-system.md) implementation (tokens, components, motion catalogue).
-- TLS, authentication, persistence, observability, Playwright/e2e (unless a follow-up spec adds them).
+- TLS, authentication, persistence, observability.
+- Large cross-browser automation suites beyond focused Playwright smoke tests committed for this spec.
 - UI frameworks and Tailwind/Sass/component libraries.
 
 ### Notes

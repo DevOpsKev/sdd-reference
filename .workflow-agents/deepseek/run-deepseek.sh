@@ -38,7 +38,7 @@ fi
 # runtime from the streamed workspace. See
 # /work/.workflow-agents/base/README.md.
 BASE_DIR="/work/.workflow-agents/base"
-for f in "$BASE_DIR/prompt-prelude.md" "$BASE_DIR/prompt-postlude.md" "$BASE_DIR/lib/print-toolchain.sh"; do
+for f in "$BASE_DIR/prompt-prelude.md" "$BASE_DIR/prompt-postlude.md" "$BASE_DIR/lib/print-toolchain.sh" "$BASE_DIR/lib/load-agent-role.sh" "$BASE_DIR/prompt-role-dev.md" "$BASE_DIR/prompt-role-qa.md"; do
   if [ ! -f "$f" ]; then
     echo "Missing shared workflow-agent base file: $f" >&2
     echo "Expected .workflow-agents/base/ to be present in the streamed workspace at /work." >&2
@@ -47,10 +47,13 @@ for f in "$BASE_DIR/prompt-prelude.md" "$BASE_DIR/prompt-postlude.md" "$BASE_DIR
 done
 # shellcheck source=/dev/null
 source "$BASE_DIR/lib/print-toolchain.sh"
+# shellcheck source=/dev/null
+source "$BASE_DIR/lib/load-agent-role.sh"
 
 if debug_enabled; then
   echo "Starting DeepSeek workflow agent"
   echo "SPEC=$SPEC"
+  echo "AGENT_ROLE=$AGENT_ROLE"
   echo "SPEC_PATH=$SPEC_PATH"
   echo "ANTHROPIC_BASE_URL=$ANTHROPIC_BASE_URL"
   echo "ANTHROPIC_MODEL=$ANTHROPIC_MODEL"
@@ -90,6 +93,14 @@ Available tools in this container:
 - node 22, npm, pnpm 10.33.2, npx, corepack
 - git, ripgrep (`rg`), jq, curl, sed, awk, grep, find, wc, plus
   standard GNU coreutils
+- **Playwright / headless Chromium** — global `playwright` CLI; shared
+  browsers under `PLAYWRIGHT_BROWSERS_PATH=/ms-playwright` (baked into
+  this image). Add `@playwright/test` to the **workspace** with pnpm,
+  then run `pnpm exec playwright test` (or `pnpm exec playwright
+  install` if the workspace pins a different Playwright minor and
+  needs its own browser download). Prefer pinning `@playwright/test` to
+  the same **major** as the image Playwright (see Dockerfile
+  `PLAYWRIGHT_VERSION`) to reuse the shared install.
 
 Tools that are NOT available (do not attempt to install them — this
 container runs as a non-root user and `apt-get install`,
@@ -98,10 +109,6 @@ container runs as a non-root user and `apt-get install`,
   acceptance criterion is "`docker build` works" or "image is under
   N MB", implement the Dockerfile and trust the surrounding CI to
   verify — do not try to build or measure the image yourself.
-- Any browser, headless renderer, playwright, or puppeteer. If a spec
-  says "renders correctly in a modern browser" or "no console errors",
-  inspect the HTML/CSS/JS yourself and ship it; do not attempt visual
-  or runtime browser checks.
 - python, ruby, go, rust, java toolchains.
 
 Plan the work using only the tools listed as available. Probing for
@@ -109,7 +116,11 @@ missing tools wastes turns; trust this manifest.
 EOF
 )
 
-PROMPT="Read the spec at ${SPEC_PATH}.
+PROMPT="**AGENT_ROLE:** ${AGENT_ROLE}
+
+$(cat "$BASE_DIR/prompt-role-${AGENT_ROLE}.md")
+
+Read the spec at ${SPEC_PATH}.
 
 $(cat "$BASE_DIR/prompt-prelude.md")
 

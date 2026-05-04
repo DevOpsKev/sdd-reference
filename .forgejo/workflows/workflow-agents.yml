@@ -36,6 +36,20 @@ on:
         options:
           - "false"
           - "true"
+      PIPELINE:
+        description: "agent-only runs once with AGENT_ROLE; dev-then-qa runs dev then qa on the same workspace before commit"
+        type: choice
+        default: agent-only
+        options:
+          - agent-only
+          - dev-then-qa
+      AGENT_ROLE:
+        description: "When PIPELINE is agent-only, which prompt role to use"
+        type: choice
+        default: dev
+        options:
+          - dev
+          - qa
 
 concurrency:
   group: workflow-agents-${{ inputs.AGENT }}-${{ inputs.SPEC }}
@@ -60,6 +74,8 @@ jobs:
       AGENT: ${{ inputs.AGENT }}
       AGENT_DEBUG: ${{ inputs.DEBUG }}
       SPEC: ${{ inputs.SPEC }}
+      PIPELINE: ${{ inputs.PIPELINE }}
+      AGENT_ROLE_INPUT: ${{ inputs.AGENT_ROLE }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -91,8 +107,15 @@ jobs:
           # Instead: create the container, stream the workspace in via
           # `docker cp` (no path translation needed - data flows over
           # the docker API), run the agent, copy the result back, drop
-          # the container.
-          CONTAINER="${AGENT}-run-${GITHUB_RUN_ID}"
+          # the container. For dev-then-qa, repeat on the updated
+          # workspace so QA sees dev output.
+
+          PIPELINE="${PIPELINE:-agent-only}"
+          if [ "$PIPELINE" = "dev-then-qa" ]; then
+            ROLES="dev qa"
+          else
+            ROLES="${AGENT_ROLE_INPUT:-dev}"
+          fi
 
           debug_enabled() {
             [ "${AGENT_DEBUG:-false}" = "true" ] || [ "${AGENT_DEBUG:-false}" = "1" ]
@@ -118,57 +141,72 @@ jobs:
             fi
           }
 
-          debug_group_start "Create agent container"
-          docker create \
-            --name "$CONTAINER" \
-            --env AGENT_DEBUG \
-            --env ANTHROPIC_API_KEY \
-            --env DEEPSEEK_API_KEY \
-            --env MISTRAL_API_KEY \
-            --env SPEC \
-            "${AGENT}-agent:local"
-          debug_run docker inspect "$CONTAINER" \
-            --format 'Image={{.Image}} User={{.Config.User}} Entrypoint={{json .Config.Entrypoint}}'
-          debug_group_end
-          # shellcheck disable=SC2064
-          trap "docker rm -f '$CONTAINER' >/dev/null 2>&1 || true" EXIT
+          run_agent_role() {
+            local ROLE="$1"
+            local CONTAINER="${AGENT}-run-${GITHUB_RUN_ID}-${ROLE}"
 
-          debug_group_start "Copy workspace into container"
-          # --owner/--group=1001 matches the non-root user in
-          # Claude Code-based images (Claude Code refuses to skip
-          # permissions as root). Vibe runs as root in its container
-          # and ignores ownership, so the same tar works for all agents.
-          tar -C "$PWD" \
-              --owner=1001 --group=1001 \
-              --exclude='./.git' \
-              --exclude='./node_modules' \
-              --exclude='./.venv' \
-              -cf - . \
-            | docker cp - "$CONTAINER:/work"
-          debug_group_end
+            docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
 
-          debug_group_start "Run agent"
-          set +e
-          timeout 20m docker start --attach "$CONTAINER"
-          AGENT_EXIT=$?
-          set -e
-          if [ "$AGENT_EXIT" -ne 0 ]; then
-            date -u
-            echo "Agent run failed or timed out with exit code: $AGENT_EXIT" >&2
-            docker inspect "$CONTAINER" \
-              --format 'Status={{.State.Status}} ExitCode={{.State.ExitCode}} Error={{.State.Error}}'
-            docker logs "$CONTAINER" || true
+            debug_group_start "Create agent container (role=${ROLE})"
+            docker create \
+              --name "$CONTAINER" \
+              --env AGENT_DEBUG \
+              --env AGENT_ROLE="$ROLE" \
+              --env ANTHROPIC_API_KEY \
+              --env DEEPSEEK_API_KEY \
+              --env MISTRAL_API_KEY \
+              --env SPEC \
+              "${AGENT}-agent:local"
+            debug_run docker inspect "$CONTAINER" \
+              --format 'Image={{.Image}} User={{.Config.User}} Entrypoint={{json .Config.Entrypoint}}'
             debug_group_end
-            exit "$AGENT_EXIT"
-          fi
-          debug_group_end
+            # shellcheck disable=SC2064
+            trap "docker rm -f '$CONTAINER' >/dev/null 2>&1 || true" EXIT
 
-          debug_group_start "Copy workspace out of container"
-          # Stream the (possibly modified) workspace back out. docker
-          # cp will overwrite existing files with identical content
-          # (no-op for git) and add any new files the agent created.
-          docker cp "$CONTAINER:/work/." "$PWD/"
-          debug_group_end
+            debug_group_start "Copy workspace into container (role=${ROLE})"
+            # --owner/--group=1001 matches the non-root user in
+            # Claude Code-based images (Claude Code refuses to skip
+            # permissions as root). Vibe runs as root in its container
+            # and ignores ownership, so the same tar works for all agents.
+            tar -C "$PWD" \
+                --owner=1001 --group=1001 \
+                --exclude='./.git' \
+                --exclude='./node_modules' \
+                --exclude='./.venv' \
+                -cf - . \
+              | docker cp - "$CONTAINER:/work"
+            debug_group_end
+
+            debug_group_start "Run agent (role=${ROLE})"
+            set +e
+            timeout 20m docker start --attach "$CONTAINER"
+            AGENT_EXIT=$?
+            set -e
+            if [ "$AGENT_EXIT" -ne 0 ]; then
+              date -u
+              echo "Agent run failed or timed out with exit code: $AGENT_EXIT (role=${ROLE})" >&2
+              docker inspect "$CONTAINER" \
+                --format 'Status={{.State.Status}} ExitCode={{.State.ExitCode}} Error={{.State.Error}}'
+              docker logs "$CONTAINER" || true
+              debug_group_end
+              exit "$AGENT_EXIT"
+            fi
+            debug_group_end
+
+            debug_group_start "Copy workspace out of container (role=${ROLE})"
+            # Stream the (possibly modified) workspace back out. docker
+            # cp will overwrite existing files with identical content
+            # (no-op for git) and add any new files the agent created.
+            docker cp "$CONTAINER:/work/." "$PWD/"
+            debug_group_end
+
+            docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+            trap - EXIT
+          }
+
+          for ROLE in $ROLES; do
+            run_agent_role "$ROLE"
+          done
 
       - name: Configure git identity
         run: |
@@ -201,11 +239,17 @@ jobs:
           FORGEJO_PUSH_TOKEN: ${{ secrets.FORGEJO_PUSH_TOKEN }}
         run: |
           set -e
+          ROLE_NOTE="Pipeline: ${PIPELINE}."
+          if [ "${PIPELINE}" != "dev-then-qa" ]; then
+            ROLE_NOTE="${ROLE_NOTE} Role: ${AGENT_ROLE_INPUT}."
+          else
+            ROLE_NOTE="${ROLE_NOTE} Roles: dev then qa."
+          fi
           PR_BODY=$(jq -n \
             --arg head  "$BRANCH" \
             --arg base  "main" \
             --arg title "AI[${AGENT}]: ${SPEC} from spec" \
-            --arg body  "Generated by workflow agent ${AGENT} from ${SPEC} spec on run ${GITHUB_RUN_ID}." \
+            --arg body  "Generated by workflow agent ${AGENT} from ${SPEC} spec on run ${GITHUB_RUN_ID}. ${ROLE_NOTE}" \
             '{head:$head, base:$base, title:$title, body:$body}')
           PR_URL=$(curl -sS --fail-with-body -X POST \
             -H "Authorization: token ${FORGEJO_PUSH_TOKEN}" \
@@ -217,6 +261,12 @@ jobs:
             echo "### Workflow agent run summary"
             echo "- Agent: \`${AGENT}\`"
             echo "- Spec: \`${SPEC}\`"
+            echo "- Pipeline: \`${PIPELINE}\`"
+            if [ "${PIPELINE}" = "dev-then-qa" ]; then
+              echo "- Roles: \`dev\` then \`qa\`"
+            else
+              echo "- Role: \`${AGENT_ROLE_INPUT}\`"
+            fi
             echo "- Branch: \`${BRANCH}\`"
             echo "- PR: ${PR_URL}"
           } >> "$GITHUB_STEP_SUMMARY"

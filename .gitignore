@@ -20,6 +20,7 @@ dist/
 node_modules/
 pnpm-debug.log*
 .pnpm-store/
+test-results/
 
 # Secrets — never commit
 .env

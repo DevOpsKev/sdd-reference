@@ -6,12 +6,15 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  pnpm execute spec [--tmp] <agent> <spec>
+  pnpm execute spec [--tmp] <agent> <spec> <role>
+
+  <role> is "dev" or "qa" (see AGENTS.md).
 
 Examples:
-  pnpm execute spec vibe vite-baseline
-  AGENT_MAX_TURNS=20 pnpm execute spec vibe homepage
-  pnpm execute spec --tmp vibe vite-baseline
+  pnpm execute spec claude homepage dev
+  pnpm execute spec claude homepage qa
+  AGENT_MAX_TURNS=20 pnpm execute spec vibe homepage dev
+  pnpm execute spec --tmp vibe vite-baseline dev
 EOF
 }
 
