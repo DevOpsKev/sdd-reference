@@ -26,7 +26,7 @@ on:
         default: helloworld
         options:
           - helloworld
-          - homepage
+          - vite-baseline
       DEBUG:
         description: "Enable verbose agent diagnostics"
         type: choice

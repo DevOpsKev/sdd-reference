@@ -20,7 +20,7 @@ In normal use, a developer chooses an agent and a spec. The agent container read
 
 | Path | Purpose |
 | --- | --- |
-| `.sdd/specifications/` | SDD specs such as `helloworld` and `homepage` |
+| `.sdd/specifications/` | SDD specs such as `helloworld` and `vite-baseline` |
 | `.skills/` | Reusable guidance consumed by agents |
 | `.context/` | Product and technical background for generated work |
 | `.workflow-agents/` | Docker images and entrypoints for each supported agent |
@@ -161,7 +161,7 @@ Run a spec against your current branch:
 
 ```bash
 export MISTRAL_API_KEY="..."
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec vibe homepage
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec vibe vite-baseline
 ```
 
 Local runs:
@@ -175,19 +175,19 @@ Local runs:
 Use a low turn cap first to catch prompt or spec mistakes cheaply. If the run starts correctly, use the normal cap:
 
 ```bash
-AGENT_DEBUG=true AGENT_MAX_TURNS=150 pnpm execute spec vibe homepage
+AGENT_DEBUG=true AGENT_MAX_TURNS=150 pnpm execute spec vibe vite-baseline
 ```
 
 For a disposable smoke test that does not mutate your checkout, pass `--tmp`:
 
 ```bash
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec --tmp vibe homepage
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec --tmp vibe vite-baseline
 ```
 
 To see the raw provider stream instead of the pretty terminal output:
 
 ```bash
-AGENT_PRETTY_OUTPUT=false pnpm execute spec vibe homepage
+AGENT_PRETTY_OUTPUT=false pnpm execute spec vibe vite-baseline
 ```
 
 ## CI/CD Usage

@@ -9,9 +9,9 @@ Usage:
   pnpm execute spec [--tmp] <agent> <spec>
 
 Examples:
-  pnpm execute spec vibe homepage
-  AGENT_MAX_TURNS=20 pnpm execute spec vibe homepage
-  pnpm execute spec --tmp vibe homepage
+  pnpm execute spec vibe vite-baseline
+  AGENT_MAX_TURNS=20 pnpm execute spec vibe vite-baseline
+  pnpm execute spec --tmp vibe vite-baseline
 EOF
 }
 

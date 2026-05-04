@@ -13,10 +13,10 @@ Usage:
   .scripts/run-agent-local.sh [--tmp] <agent> <spec>
 
 Examples:
-  AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh vibe homepage
-  AGENT_DEBUG=true .scripts/run-agent-local.sh claude homepage
+  AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh vibe vite-baseline
+  AGENT_DEBUG=true .scripts/run-agent-local.sh claude vite-baseline
   .scripts/run-agent-local.sh deepseek helloworld
-  AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh --tmp vibe homepage
+  AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh --tmp vibe vite-baseline
 
 Options:
   --tmp             Run in an isolated .tmp/agent-runs workspace instead of
