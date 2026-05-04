@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,15 +10,250 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     >
+    <link rel="stylesheet" href="/src/styles/homepage.css">
   </head>
   <body>
-    <div id="app">
-      <h1>Tech Sovereignty Radar</h1>
-      <p>Strategic intelligence for European digital sovereignty</p>
-      <p style="margin-top: 1rem;">
-        <a href="/design-reference.html" style="color: #1B3A6B;">View design system reference →</a>
-      </p>
-    </div>
+    <a href="#main" class="skip-link">Skip to content</a>
+
+    <!-- 1. Masthead -->
+    <header class="masthead">
+      <div class="masthead-inner">
+        <a href="/" class="masthead-wordmark">Tech Sovereignty Radar</a>
+        <nav>
+          <ul class="masthead-nav">
+            <li><a href="/radar">Radar</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/methodology">Methodology</a></li>
+            <li><a href="/releases">Releases</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="homepage-main">
+      <!-- 2. Hero -->
+      <section class="hero">
+        <div class="hero-grid">
+          <div class="hero-content">
+            <div class="hero-eyebrow">EUROPEAN TECHNOLOGY ASSESSMENT · v0.1 · MAY 2026</div>
+            <h1 class="hero-title">Tech Sovereignty Radar</h1>
+            <p class="hero-value-prop">A periodic, opinionated radar for European technology leaders making sovereignty-aware decisions about what to adopt, trial, assess, or divest from.</p>
+            <div class="hero-actions">
+              <a href="/radar" class="btn btn-primary btn-large">Explore the radar →</a>
+              <a href="/methodology" class="hero-secondary-link">Read the methodology</a>
+            </div>
+          </div>
+          <div class="hero-metadata">
+            <div>NEXT RELEASE</div>
+            <div>Q3 2026</div>
+            <div>47 entries under review</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Thesis -->
+      <section class="thesis">
+        <blockquote class="thesis-quote">Sovereignty is not maturity. A technology can be technically excellent and still belong in Divest.</blockquote>
+        <cite class="thesis-attribution">— EDITORIAL POSITION, v0.1</cite>
+      </section>
+
+      <!-- 4. Why different -->
+      <section class="homepage-section">
+        <div class="section-header">
+          <div class="section-eyebrow">01 / METHODOLOGY</div>
+          <h2 class="section-heading">Why this is different</h2>
+        </div>
+        <div class="why-different-grid">
+          <div class="why-different-body">
+            <p>Most technology radars ask whether a technology is mature, proven, or ready. That is a useful question. It is not the question European technology leaders need answered when the CLOUD Act sits across the Atlantic, when the exit cost of a managed service compounds yearly, and when a regulatory or geopolitical shift can revalue an entire dependency overnight.</p>
+            <p>A technology can be technically excellent and still belong in Divest. Sovereignty assessment weighs jurisdiction, ownership, exit cost, standards posture, and supply-chain exposure — and asks whether a five-year dependency is defensible.</p>
+          </div>
+          <aside class="why-different-factors">
+            <div class="factor-item">
+              <div class="factor-index">01</div>
+              <div class="factor-title">Jurisdiction</div>
+              <div class="factor-gloss">Where data lives and which laws reach it.</div>
+            </div>
+            <div class="factor-item">
+              <div class="factor-index">02</div>
+              <div class="factor-title">Ownership</div>
+              <div class="factor-gloss">Who controls the roadmap and the exit.</div>
+            </div>
+            <div class="factor-item">
+              <div class="factor-index">03</div>
+              <div class="factor-title">Exit cost</div>
+              <div class="factor-gloss">What it would take to leave.</div>
+            </div>
+            <div class="factor-item">
+              <div class="factor-index">04</div>
+              <div class="factor-title">Standards posture</div>
+              <div class="factor-gloss">Open protocols vs. proprietary lock-in.</div>
+            </div>
+            <div class="factor-item">
+              <div class="factor-index">05</div>
+              <div class="factor-title">Supply-chain exposure</div>
+              <div class="factor-gloss">Dependencies, components, and their origins.</div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- 5. Rings -->
+      <section class="homepage-section">
+        <div class="section-header">
+          <div class="section-eyebrow">02 / RINGS · WHAT TO DO</div>
+          <h2 class="section-heading">Four rings. One question: what do you do on Monday?</h2>
+        </div>
+        <div class="rings-grid">
+          <div class="ring-card">
+            <div class="ring-indicator" style="background-color: var(--ring-adopt-fill);"></div>
+            <h3 class="ring-name">Adopt</h3>
+            <p class="ring-description">Sovereignty-safe. Recommended for new and existing systems.</p>
+          </div>
+          <div class="ring-card">
+            <div class="ring-indicator" style="background-color: var(--ring-trial-fill);"></div>
+            <h3 class="ring-name">Trial</h3>
+            <p class="ring-description">Credible. Worth piloting in a non-critical context.</p>
+          </div>
+          <div class="ring-card">
+            <div class="ring-indicator" style="background-color: var(--ring-assess-fill);"></div>
+            <h3 class="ring-name">Assess</h3>
+            <p class="ring-description">Watch and learn. Not yet ready, or signal is mixed.</p>
+          </div>
+          <div class="ring-card">
+            <div class="ring-indicator" style="background-color: var(--ring-divest-fill);"></div>
+            <h3 class="ring-name">Divest</h3>
+            <p class="ring-description">If you depend on this, plan and budget an exit.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. Quadrants -->
+      <section class="homepage-section">
+        <div class="section-header">
+          <div class="section-eyebrow">03 / QUADRANTS · WHERE IT LIVES</div>
+          <h2 class="section-heading">The stack, divided four ways.</h2>
+        </div>
+        <div class="quadrants-grid">
+          <div class="quadrant-card">
+            <div class="quadrant-label-mono">INFRA</div>
+            <h3 class="quadrant-name">Infrastructure & Compute</h3>
+            <p class="quadrant-description">Cloud, hosting, CDN, edge.</p>
+          </div>
+          <div class="quadrant-card">
+            <div class="quadrant-label-mono">DATA</div>
+            <h3 class="quadrant-name">Data & Identity</h3>
+            <p class="quadrant-description">Databases, authentication, analytics, AI/ML services.</p>
+          </div>
+          <div class="quadrant-card">
+            <div class="quadrant-label-mono">TOOLS</div>
+            <h3 class="quadrant-name">Developer Toolchain</h3>
+            <p class="quadrant-description">Source hosting, CI/CD, observability, package registries.</p>
+          </div>
+          <div class="quadrant-card">
+            <div class="quadrant-label-mono">STANDARDS</div>
+            <h3 class="quadrant-name">Standards & Protocols</h3>
+            <p class="quadrant-description">Open standards and interop layers that reduce future lock-in.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. Preview / Radar -->
+      <section class="homepage-section">
+        <div class="section-header">
+          <div class="section-eyebrow">04 / PREVIEW · v0.1 SAMPLE</div>
+          <h2 class="section-heading">A first look.</h2>
+        </div>
+        <p class="preview-body">This is a sketch of the radar's visual structure. The placements below are illustrative only — they exist to convey the format, not editorial assessments. Real placements arrive with v1.0, on a published cadence, with rationale and dates attached.</p>
+        <figure class="radar-figure">
+          <div class="radar-svg-container">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600" role="img" aria-labelledby="radar-title radar-desc">
+              <title id="radar-title">Sample radar, illustrative only</title>
+              <desc id="radar-desc">Four concentric rings divided into four quadrants with twelve illustrative placement dots.</desc>
+              <style>
+                .axis { stroke: #0A0A0A; stroke-width: 1; }
+                .ring { fill: none; stroke: #E5E5E2; stroke-width: 1; }
+                .q-label { font-family: ui-monospace, monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; fill: #6B6B6B; }
+                .ring-label { font-family: ui-monospace, monospace; font-size: 8px; letter-spacing: 0.06em; fill: #6B6B6B; }
+              </style>
+              <!-- Quadrant corner labels -->
+              <text class="q-label" x="300" y="28" text-anchor="middle">Infrastructure &amp; Compute</text>
+              <text class="q-label" x="572" y="308" text-anchor="end">Developer Toolchain</text>
+              <text class="q-label" x="300" y="588" text-anchor="middle">Standards &amp; Protocols</text>
+              <text class="q-label" x="28" y="308" text-anchor="start">Data &amp; Identity</text>
+              <!-- Axes through centre -->
+              <line class="axis" x1="300" y1="40" x2="300" y2="560"/>
+              <line class="axis" x1="40" y1="300" x2="560" y2="300"/>
+              <!-- Concentric rings -->
+              <circle class="ring" cx="300" cy="300" r="80"/>
+              <circle class="ring" cx="300" cy="300" r="140"/>
+              <circle class="ring" cx="300" cy="300" r="200"/>
+              <circle class="ring" cx="300" cy="300" r="260"/>
+              <!-- Ring labels (mono, right of horizontal axis) -->
+              <text class="ring-label" x="568" y="295" text-anchor="end">ADOPT</text>
+              <text class="ring-label" x="568" y="315" text-anchor="end">TRIAL</text>
+              <text class="ring-label" x="568" y="335" text-anchor="end">ASSESS</text>
+              <text class="ring-label" x="568" y="355" text-anchor="end">DIVEST</text>
+              <!-- 12 illustrative dots: ring stroke = edge colour -->
+              <circle cx="380" cy="220" r="6" fill="#1F5F4A" stroke="#143F30" stroke-width="1.5"/>
+              <circle cx="430" cy="250" r="6" fill="#1B3A6B" stroke="#0F2848" stroke-width="1.5"/>
+              <circle cx="340" cy="200" r="6" fill="#A66E12" stroke="#6B470A" stroke-width="1.5"/>
+              <circle cx="220" cy="220" r="6" fill="#7A2419" stroke="#4D160F" stroke-width="1.5"/>
+              <circle cx="170" cy="250" r="6" fill="#1F5F4A" stroke="#143F30" stroke-width="1.5"/>
+              <circle cx="240" cy="180" r="6" fill="#1B3A6B" stroke="#0F2848" stroke-width="1.5"/>
+              <circle cx="220" cy="380" r="6" fill="#A66E12" stroke="#6B470A" stroke-width="1.5"/>
+              <circle cx="170" cy="350" r="6" fill="#7A2419" stroke="#4D160F" stroke-width="1.5"/>
+              <circle cx="240" cy="420" r="6" fill="#1F5F4A" stroke="#143F30" stroke-width="1.5"/>
+              <circle cx="380" cy="380" r="6" fill="#1B3A6B" stroke="#0F2848" stroke-width="1.5"/>
+              <circle cx="430" cy="350" r="6" fill="#A66E12" stroke="#6B470A" stroke-width="1.5"/>
+              <circle cx="340" cy="400" r="6" fill="#7A2419" stroke="#4D160F" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <figcaption class="radar-caption">FIG. 1 — SAMPLE RADAR, ILLUSTRATIVE ONLY. v1.0 RELEASE Q3 2026.</figcaption>
+        </figure>
+      </section>
+
+      <!-- 8. Closing thesis -->
+      <section class="closing-thesis">
+        <blockquote class="closing-thesis-quote">Stack decisions made on a published cadence — defensible to a regulator, a board, or a successor.</blockquote>
+      </section>
+
+      <!-- 9. Final CTA -->
+      <section class="final-cta">
+        <div class="section-eyebrow">READY?</div>
+        <h2 class="section-heading">See the radar.</h2>
+        <div class="final-cta-actions">
+          <a href="/radar" class="btn btn-primary btn-large">Explore the radar →</a>
+        </div>
+        <div class="final-cta-subscribe">
+          <p class="subscribe-note">Or subscribe for release notifications. One email per quarter, no marketing.</p>
+          <form class="subscribe-form" method="get" action="#">
+            <input type="email" class="subscribe-input" placeholder="your.email@example.com" aria-label="Email address" />
+            <button type="submit" class="btn btn-primary" disabled>Subscribe</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <!-- 10. Footer -->
+    <footer class="homepage-footer">
+      <div class="footer-inner">
+        <div class="footer-main">
+          <div class="footer-left">Tech Sovereignty Radar v0.1</div>
+          <div class="footer-centre">Last updated 3 May 2026</div>
+          <div class="footer-right">CC BY-SA 4.0</div>
+        </div>
+        <nav>
+          <ul class="footer-links">
+            <li><a href="/methodology">Methodology</a></li>
+            <li><a href="/releases">Releases</a></li>
+            <li><a href="/rss">RSS</a></li>
+            <li><a href="/contact">Contact</a></li>
+          </ul>
+        </nav>
+      </div>
+    </footer>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
