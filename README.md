@@ -149,7 +149,7 @@ It builds the agent image, runs against the repo snapshot, commits results to a 
 ## Writing specs
 
 - Path: **`sdd/<path>/spec.md`** (nested paths allowed).
-- Structure: **Intent**, **Requirements**, **Acceptance criteria**, **Out of scope** — see [`sdd/helloworld/spec.md`](sdd/helloworld/spec.md).
+- Structure: **Intent**, **Requirements**, **Acceptance criteria**, **Out of scope**.
 - Agents must read **sibling files** the spec names (fixtures, `copy.yaml`, etc.).
 
 ## Keeping `context/` honest
