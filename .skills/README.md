@@ -15,7 +15,7 @@ Each skill lives at `.skills/<name>/SKILL.md` and follows the [Anthropic Skills]
 
 ## How agents pick up skills
 
-Workflow agents consume `.skills/` automatically — no per-spec configuration needed. The `.workflow-agents/<agent>/run-*.sh` entrypoint prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code, and `.skills/` is read-only for agents, like most of `sdd/` (see [AGENTS.md](../AGENTS.md#provenance-and-scenarios) for which `sdd/` paths agents may write, depending on `AGENT_ROLE`).
+Workflow agents consume `.skills/` automatically — no per-spec configuration needed. The `sdd/agents/<agent>/run-*.sh` entrypoint prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code, and `.skills/` is read-only for agents, like most of `sdd/` (see [AGENTS.md](../AGENTS.md#provenance-and-scenarios) for which `sdd/` paths agents may write, depending on `AGENT_ROLE`).
 
 ## Adding a new skill
 

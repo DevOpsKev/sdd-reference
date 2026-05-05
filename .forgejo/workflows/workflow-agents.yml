@@ -7,7 +7,7 @@ name: workflow-agents
 #
 # Runs an agentic CLI (Mistral Vibe, Claude Code) that mutates the
 # workspace in place. Each agent has its own subdirectory under
-# .workflow-agents/<AGENT>/ with a Dockerfile and entrypoint script.
+# sdd/agents/<AGENT>/ with a Dockerfile and entrypoint script.
 
 on:
   workflow_dispatch:
@@ -21,9 +21,9 @@ on:
           - claude
           - deepseek
       SPEC:
-        description: "Repo-relative spec directory under sdd/ (e.g. sdd/helloworld, sdd/homepage, sdd/homepage/header)"
+        description: "Repo-relative spec directory: must be under sdd/specs/ with spec.md (e.g. sdd/specs/vite-baseline, sdd/specs/homepage). Not sdd/context/, sdd/agents/, or sdd/scripts/."
         type: string
-        default: sdd/helloworld
+        default: sdd/specs/vite-baseline
       DEBUG:
         description: "Enable verbose agent diagnostics"
         type: choice
@@ -81,7 +81,7 @@ jobs:
           set -e
           docker build \
             --tag "${AGENT}-agent:local" \
-            ".workflow-agents/${AGENT}"
+            "sdd/agents/${AGENT}"
 
       - name: Run agent
         env:
