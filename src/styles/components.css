@@ -182,25 +182,29 @@
 }
 
 /* Ring filter chips */
-.chip-adopt.active {
+.chip-adopt.active,
+.chip-ring-adopt.active {
   background-color: var(--ring-adopt-fill);
   color: var(--ink-inverse);
   border-color: var(--ring-adopt-edge);
 }
 
-.chip-trial.active {
+.chip-trial.active,
+.chip-ring-trial.active {
   background-color: var(--ring-trial-fill);
   color: var(--ink-inverse);
   border-color: var(--ring-trial-edge);
 }
 
-.chip-assess.active {
+.chip-assess.active,
+.chip-ring-assess.active {
   background-color: var(--ring-assess-fill);
   color: var(--ink);
   border-color: var(--ring-assess-edge);
 }
 
-.chip-divest.active {
+.chip-divest.active,
+.chip-ring-divest.active {
   background-color: var(--ring-divest-fill);
   color: var(--ink-inverse);
   border-color: var(--ring-divest-edge);

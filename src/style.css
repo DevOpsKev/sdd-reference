@@ -1,6 +1,7 @@
 @import "./styles/tokens.css";
 @import "./styles/base.css";
 @import "./styles/components.css";
+@import "./styles/homepage.css";
 
 @import "tailwindcss";
 
@@ -39,4 +40,36 @@
   --radius: var(--radius-2);
 
   --shadow-overlay: var(--shadow-overlay);
+}
+
+/* Design reference motion demo */
+#motion-box {
+  transition: transform var(--motion-default, 240ms)
+    var(--motion-default-curve, cubic-bezier(0.2, 0, 0, 1));
+}
+
+#motion-box.motion-box-shifted {
+  transform: translateX(12px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #motion-box {
+    transition: none;
+  }
+}
+
+/* After Tailwind layers: radar preview width (preflight can reset max-width on wrappers) */
+#main figure.radar-container .radar-svg-container {
+  max-width: 600px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.radar-container,
+.radar-svg-container {
+  max-width: 600px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }

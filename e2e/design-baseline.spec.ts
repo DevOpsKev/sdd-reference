@@ -149,17 +149,21 @@ test.describe('Design baseline spec acceptance criteria', () => {
       expect(content).not.toContain('9999px');
     });
 
-    test('DB-04-03: No gradient backgrounds in CSS', async ({ page, request }) => {
-      // Check CSS files for gradient backgrounds
-      const cssFiles = [
-        '/assets/base-CM7IYjXu.css',
-        '/assets/reference-g8tS0bVk.css'
-      ];
-
-      for (const cssFile of cssFiles) {
-        const response = await request.get(cssFile);
+    test('DB-04-03: No gradient backgrounds in CSS', async ({ page, request, baseURL }) => {
+      await page.goto('/design-reference.html');
+      const hrefs = await page
+        .locator('link[rel="stylesheet"]')
+        .evaluateAll((els) =>
+          els
+            .map((e) => (e as HTMLLinkElement).getAttribute('href'))
+            .filter((h): h is string => Boolean(h))
+        );
+      const origin = baseURL ?? 'http://localhost:4173';
+      for (const href of hrefs) {
+        const url = new URL(href, origin).toString();
+        const response = await request.get(url);
+        expect(response.ok()).toBeTruthy();
         const cssContent = await response.text();
-        // Allow gradient in shadow definition but not as background
         expect(cssContent).not.toContain('background: linear-gradient');
         expect(cssContent).not.toContain('background-image: linear-gradient');
       }
