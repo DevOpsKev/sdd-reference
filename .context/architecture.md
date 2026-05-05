@@ -9,8 +9,9 @@ Tech Sovereignty Radar is a static web application. It is authored with a Node.j
 - Package manager: pnpm.
 - Build tool: Vite (root `vite.config.ts`).
 - Language: TypeScript for interactive behavior and data transforms.
-- UI: vanilla HTML, CSS, SVG, and TypeScript unless a spec explicitly justifies a framework.
-- Styling: plain CSS with custom properties; no Tailwind, Sass, or component library by default. Normative visual rules live in [`.context/design-system.md`](design-system.md); implementation is layered under `src/styles/` (see [Frontend layout](#frontend-layout)).
+- UI: semantic HTML, SVG, and TypeScript. No React, Vue, or Svelte unless a spec explicitly introduces a framework ([vite-baseline](../.sdd/specifications/vite-baseline/spec.md) is vanilla HTML + TS).
+- Styling: **Tailwind CSS** and **DaisyUI** implement the visual system; **normative rules** (tokens, grid, motion, forbidden patterns) remain in [`.context/design-system.md`](design-system.md). CSS custom properties for tokens are mapped into Tailwind’s theme / DaisyUI themes so utilities and components stay aligned — arbitrary palette or layout utilities without token grounding are out of bounds for product UI.
+- Optional: additional hand-authored CSS in `src/styles/` for token exports or layers Tailwind does not cover; Sass/LESS only if a spec adds them.
 - Data: versioned static JSON files in the repository.
 - Runtime image: nginx:alpine or equivalent minimal static server.
 - Container port: 8080.
@@ -36,19 +37,21 @@ TypeScript entry points under **`src/`** import CSS and attach behaviour:
 - **`src/main.ts`** — loaded by **`index.html`** (minimal bootstrap; page markup may live primarily in HTML).
 - **`src/design-reference.ts`** — loaded by **`design-reference.html`** (reference sections, optional motion demos).
 
-### Stylesheets (`src/styles/`)
+### Stylesheets and Tailwind entry
 
-CSS is split so tokens stay reusable and pages stay thin:
+Tailwind’s global entry (e.g. `src/style.css`) loads Tailwind, DaisyUI, and optionally `@import` of token files. **`src/styles/`** holds CSS that supports — but does not replace — design-system alignment:
 
 | Layer | Typical contents |
 | --- | --- |
-| `tokens.css` | `:root` custom properties aligned with the design system (colour, type, space, motion). |
-| `base.css` | Global resets, `body`, typography defaults, font-feature settings (e.g. tabular numerals). |
-| `components.css` | Buttons, inputs, tables, cards, chips — reusable primitives. |
-| `layout.css` | Grid, sections, page chrome patterns. |
-| `homepage.css` (or similar) | Product-only layout when required by a spec; must not fork token values already in `tokens.css`. |
+| `tokens.css` (or equivalent) | `:root` custom properties for colours, type, space, motion; referenced from Tailwind theme / `@theme` so utilities (`bg-*`, `text-*`, spacing) mirror tokens. |
+| `base.css` | Rare resets not covered by Tailwind preflight; global `font-feature-settings`, tabular numerals on numeric surfaces. |
+| `components.css` | Overrides where DaisyUI or Tailwind defaults conflict with [design-system](design-system.md) components (radii, borders, motion). |
+| `layout.css` | Grid / section patterns expressed as composable classes when utilities alone are too repetitive. |
+| Feature CSS | Spec-driven additions (e.g. `homepage.css`); must not fork token values already defined for Tailwind. |
 
-**Entry HTML** should import the **smallest** set of modules needed: the design reference page pulls the full stack; the product entry may import a subset plus feature CSS.
+**Entry HTML** imports one TS entry that pulls the **Tailwind entry stylesheet**; add extra `src/styles/*.css` imports only when needed. The design reference page may load the full stack; the product entry stays minimal.
+
+See **Implementation (Tailwind CSS & DaisyUI)** in [`.context/design-system.md`](design-system.md) for token mapping and DaisyUI theming rules.
 
 ## Development commands
 

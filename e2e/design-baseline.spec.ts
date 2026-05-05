@@ -9,8 +9,9 @@ import { test, expect } from '@playwright/test';
  * 2. design-reference.html implements the section table; "Design baseline" appears in title or h1
  * 3. index.html stays minimal and does not duplicate the full section inventory
  * 4. Design-system forbidden items are not used
- * 5. Motion rules followed; reduced-motion behaviour is observable
- * 6. .sdd/provenance/design-baseline/provenance.md exists
+ * 5. Tailwind and DaisyUI wired and themed per vite-baseline and design-system Implementation section
+ * 6. Motion rules followed; reduced-motion behaviour is observable
+ * 7. .sdd/provenance/design-baseline/provenance.md exists
  */
 
 test.describe('Design baseline spec acceptance criteria', () => {
@@ -31,6 +32,7 @@ test.describe('Design baseline spec acceptance criteria', () => {
 
       const requiredSections = [
         'Colour',
+        'Theme / tooling',
         'Typography',
         'Grid and layout',
         'Buttons',
@@ -80,6 +82,18 @@ test.describe('Design baseline spec acceptance criteria', () => {
         await expect(typographySection.getByText(token, { exact: true })).toBeVisible();
       }
     });
+
+    test('DB-02-06: Theme / tooling section describes DaisyUI or token mapping', async ({
+      page,
+    }) => {
+      await page.goto('/design-reference.html');
+      const themeSection = page.locator('section').filter({
+        has: page.locator('h2:has-text("Theme / tooling")'),
+      });
+      await expect(themeSection).toContainText(
+        /DaisyUI|Tailwind|--accent|primary|theme|token/i
+      );
+    });
   });
 
   // AC-03: index.html stays minimal
@@ -89,6 +103,7 @@ test.describe('Design baseline spec acceptance criteria', () => {
 
       const designRefSections = [
         'Colour',
+        'Theme / tooling',
         'Typography',
         'Grid and layout',
         'Buttons',

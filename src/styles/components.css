@@ -1,26 +1,33 @@
-/* Component styles */
+/* Component overrides and custom styles */
 
-/* Buttons */
+/* Button overrides for DaisyUI */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: var(--radius-1);
   font-size: var(--type-small);
   font-weight: 500;
   line-height: var(--type-small-line);
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-1);
-  border: none;
-  cursor: pointer;
-  text-decoration: none;
+  height: 32px;
+  min-height: 32px;
   transition: background-color var(--motion-instant) var(--motion-instant-curve),
               border-color var(--motion-instant) var(--motion-instant-curve);
-  height: 32px;
+}
+
+.btn-lg {
+  height: 40px;
+  min-height: 40px;
+}
+
+.btn-sm {
+  height: 24px;
+  min-height: 24px;
+  padding: 4px var(--space-3);
 }
 
 .btn-primary {
   background-color: var(--accent);
   color: var(--ink-inverse);
+  border: none;
 }
 
 .btn-primary:hover {
@@ -29,8 +36,8 @@
 
 .btn-secondary {
   background-color: transparent;
-  border: 1px solid var(--rule-strong);
   color: var(--ink);
+  border: 1px solid var(--rule-strong);
 }
 
 .btn-secondary:hover {
@@ -40,82 +47,82 @@
 .btn-tertiary {
   background-color: transparent;
   color: var(--ink);
-}
-
-.btn-tertiary:hover {
-  background-color: var(--surface-sunken);
+  border: none;
 }
 
 .btn:disabled {
   background-color: var(--surface-sunken);
   color: var(--ink-faint);
-  cursor: not-allowed;
+  border: none;
 }
 
-.btn-large {
-  height: 40px;
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
-.btn-compact {
-  height: 24px;
-  padding: var(--space-1) var(--space-3);
-}
-
-/* Inputs */
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.input-label {
-  font-size: var(--type-micro);
-  font-weight: var(--type-micro-weight);
-  line-height: var(--type-micro-line);
-  letter-spacing: var(--type-micro-spacing);
-  text-transform: uppercase;
-  color: var(--ink-muted);
-}
-
+/* Input styles */
 .input {
-  font-family: var(--font-sans);
-  font-size: var(--type-body);
-  line-height: var(--type-body-line);
-  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius-1);
-  background-color: var(--surface);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--type-body);
+  line-height: var(--type-body-line);
   color: var(--ink);
+  background-color: var(--surface);
   transition: border-color var(--motion-instant) var(--motion-instant-curve);
 }
 
 .input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
   border-color: var(--accent);
 }
 
-.input-helper {
+.input-error {
+  outline: 2px solid var(--ring-divest-fill);
+  outline-offset: 1px;
+  border-color: var(--ring-divest-fill);
+}
+
+.label {
+  font-size: var(--type-micro);
+  line-height: var(--type-micro-line);
+  font-weight: var(--type-micro-weight);
+  letter-spacing: var(--type-micro-tracking);
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: var(--space-1);
+  display: block;
+}
+
+.helper-text {
   font-size: var(--type-small);
   line-height: var(--type-small-line);
   color: var(--ink-muted);
+  margin-top: var(--space-1);
 }
 
-.input-error {
-  border-color: var(--ring-divest-fill);
-  outline: 2px solid var(--ring-divest-fill);
-}
-
-.input-error-text {
+.error-text {
   font-size: var(--type-small);
   line-height: var(--type-small-line);
   color: var(--ring-divest-fill);
+  margin-top: var(--space-1);
 }
 
-/* Tables */
+/* Card overrides */
+.card {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-2);
+  padding: var(--space-5);
+  background-color: var(--surface);
+  box-shadow: none;
+}
+
+/* Table styles */
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--type-small);
-  line-height: var(--type-small-line);
 }
 
 .table thead {
@@ -124,9 +131,9 @@
 
 .table th {
   font-size: var(--type-micro);
-  font-weight: var(--type-micro-weight);
   line-height: var(--type-micro-line);
-  letter-spacing: var(--type-micro-spacing);
+  font-weight: var(--type-micro-weight);
+  letter-spacing: var(--type-micro-tracking);
   text-transform: uppercase;
   color: var(--ink-muted);
   text-align: left;
@@ -136,13 +143,8 @@
 .table td {
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--rule);
-  color: var(--ink-secondary);
-}
-
-.table .numeric {
-  font-family: var(--font-mono);
-  font-feature-settings: "tnum";
-  text-align: right;
+  font-size: var(--type-small);
+  line-height: var(--type-small-line);
 }
 
 .table-compact th {
@@ -153,28 +155,15 @@
   padding: var(--space-2) var(--space-3);
 }
 
-/* Cards */
-.card {
-  padding: var(--space-5);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-2);
-  background-color: var(--surface);
-}
-
-.card-raised {
-  background-color: var(--surface-raised);
-}
-
 /* Filter chips */
 .chip {
   display: inline-flex;
   align-items: center;
   font-size: var(--type-small);
   font-weight: 500;
-  line-height: var(--type-small-line);
   padding: 6px var(--space-3);
-  border: 1px solid var(--rule-strong);
   border-radius: var(--radius-1);
+  border: 1px solid var(--rule-strong);
   color: var(--ink);
   background-color: transparent;
   cursor: pointer;
@@ -186,32 +175,60 @@
   background-color: var(--surface-sunken);
 }
 
-.chip-active {
+.chip.active {
   background-color: var(--ink);
   color: var(--ink-inverse);
   border-color: var(--ink);
 }
 
-.chip-ring-adopt {
+/* Ring filter chips */
+.chip-adopt.active {
   background-color: var(--ring-adopt-fill);
   color: var(--ink-inverse);
   border-color: var(--ring-adopt-edge);
 }
 
-.chip-ring-trial {
+.chip-trial.active {
   background-color: var(--ring-trial-fill);
   color: var(--ink-inverse);
   border-color: var(--ring-trial-edge);
 }
 
-.chip-ring-assess {
+.chip-assess.active {
   background-color: var(--ring-assess-fill);
-  color: var(--ink-inverse);
+  color: var(--ink);
   border-color: var(--ring-assess-edge);
 }
 
-.chip-ring-divest {
+.chip-divest.active {
   background-color: var(--ring-divest-fill);
   color: var(--ink-inverse);
   border-color: var(--ring-divest-edge);
+}
+
+/* Motion demo transition */
+.motion-demo {
+  transition: transform var(--motion-default) var(--motion-default-curve),
+              opacity var(--motion-default) var(--motion-default-curve);
+}
+
+.motion-demo:hover {
+  transform: translateY(-4px);
+  opacity: 0.9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-demo {
+    transition: none;
+  }
+
+  .motion-demo:hover {
+    transform: none;
+  }
+
+  .btn,
+  .input,
+  .chip {
+    transition: none;
+  }
 }

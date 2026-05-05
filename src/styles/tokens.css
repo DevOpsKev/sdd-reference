@@ -40,22 +40,22 @@
   --type-display: 48px;
   --type-display-line: 52px;
   --type-display-weight: 600;
-  --type-display-spacing: -0.03em;
+  --type-display-tracking: -0.03em;
 
   --type-h1: 32px;
   --type-h1-line: 40px;
   --type-h1-weight: 600;
-  --type-h1-spacing: -0.02em;
+  --type-h1-tracking: -0.02em;
 
   --type-h2: 22px;
   --type-h2-line: 28px;
   --type-h2-weight: 600;
-  --type-h2-spacing: -0.015em;
+  --type-h2-tracking: -0.015em;
 
   --type-h3: 16px;
   --type-h3-line: 24px;
   --type-h3-weight: 600;
-  --type-h3-spacing: -0.005em;
+  --type-h3-tracking: -0.005em;
 
   --type-body-lg: 17px;
   --type-body-lg-line: 26px;
@@ -72,7 +72,7 @@
   --type-micro: 11px;
   --type-micro-line: 16px;
   --type-micro-weight: 500;
-  --type-micro-spacing: 0.08em;
+  --type-micro-tracking: 0.08em;
 
   --type-mono: 13px;
   --type-mono-line: 20px;
@@ -82,7 +82,7 @@
   --type-mono-small-line: 16px;
   --type-mono-small-weight: 400;
 
-  /* Spacing */
+  /* Spacing (4px baseline) */
   --space-0: 0;
   --space-1: 4px;
   --space-2: 8px;
@@ -100,19 +100,16 @@
   --radius-1: 2px;
   --radius-2: 4px;
 
-  /* Shadows */
+  /* Shadow */
   --shadow-overlay: 0 8px 24px rgba(10, 10, 10, 0.08), 0 1px 2px rgba(10, 10, 10, 0.04);
 
   /* Motion */
   --motion-instant: 80ms;
   --motion-instant-curve: cubic-bezier(0.2, 0, 0, 1);
-
   --motion-quick: 160ms;
   --motion-quick-curve: cubic-bezier(0.2, 0, 0, 1);
-
   --motion-default: 240ms;
   --motion-default-curve: cubic-bezier(0.2, 0, 0, 1);
-
   --motion-considered: 400ms;
   --motion-considered-curve: cubic-bezier(0.4, 0, 0.2, 1);
 }

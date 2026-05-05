@@ -1,32 +1,24 @@
-import './styles/tokens.css'
-import './styles/base.css'
-import './styles/components.css'
-import './styles/layout.css'
+import './style.css'
 
-// Motion demo with prefers-reduced-motion support
-const motionTrigger = document.getElementById('motion-trigger')
-const motionBox = document.getElementById('motion-box')
+// Motion demo: toggle interaction
+document.addEventListener('DOMContentLoaded', () => {
+  const motionDemo = document.querySelector('.motion-demo-interactive')
+  if (motionDemo) {
+    motionDemo.addEventListener('click', () => {
+      motionDemo.classList.toggle('active')
+    })
+  }
 
-if (motionTrigger && motionBox) {
+  // Check for reduced motion preference
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const motionStatus = document.getElementById('motion-status')
+  if (motionStatus) {
+    motionStatus.textContent = prefersReducedMotion
+      ? 'Reduced motion is ENABLED (transitions disabled)'
+      : 'Reduced motion is disabled (transitions active)'
+    motionStatus.style.color = prefersReducedMotion ? 'var(--ring-assess-fill)' : 'var(--ink-muted)'
+  }
 
-  motionTrigger.addEventListener('click', () => {
-    if (prefersReducedMotion) {
-      // Instant state change without animation
-      motionBox.style.transform = 'translateX(100px)'
-      setTimeout(() => {
-        motionBox.style.transform = 'translateX(0)'
-      }, 100)
-    } else {
-      // Animated using motion tokens
-      motionBox.style.transition = 'transform var(--motion-default) var(--motion-default-curve)'
-      motionBox.style.transform = 'translateX(100px)'
-
-      setTimeout(() => {
-        motionBox.style.transform = 'translateX(0)'
-      }, 400)
-    }
-  })
-}
-
-console.log('Design reference initialized')
+  console.log('Design reference initialized')
+  console.log('prefers-reduced-motion:', prefersReducedMotion)
+})
