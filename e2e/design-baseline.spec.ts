@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 /**
  * Design baseline spec acceptance criteria tests
- * Spec: .sdd/specifications/design-baseline/spec.md
+ * Spec: sdd/design-baseline/spec.md
  *
  * Acceptance criteria:
  * 1. pnpm build succeeds; dist/ includes design-reference.html and index.html with no console errors
@@ -11,7 +11,7 @@ import { test, expect } from '@playwright/test';
  * 4. Design-system forbidden items are not used
  * 5. Tailwind and DaisyUI wired and themed per vite-baseline and design-system Implementation section
  * 6. Motion rules followed; reduced-motion behaviour is observable
- * 7. .sdd/provenance/design-baseline/provenance.md exists
+ * 7. sdd/design-baseline/provenance.md exists
  */
 
 test.describe('Design baseline spec acceptance criteria', () => {

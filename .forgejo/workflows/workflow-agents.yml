@@ -21,14 +21,9 @@ on:
           - claude
           - deepseek
       SPEC:
-        description: "Which spec to run against"
-        type: choice
-        default: helloworld
-        options:
-          - helloworld
-          - vite-baseline
-          - design-baseline
-          - homepage
+        description: "Repo-relative spec directory under sdd/ (e.g. sdd/helloworld, sdd/homepage, sdd/homepage/header)"
+        type: string
+        default: sdd/helloworld
       DEBUG:
         description: "Enable verbose agent diagnostics"
         type: choice
@@ -217,7 +212,8 @@ jobs:
       - name: Commit generated files
         run: |
           set -e
-          BRANCH="ai/${AGENT}-${SPEC}-${GITHUB_RUN_ID}"
+          SPEC_SLUG="${SPEC//\//-}"
+          BRANCH="ai/${AGENT}-${SPEC_SLUG}-${GITHUB_RUN_ID}"
           echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
           git checkout -b "$BRANCH"
           git add -A

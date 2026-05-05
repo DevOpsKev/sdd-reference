@@ -18,7 +18,7 @@ A containerised single-page "Hello, World!" that someone would actually screensh
 - `app/DESIGN.md` — 3–6 sentences naming the aesthetic direction, the typographic and palette decisions, and the one detail intended to be memorable. The agent's own articulation of intent, not boilerplate.
 - Final image under 75 MB.
 - HTTP GET to / returns 200 with body containing "Hello, World!".
-- `.sdd/provenance/helloworld/provenance.md` exists (created or overwritten per agent rules), documenting actions, validation, and artifacts from this run.
+- `sdd/helloworld/provenance.md` exists (created or overwritten per agent rules), documenting actions, validation, and artifacts from this run.
 - No AI-default tells: no Inter / Roboto / Arial / system-only typography, no purple-gradient-on-white, no untreated centered-flex-stack layout, no generic glassmorphism card.
 
 ## Out of scope

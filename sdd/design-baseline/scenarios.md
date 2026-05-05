@@ -12,7 +12,7 @@ role: qa
 
 This document describes the test scenarios executed to verify the design-baseline spec implementation. Tests were executed using Playwright against both development server and production build outputs. The test suite is located at `e2e/design-baseline.spec.ts` and can be run via `pnpm test:e2e`.
 
-**Spec reference:** `.sdd/specifications/design-baseline/spec.md`
+**Spec reference:** `sdd/design-baseline/spec.md`
 
 ## Test execution summary
 
@@ -100,7 +100,7 @@ Tests that index.html remains a minimal entry point without duplicating the full
 
 ### AC-04: Forbidden design patterns
 
-Tests that forbidden items from `.context/design-system.md` are not used.
+Tests that forbidden items from `context/design-system.md` are not used.
 
 #### DB-04-01: No glassmorphism (backdrop-filter)
 - **Status:** ✅ **PASS**

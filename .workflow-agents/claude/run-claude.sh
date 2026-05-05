@@ -2,7 +2,7 @@
 # Container entrypoint for the Anthropic Claude Code agent.
 #
 # Reads SPEC and ANTHROPIC_API_KEY from the environment, locates the
-# spec under .sdd/specifications/, and runs claude in non-interactive
+# spec under sdd/<...>/ (SPEC is the repo-relative spec directory), and runs claude in non-interactive
 # print mode (-p) with permissions auto-approved and a hard turn cap.
 # Exits when claude exits.
 #
@@ -11,7 +11,7 @@
 
 set -euo pipefail
 
-: "${SPEC:?SPEC env var is required (e.g. SPEC=helloworld)}"
+: "${SPEC:?SPEC env var is required (e.g. SPEC=sdd/helloworld)}"
 : "${ANTHROPIC_API_KEY:?ANTHROPIC_API_KEY env var is required}"
 
 debug_enabled() {
@@ -19,17 +19,12 @@ debug_enabled() {
 }
 
 MAX_TURNS="${AGENT_MAX_TURNS:-150}"
-SPEC_PATH=".sdd/specifications/${SPEC}/spec.md"
-if [ ! -f "$SPEC_PATH" ]; then
-  echo "Spec not found at: $SPEC_PATH" >&2
-  exit 1
-fi
 
 # Shared cross-agent prompt fragments and shell helpers, read at
 # runtime from the streamed workspace. See
 # /work/.workflow-agents/base/README.md.
 BASE_DIR="/work/.workflow-agents/base"
-for f in "$BASE_DIR/prompt-prelude.md" "$BASE_DIR/prompt-postlude.md" "$BASE_DIR/lib/print-toolchain.sh" "$BASE_DIR/lib/load-agent-role.sh" "$BASE_DIR/prompt-role-dev.md" "$BASE_DIR/prompt-role-qa.md"; do
+for f in "$BASE_DIR/prompt-prelude.md" "$BASE_DIR/prompt-postlude.md" "$BASE_DIR/lib/spec-paths.sh" "$BASE_DIR/lib/print-toolchain.sh" "$BASE_DIR/lib/load-agent-role.sh" "$BASE_DIR/prompt-role-dev.md" "$BASE_DIR/prompt-role-qa.md"; do
   if [ ! -f "$f" ]; then
     echo "Missing shared workflow-agent base file: $f" >&2
     echo "Expected .workflow-agents/base/ to be present in the streamed workspace at /work." >&2
@@ -37,13 +32,21 @@ for f in "$BASE_DIR/prompt-prelude.md" "$BASE_DIR/prompt-postlude.md" "$BASE_DIR
   fi
 done
 # shellcheck source=/dev/null
+source "$BASE_DIR/lib/spec-paths.sh"
+resolve_spec_dir
+if [ ! -f "$SPEC_PATH" ]; then
+  echo "Spec not found at: $SPEC_PATH (SPEC=$SPEC)" >&2
+  exit 1
+fi
+
+# shellcheck source=/dev/null
 source "$BASE_DIR/lib/print-toolchain.sh"
 # shellcheck source=/dev/null
 source "$BASE_DIR/lib/load-agent-role.sh"
 
 if debug_enabled; then
   echo "Starting Claude workflow agent"
-  echo "SPEC=$SPEC"
+  echo "SPEC=$SPEC (spec directory)"
   echo "AGENT_ROLE=$AGENT_ROLE"
   echo "SPEC_PATH=$SPEC_PATH"
   echo "CLAUDE_MODEL=claude-sonnet-4-5"

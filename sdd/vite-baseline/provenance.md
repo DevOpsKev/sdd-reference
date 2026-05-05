@@ -6,7 +6,7 @@ title: Vite baseline provenance
 
 ## Spec
 
-`.sdd/specifications/vite-baseline/spec.md`
+`sdd/vite-baseline/spec.md`
 
 ## Executed
 
@@ -21,7 +21,7 @@ title: Vite baseline provenance
 
 ## Actions taken
 
-1. Read `.sdd/specifications/vite-baseline/spec.md` and referenced files (`.context/architecture.md`, `.skills/frontend-design/SKILL.md`)
+1. Read `sdd/vite-baseline/spec.md` and referenced files (`context/architecture.md`, `.skills/frontend-design/SKILL.md`)
 2. Installed Tailwind CSS v4.2.4 and DaisyUI v5.5.19 via pnpm
 3. Configured Tailwind CSS using `@tailwindcss/vite` plugin in `vite.config.ts`
 4. Created `src/style.css` with Tailwind and DaisyUI imports using CSS-first configuration (`@import "tailwindcss"` and `@plugin "daisyui"`)
@@ -98,4 +98,4 @@ None. All requirements and acceptance criteria satisfied.
 | `design-reference.html` | deleted | Removed (not part of single-page baseline) |
 | `src/design-reference.ts` | deleted | Removed (not part of baseline) |
 | `src/styles/` | deleted | Removed (replaced by Tailwind+DaisyUI) |
-| `.sdd/provenance/vite-baseline/provenance.md` | created | This file |
+| `sdd/vite-baseline/provenance.md` | created | This file |

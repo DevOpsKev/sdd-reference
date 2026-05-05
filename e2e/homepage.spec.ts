@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Load copy.yaml for verification
-const copyPath = path.join(process.cwd(), '.sdd/specifications/homepage/copy.yaml');
+const copyPath = path.join(process.cwd(), 'sdd/homepage/copy.yaml');
 const copyData = yaml.parse(fs.readFileSync(copyPath, 'utf-8'));
 
 test.describe('Homepage Implementation', () => {
