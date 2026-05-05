@@ -10,13 +10,15 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  .scripts/run-agent-local.sh [--tmp] <agent> <spec> <role>
+  .scripts/run-agent-local.sh [--tmp] <agent> <spec-dir> <role>
 
 Examples:
-  AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh vibe vite-baseline dev
-  AGENT_DEBUG=true .scripts/run-agent-local.sh claude homepage qa
-  .scripts/run-agent-local.sh deepseek helloworld dev
-  AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh --tmp vibe vite-baseline dev
+  AGENT_DEBUG=true AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh vibe sdd/vite-baseline dev
+  AGENT_DEBUG=true .scripts/run-agent-local.sh claude sdd/homepage qa
+  .scripts/run-agent-local.sh deepseek sdd/helloworld dev
+  AGENT_MAX_TURNS=20 .scripts/run-agent-local.sh --tmp vibe sdd/vite-baseline dev
+
+  <spec> is the repo-relative spec directory (must be under sdd/), e.g. sdd/homepage or sdd/homepage/header.
 
   <role> is "dev" (implement from spec) or "qa" (verify; write scenarios; append provenance).
 
@@ -85,11 +87,14 @@ case "$AGENT_ROLE" in
 esac
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 AGENT_DIR="$REPO_ROOT/.workflow-agents/$AGENT"
-SPEC_PATH="$REPO_ROOT/.sdd/specifications/$SPEC/spec.md"
+# shellcheck source=/dev/null
+source "$REPO_ROOT/.workflow-agents/base/lib/spec-paths.sh"
+resolve_spec_dir
+SPEC_PATH="$REPO_ROOT/$SPEC_PATH"
 IMAGE_TAG="${AGENT}-agent:local"
 RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)"
 RUN_ROOT="$REPO_ROOT/.tmp/agent-runs"
-RUN_DIR="$RUN_ROOT/${AGENT}-${SPEC}-${AGENT_ROLE}-${RUN_ID}"
+RUN_DIR="$RUN_ROOT/${AGENT}-${SPEC_SLUG}-${AGENT_ROLE}-${RUN_ID}"
 BASELINE_DIR="${RUN_DIR}.baseline"
 if [ "$USE_TMP" = "true" ]; then
   MODE="tmp"

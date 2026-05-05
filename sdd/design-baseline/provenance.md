@@ -6,7 +6,7 @@ title: Design baseline provenance
 
 ## Spec
 
-`.sdd/specifications/design-baseline/spec.md`
+`sdd/design-baseline/spec.md`
 
 ## Executed
 
@@ -21,9 +21,9 @@ title: Design baseline provenance
 
 ## Actions taken
 
-1. Read spec at `.sdd/specifications/design-baseline/spec.md`
-2. Read design system context at `.context/design-system.md`
-3. Read architecture context at `.context/architecture.md`
+1. Read spec at `sdd/design-baseline/spec.md`
+2. Read design system context at `context/design-system.md`
+3. Read architecture context at `context/architecture.md`
 4. Read frontend-design skill at `.skills/frontend-design/SKILL.md`
 5. Read existing vite-baseline outputs: `index.html`, `vite.config.ts`, `src/main.ts`, `src/style.css`, `package.json`
 6. Created `src/styles/tokens.css` — CSS custom properties for all design system tokens (colours, typography, spacing, grid, motion)
@@ -244,7 +244,7 @@ $ grep -c "Colour\|Typography\|Grid\|Button\|Input\|Table\|Card\|Motion" index.h
 | `dist/index.html` | Built | Production index |
 | `dist/design-reference.html` | Built | Production reference |
 | `dist/assets/style-*.css` | Built | Compiled stylesheet (22.08 KB) |
-| `.sdd/provenance/design-baseline/provenance.md` | Overwritten | This provenance file |
+| `sdd/design-baseline/provenance.md` | Overwritten | This provenance file |
 
 ---
 
@@ -259,7 +259,7 @@ $ grep -c "Colour\|Typography\|Grid\|Button\|Input\|Table\|Card\|Motion" index.h
 
 ### Scope
 
-QA verification of design-baseline implementation against spec `.sdd/specifications/design-baseline/spec.md`. Executed automated test suite (`e2e/design-baseline.spec.ts`) with Playwright 1.59.1 and documented all test scenarios in `.sdd/scenarios/design-baseline/scenarios.md`.
+QA verification of design-baseline implementation against spec `sdd/design-baseline/spec.md`. Executed automated test suite (`e2e/design-baseline.spec.ts`) with Playwright 1.59.1 and documented all test scenarios in `sdd/design-baseline/scenarios.md`.
 
 ### Actions taken
 
@@ -271,7 +271,7 @@ QA verification of design-baseline implementation against spec `.sdd/specificati
 6. Read `src/design-reference.ts` to understand motion demo implementation
 7. Read `index.html` to verify minimal structure
 8. Analyzed all 32 test results, categorized failures by root cause
-9. Created comprehensive scenarios document at `.sdd/scenarios/design-baseline/scenarios.md` (504 lines)
+9. Created comprehensive scenarios document at `sdd/design-baseline/scenarios.md` (504 lines)
 10. Appended this QA audit to provenance
 
 ### Validation results
@@ -389,8 +389,8 @@ The 14 failing tests deviate from **test suite assumptions**, not from the spec:
 
 | Path | Status | Description |
 |------|--------|-------------|
-| `.sdd/scenarios/design-baseline/scenarios.md` | Created (overwritten) | Comprehensive QA scenarios (504 lines), all 32 tests documented with pass/fail, expected/actual, severity, reproduction steps |
-| `.sdd/provenance/design-baseline/provenance.md` | Appended | This QA audit section |
+| `sdd/design-baseline/scenarios.md` | Created (overwritten) | Comprehensive QA scenarios (504 lines), all 32 tests documented with pass/fail, expected/actual, severity, reproduction steps |
+| `sdd/design-baseline/provenance.md` | Appended | This QA audit section |
 | `node_modules/` | Modified | Installed dependencies via `pnpm install` |
 | `/ms-playwright/chromium-1217/` | Created | Playwright Chromium browser (170.4 MB + 112 MB headless shell) |
 | `test-results/` | Created | Playwright test result artifacts (32 test result directories) |
@@ -434,7 +434,7 @@ FAIL (14):
   ✗ DB-STR-12: Ring color tokens used correctly (duplicate of STR-09)
 ```
 
-Full test output and per-test error messages documented in `.sdd/scenarios/design-baseline/scenarios.md`.
+Full test output and per-test error messages documented in `sdd/design-baseline/scenarios.md`.
 
 ### Conclusion
 

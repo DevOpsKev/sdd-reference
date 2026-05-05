@@ -8,8 +8,8 @@ guidance where relevant. Skills describe *how* to do work well (e.g.
 visual design quality); the spec describes *what* to build. Skills do
 not change scope.
 
-If a `.context/` directory exists at the repo root, read relevant
-`.context/*.md` files before generating code. Context describes
+If a `context/` directory exists at the repo root, read relevant
+`context/*.md` files before generating code. Context describes
 project/product background; it does not change the scope or acceptance
 criteria in the spec.
 

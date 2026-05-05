@@ -9,8 +9,8 @@ Tech Sovereignty Radar is a static web application. It is authored with a Node.j
 - Package manager: pnpm.
 - Build tool: Vite (root `vite.config.ts`).
 - Language: TypeScript for interactive behavior and data transforms.
-- UI: semantic HTML, SVG, and TypeScript. No React, Vue, or Svelte unless a spec explicitly introduces a framework ([vite-baseline](../.sdd/specifications/vite-baseline/spec.md) is vanilla HTML + TS).
-- Styling: **Tailwind CSS** and **DaisyUI** implement the visual system; **normative rules** (tokens, grid, motion, forbidden patterns) remain in [`.context/design-system.md`](design-system.md). CSS custom properties for tokens are mapped into Tailwind’s theme / DaisyUI themes so utilities and components stay aligned — arbitrary palette or layout utilities without token grounding are out of bounds for product UI.
+- UI: semantic HTML, SVG, and TypeScript. No React, Vue, or Svelte unless a spec explicitly introduces a framework ([vite-baseline](../sdd/vite-baseline/spec.md) is vanilla HTML + TS).
+- Styling: **Tailwind CSS** and **DaisyUI** implement the visual system; **normative rules** (tokens, grid, motion, forbidden patterns) remain in [`context/design-system.md`](design-system.md). CSS custom properties for tokens are mapped into Tailwind’s theme / DaisyUI themes so utilities and components stay aligned — arbitrary palette or layout utilities without token grounding are out of bounds for product UI.
 - Optional: additional hand-authored CSS in `src/styles/` for token exports or layers Tailwind does not cover; Sass/LESS only if a spec adds them.
 - Data: versioned static JSON files in the repository.
 - Runtime image: nginx:alpine or equivalent minimal static server.
@@ -51,7 +51,7 @@ Tailwind’s global entry (e.g. `src/style.css`) loads Tailwind, DaisyUI, and op
 
 **Entry HTML** imports one TS entry that pulls the **Tailwind entry stylesheet**; add extra `src/styles/*.css` imports only when needed. The design reference page may load the full stack; the product entry stays minimal.
 
-See **Implementation (Tailwind CSS & DaisyUI)** in [`.context/design-system.md`](design-system.md) for token mapping and DaisyUI theming rules.
+See **Implementation (Tailwind CSS & DaisyUI)** in [`context/design-system.md`](design-system.md) for token mapping and DaisyUI theming rules.
 
 ## Development commands
 

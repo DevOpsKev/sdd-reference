@@ -20,7 +20,7 @@ This document describes automated end-to-end test scenarios for the vite-baselin
 
 ## SC-01: Page loads successfully with 200 status
 
-**Spec reference:** `.sdd/specifications/vite-baseline/spec.md` line 57 (acceptance criteria)
+**Spec reference:** `sdd/vite-baseline/spec.md` line 57 (acceptance criteria)
 
 **Intent:** Verify the built application serves the index page with HTTP 200 status.
 
@@ -41,7 +41,7 @@ This document describes automated end-to-end test scenarios for the vite-baselin
 
 ## SC-02: HTML document is served (content-type header)
 
-**Spec reference:** `.sdd/specifications/vite-baseline/spec.md` line 57 (acceptance criteria)
+**Spec reference:** `sdd/vite-baseline/spec.md` line 57 (acceptance criteria)
 
 **Intent:** Verify the response is served as HTML with correct content-type header.
 
@@ -68,7 +68,7 @@ This document describes automated end-to-end test scenarios for the vite-baselin
 
 ## SC-04: CSS assets are loaded
 
-**Spec reference:** `.sdd/specifications/vite-baseline/spec.md` line 56 (dist/ with assets)
+**Spec reference:** `sdd/vite-baseline/spec.md` line 56 (dist/ with assets)
 
 **Intent:** Verify the build process includes CSS assets and they are loaded by the browser.
 
@@ -90,7 +90,7 @@ This document describes automated end-to-end test scenarios for the vite-baselin
 
 ## SC-05: JavaScript module is loaded
 
-**Spec reference:** `.sdd/specifications/vite-baseline/spec.md` lines 32 (TypeScript entry), 56 (build output)
+**Spec reference:** `sdd/vite-baseline/spec.md` lines 32 (TypeScript entry), 56 (build output)
 
 **Intent:** Verify the TypeScript entry point is built and loaded as a module script.
 
@@ -111,7 +111,7 @@ This document describes automated end-to-end test scenarios for the vite-baselin
 
 ## SC-06: Page has proper HTML structure
 
-**Spec reference:** `.sdd/specifications/vite-baseline/spec.md` line 31 (HTML entry)
+**Spec reference:** `sdd/vite-baseline/spec.md` line 31 (HTML entry)
 
 **Intent:** Verify basic HTML document structure with required metadata.
 

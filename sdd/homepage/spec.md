@@ -2,7 +2,7 @@
 
 ## Intent
 
-Implement the **marketing homepage** for Tech Sovereignty Radar as a **long-scrolling, editorial** static page: masthead, asymmetric hero, thesis pull-quote, methodology section, rings and quadrants, illustrative sample radar, closing thesis, final CTA with subscribe placeholder, and footer. **Visual language** matches [.context/design-system.md](../../../.context/design-system.md) and reuses the **design baseline** implementation (existing `src/styles/` tokens and components). **All user-visible copy** is defined in [copy.yaml](copy.yaml) and must be used **verbatim**.
+Implement the **marketing homepage** for Tech Sovereignty Radar as a **long-scrolling, editorial** static page: masthead, asymmetric hero, thesis pull-quote, methodology section, rings and quadrants, illustrative sample radar, closing thesis, final CTA with subscribe placeholder, and footer. **Visual language** matches [context/design-system.md](../../context/design-system.md) and reuses the **design baseline** implementation (existing `src/styles/` tokens and components). **All user-visible copy** is defined in [copy.yaml](copy.yaml) and must be used **verbatim**.
 
 The page should feel like the cover of a serious quarterly publication: confident, quiet, text-led; **not** a typical SaaS launch page.
 
@@ -16,8 +16,8 @@ The page should feel like the cover of a serious quarterly publication: confiden
 
 - [copy.yaml](copy.yaml) — **Authoritative** strings for the page; do not paraphrase.
 - [radar-sample.svg](radar-sample.svg) — **Canonical** sample radar diagram; use this file’s geometry (inline or copied into build output) unless adjusting only for responsiveness—**do not** invent different dot positions.
-- [.context/design-system.md](../../../.context/design-system.md) — Typography, grid, colour discipline, anti-patterns.
-- [.context/product.md](../../../.context/product.md) — Rings, quadrants, product alignment (cross-check with copy).
+- [context/design-system.md](../../context/design-system.md) — Typography, grid, colour discipline, anti-patterns.
+- [context/product.md](../../context/product.md) — Rings, quadrants, product alignment (cross-check with copy).
 
 ## Requirements
 
@@ -59,7 +59,7 @@ Implement sections **top to bottom** in this exact order:
 
 ### Provenance
 
-Create or overwrite **`.sdd/provenance/homepage/provenance.md`**.
+Create or overwrite **`sdd/homepage/provenance.md`**.
 
 ## Acceptance criteria
 
@@ -72,7 +72,7 @@ Create or overwrite **`.sdd/provenance/homepage/provenance.md`**.
 - [ ] **Ring colour discipline** respected (ring hues only where allowed above).
 - [ ] Subscribe area is **non-functional** from a backend perspective (no API calls).
 - [ ] `pnpm build` succeeds; no **console errors** on load.
-- [ ] `.sdd/provenance/homepage/provenance.md` exists for this run.
+- [ ] `sdd/homepage/provenance.md` exists for this run.
 
 ## Out of scope
 
