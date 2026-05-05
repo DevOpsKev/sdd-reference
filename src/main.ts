@@ -1,4 +1,3 @@
-import './styles/tokens.css'
-import './styles/base.css'
+import './style.css'
 
-console.log('Tech Sovereignty Radar initialized')
+console.log('Vite baseline initialized')

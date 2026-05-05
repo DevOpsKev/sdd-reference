@@ -8,7 +8,7 @@ The page should feel like the cover of a serious quarterly publication: confiden
 
 ## Prerequisites
 
-- **[Design baseline](../design-baseline/spec.md)** is implemented: `src/styles/` (tokens, base, components, layout), **`design-reference.html`**, and Vite **multi-page** config with `index.html` as an entry.
+- **[Design baseline](../design-baseline/spec.md)** is implemented: Tailwind + DaisyUI (themed per design system), `src/styles/` (tokens, overrides, layout as needed), **`design-reference.html`**, and Vite **multi-page** config with `index.html` as an entry.
 - This spec **replaces** the **contents** of **`index.html`** with the full homepage. **Do not** remove **`design-reference.html`** or its build input; keep the design reference available.
 - If this spec and the design system disagree, the **design system** wins; record in **provenance** if you had to choose.
 

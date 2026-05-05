@@ -8,7 +8,9 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:5173',
+    // Preview port must differ from `pnpm dev` (5173) so local runs never reuse a dev server
+    // via reuseExistingServer and get different CSS than production preview.
+    baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
   },
   projects: [
@@ -18,8 +20,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm preview --port 5173',
-    port: 5173,
+    command: 'pnpm preview -- --port 4173 --strictPort',
+    port: 4173,
     reuseExistingServer: !process.env.CI,
     timeout: 10000,
   },

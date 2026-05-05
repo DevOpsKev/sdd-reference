@@ -1,17 +1,27 @@
 # Design System
 
-This document is normative for all UI work. Tokens, fonts, grid, and the "forbidden" lists are binding. Agents must not introduce values, families, or patterns not defined here. Specs may override individual rules but must do so explicitly.
+This document is normative for all UI work. Tokens, fonts, grid, and the “forbidden” lists are binding. Agents must not introduce values, families, or patterns not defined here. Specs may override individual rules but must do so explicitly.
 
 ## Design direction
 
-The product is a serious European strategic intelligence tool rendered in **modern Swiss International Style**. Reference points: Müller-Brockmann grids, Hofmann's posters, the Univers/Helvetica neo-grotesque tradition, and contemporary applications by Linear, Stripe, Vercel, and Werkplaats Typografie.
+The product is a serious European strategic intelligence tool rendered in **modern Swiss International Style** — adapted for **contemporary digital surfaces**: precise typography, editorial grids, and calm density rather than decorative chrome.
+
+**Historical lineage:** Müller-Brockmann and Josef Müller-Brockmann–style grids; Hofmann’s posters; the Univers / Helvetica neo-grotesque tradition; Werkplaats Typografie discipline.
+
+**Contemporary reference (digital craft, not decoration):** product UI that privileges hierarchy and speed of comprehension — e.g. Linear, Stripe’s dashboard surfaces, Vercel’s documentation patterns. The goal is **clarity and restraint**, not “startup marketing” visuals.
+
+**What “modern” means here**
+
+- Interfaces feel **current** because they are **legible, fast to scan, and mathematically aligned** — not because they use gradients, mascots, or ornamental motion.
+- **Precision:** anti-aliased type, tabular numerals where numbers compare, predictable spacing from a single rhythm.
+- **Restraint:** one accent, rules before shadows, asymmetry before centered hero blocks.
 
 The aesthetic constants are:
 
 - Strict grid; nothing floats free of it.
 - One sans-serif family used masterfully across weights and sizes.
 - Asymmetric balance; centered compositions are exceptional.
-- Pure white surface, near-black ink. Color is information, not decoration.
+- Pure white surface, near-black ink. Colour is information, not decoration.
 - Whitespace is a design element, not absence.
 - Rules and dividers as primary structural cues; shadows are exceptional.
 - Tracked uppercase for labels and metadata.
@@ -19,12 +29,34 @@ The aesthetic constants are:
 
 ## Principles (binding)
 
-1. **Grid first.** Every element aligns to the 12-column grid and the 4px baseline. If content doesn't fit the grid, the grid is the question — not the alignment.
-2. **Type does the work.** Hierarchy is established through scale, weight, and letter-spacing. Not boxes, not color, not decoration.
-3. **One accent per view.** A view uses at most one non-semantic accent color. Ring colors are semantic and exempt.
-4. **Rules over shadows.** Use 1px borders for separation. Shadow is reserved for floating elements, one level only.
-5. **Black on white is the default.** If a color isn't communicating ring, status, or interactive state, it shouldn't be there.
-6. **Asymmetric balance.** Center alignment is reserved for the radar canvas itself, modal overlays, and empty states.
+1. **Grid first.** Every element aligns to the 12-column grid and the 4px baseline. If content doesn’t fit the grid, the grid is the question — not the alignment.
+2. **Type does the work.** Hierarchy is established through scale, weight, and letter-spacing — not boxes, not arbitrary colour blocks, not illustration.
+3. **One accent per view.** A view uses at most one non-semantic accent colour. Ring colours are semantic and exempt.
+4. **Rules over shadows.** Use 1px borders for separation. Shadow is reserved for floating elements, one level only (see [Shadows](#shadows)).
+5. **Black on white is the default.** If a colour isn’t communicating ring, status, or interactive state, it shouldn’t be there.
+6. **Asymmetric balance.** Centre alignment is reserved for the radar canvas itself, modal overlays, and empty states.
+
+## Implementation (Tailwind CSS & DaisyUI)
+
+The baseline app toolchain uses **Tailwind CSS** and **DaisyUI**. Utilities and components are **implementation mechanisms**; this document remains the **single source of truth** for colour, type, space, motion, and composition.
+
+### Rules
+
+1. **Tokens win.** Map every Tailwind colour, spacing step, radius, font size, and motion duration to the tokens defined in this file (via Tailwind theme extension, `@theme`, CSS variables exposed to Tailwind, or equivalent). Do not invent ad hoc palette entries (`bg-purple-500`, random `shadow-xl`) unless they correspond to an explicit token or semantic role defined here.
+2. **DaisyUI is themed, not stock.** Configure DaisyUI themes so **primary**, **base-100**, **base-content**, **neutral**, borders, and radii align with `--accent`, `--surface`, `--ink`, `--rule`, and `--radius-*`. Avoid shipping default DaisyUI “candy” themes as the product skin — they violate [Forbidden colors](#forbidden-colors) and [Anti-patterns](#anti-patterns-do-not-produce).
+3. **Utilities serve the grid.** Prefer Tailwind spacing that resolves to **multiples of 4px** (match [Spacing tokens](#spacing-tokens)). Use layout utilities to reinforce the 12-column system at each breakpoint — not arbitrary pixel widths that break alignment.
+4. **Components obey the same anatomy.** DaisyUI classes (`btn`, `card`, `modal`, etc.) are permitted when their **computed appearance** matches this document (weights, radii, borders, motion). Override component styles where defaults conflict with [Components](#components), [Border radius](#border-radius), or [Motion](#motion).
+5. **Semantic HTML unchanged.** Tailwind does not replace accessible structure: headings levels, labels, focus order, and tabular data rules still apply.
+
+### Suggested mapping (non-normative filenames)
+
+| Concern | Approach |
+| --- | --- |
+| Colours | Expose tokens as CSS custom properties (e.g. `tokens.css`), then reference them from Tailwind `theme.extend.colors` or Tailwind v4 `@theme` so utilities mirror `--accent`, `--surface`, `--ink`, ring fills, etc. |
+| Typography | Map `--type-*` to `fontSize` / `lineHeight` / `letterSpacing` in Tailwind so utilities stay aligned with [Type scale](#type-scale). |
+| DaisyUI | Register the plugin; set `themes` to a **single custom theme** derived from this doc; disable unused built-in themes if configuration allows. |
+
+Violations of this section are treated like violations of [Anti-patterns](#anti-patterns-do-not-produce).
 
 ## Color
 
@@ -142,7 +174,7 @@ The `tnum` (tabular figures) setting is mandatory across the product — all num
 
 ### Forbidden
 
-- Roboto, Helvetica, Arial, Calibri, Open Sans, Lato, system-ui in production.
+- Roboto, Helvetica, Arial, Calibri, Open Sans, Lato, **generic `system-ui`–only stacks** in production **unless** `font-sans` / theme configuration resolves to **Inter** with the fallbacks defined above (Tailwind must not orphan typography from these stacks).
 - Serif typefaces anywhere in the product.
 - Mixed weights within a sentence.
 - More than two weights in any single component (e.g., a card uses 400 and 600 only).
@@ -353,3 +385,4 @@ These are explicit prohibitions. An agent producing any of these is producing wr
 - Three-column feature grids with circular icon-on-tinted-background cards.
 - Any "AI shimmer" effect on text or borders.
 - Centered single-column layouts longer than the radar canvas itself.
+- **Tailwind / DaisyUI mis-use:** stock DaisyUI themes or default Tailwind palette colours (`bg-slate-900`, `from-purple-500`) as the product skin without mapping to tokens; `rounded-full` on buttons or chips; decorative `shadow-lg` / `shadow-xl` on static cards or sections; arbitrary numeric spacing that breaks the 4px baseline rhythm.
