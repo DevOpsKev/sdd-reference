@@ -2,48 +2,51 @@
 
 ## Intent
 
-Establish the baseline **static web application toolchain** for this repository: **pnpm**, **Vite**, **TypeScript** (strict), **HTML with plain CSS** (no Tailwind, DaisyUI, or other CSS frameworks unless a later spec adds them), and a **multi-stage Docker image** that serves only the production build from **nginx** on port **8080**. Output must align with [`sdd/context/architecture.md`](../../context/architecture.md) when that file defines constraints.
+Establish the baseline **static web application toolchain** for this repository: **pnpm**, **Vite**, **TypeScript** (strict), **HTML with plain CSS**, and a **multi-stage Docker image** that serves only the production build from **nginx** on port **8080**. Output must align with [`sdd/context/architecture.md`](../../context/architecture.md), which is the authoritative source for project-wide architectural constraints.
 
-This spec is a **minimal styling baseline**: hand-authored CSS for readable layout and typography on a placeholder page. It does **not** implement the full design system in `sdd/context/design-system.md`.
+This spec is a **minimal styling baseline**: hand-authored CSS for readable layout and typography on a placeholder page. It does **not** implement the full design system in [`sdd/context/design-system.md`](../../context/design-system.md); broader design-system work is delivered by later feature specs. See [`architecture.md`](../../context/architecture.md) (*Implementation status* and *Layout*) for how the corpus-driven static site evolves after this baseline.
+
+This is the project's first feature specification. It establishes the toolchain that subsequent specs evolve. As [`architecture.md`](../../context/architecture.md) describes under *Implementation status*, the corpus-driven build pipeline replaces this baseline's single-page Vite app via a later spec; until that spec lands, the baseline is the live implementation.
 
 ## References
 
-- [`sdd/context/architecture.md`](../../context/architecture.md) — package manager, Vite, TS, `dist/`, Docker/nginx/port 8080.
-
-Ignore [`sdd/context/design-system.md`](../../context/design-system.md) for breadth of work: keep **light** presentation only. A later spec will implement tokens and full visual rules.
+- [`sdd/context/architecture.md`](../../context/architecture.md) — authoritative on package manager, Vite, TypeScript, `dist/`, the Docker image, port 8080, and all permanent framework prohibitions. This spec defers to architecture.md on every constraint listed there.
+- [`sdd/context/design-system.md`](../../context/design-system.md) — out of scope for breadth of work in this baseline, but cited so that hand-authored CSS does not contradict its tokens or principles. The baseline's placeholder styling should be a small subset compatible with the design system, not a different aesthetic.
 
 ## Requirements
 
 ### Toolchain
 
 - **pnpm** — Respect `packageManager` in [`package.json`](../../../package.json); produce or update **`pnpm-lock.yaml`** so installs are reproducible (including in Docker).
-- **Vite** — Vanilla **HTML + TypeScript** app (no React, Vue, Svelte, or other UI frameworks). Global styles are **plain CSS** imported from TypeScript (e.g. `src/main.ts` imports `src/style.css`). Do **not** add Tailwind CSS, DaisyUI, PostCSS-only pipelines for Tailwind, or similar CSS frameworks unless a follow-up spec requires them.
+- **Vite** — Vanilla **HTML + TypeScript** app. No client-side UI framework. Global styles are **plain CSS** imported from TypeScript (e.g. `src/main.ts` imports `src/style.css`). The list of prohibited frameworks and preprocessors is given by `architecture.md` under *Styles*, *Islands*, and *Non-goals*; this spec adds nothing to that list and removes nothing from it.
 - **TypeScript** — `strict` enabled.
 - **Scripts** in root `package.json` at minimum:
   - `"dev"` → `vite` (development server).
   - `"build"` → `vite build` (output to `dist/`).
-  - Optional: `"preview"` → `vite preview`.
+  - `"preview"` → `vite preview` (serve the built `dist/` for inspection).
 
-Operators run **`pnpm install`**, **`pnpm dev`**, and **`pnpm build`**; pnpm runs the scripts above.
+Operators run **`pnpm install`**, **`pnpm dev`**, **`pnpm build`**, and **`pnpm preview`**; pnpm runs the scripts above.
 
 ### Source layout (conceptual)
 
 - Single HTML entry at repository root per Vite convention (e.g. `index.html`).
-- One TypeScript entry (e.g. `src/main.ts`) that imports the **global stylesheet** (e.g. `src/style.css`) containing normal CSS rules (no `@tailwind` / framework directives).
+- One TypeScript entry (e.g. `src/main.ts`) that imports the **global stylesheet** (e.g. `src/style.css`) containing normal CSS rules. No framework directives, preprocessor syntax, or PostCSS-as-build-step configuration.
 - **`vite.config.ts`** at repo root — standard Vite config for the vanilla app (path aliases optional).
 
 ### CSS / UI
 
-- **Minimal**: hand-authored CSS for readable defaults (layout, typography, contrast). No implementation of the full design-system token set from `sdd/context/design-system.md`.
+- **Plain CSS only.** No CSS framework or preprocessor. The complete prohibition list lives in [`architecture.md`](../../context/architecture.md) under *Styles*; agents should read that section before adding any styling dependency.
+- **Minimal**: hand-authored CSS for readable defaults (layout, typography, contrast). The full design system is implemented by later specs.
 - The placeholder must show intentional styling: at least one **custom CSS class** (not inline-only) applied to visible content so it is obvious real CSS is in use (for example a `.hero`, `.card`, or `.tagline` rule).
 
 ### Docker
 
-- **`Dockerfile` at repository root** — Multi-stage build acceptable and encouraged:
+- **`Dockerfile` at repository root** — Multi-stage build:
   - Build stage: install dependencies with pnpm, run `pnpm build`, produce `dist/`.
   - Runtime stage: **`nginx:alpine`** (or equivalent minimal static server) copies **only** the contents of `dist/` (and any minimal nginx config required). **No** `node_modules`, source tree, or package manager in the final image.
-- Container listens on **8080**; `docker run -p 8080:8080 <image>` serves the app at `http://localhost:8080/`.
-- Do not copy secrets, `.env` with keys, or git metadata into the image.
+- **`nginx.conf` at repository root** — Configures nginx to listen on **8080** (not the default 80, so the container can run unprivileged).
+- Container exposes **8080**; `docker run -p 8080:8080 <image>` serves the app at `http://localhost:8080/`.
+- Do not copy secrets, `.env` files, or git metadata into the image.
 
 ### Page content (placeholder)
 
@@ -52,21 +55,24 @@ Operators run **`pnpm install`**, **`pnpm dev`**, and **`pnpm build`**; pnpm run
 
 ## Acceptance criteria
 
-- [ ] Root `package.json` includes `vite`, `typescript`, and scripts `dev` and `build` as above. **No** `tailwindcss`, **no** `daisyui`, **no** `postcss` or `autoprefixer` unless required for a non-Tailwind reason documented in provenance (default: omit them).
-- [ ] `pnpm install` completes successfully; `pnpm-lock.yaml` is present and committed when the lockfile is used in this repo.
+- [ ] Root `package.json` includes `vite`, `typescript`, and scripts `dev`, `build`, and `preview` as above.
+- [ ] No CSS framework dependency is added (Tailwind CSS, DaisyUI, Bootstrap, Bulma, Foundation, or similar). No CSS preprocessor dependency is added (Sass, LESS, Stylus). No client-side JavaScript framework dependency is added (React, Vue, Svelte, Lit, Solid, Preact, Alpine, Petite Vue, Stimulus, HTMX, or similar).
+- [ ] PostCSS and autoprefixer are not added as direct dependencies. They may exist transitively through Vite's defaults; they are not configured by this project.
+- [ ] `pnpm install` completes successfully; `pnpm-lock.yaml` is present and committed.
 - [ ] `pnpm build` produces a `dist/` directory with `index.html` and referenced assets; built output includes CSS derived from the hand-authored stylesheet (not an empty or unstyled page).
 - [ ] Placeholder uses at least one **custom CSS class** on visible content as described under **CSS / UI**.
-- [ ] `Dockerfile` at repo root builds and runs; `GET /` returns **200** and a body containing **`Vite baseline`**.
-- [ ] Final runtime image serves static files only (no Node server at runtime).
-- [ ] `sdd/specs/vite-baseline/provenance.md` exists (created or overwritten per agent rules), documenting actions, validation, and artifacts from this run.
+- [ ] `Dockerfile` at repo root builds successfully. The resulting image, run as `docker run -p 8080:8080 <image>`, returns **HTTP 200** to `GET /` with a body containing the string **`Vite baseline`**.
+- [ ] Final runtime image serves static files only (no Node runtime, no `node_modules`, no source).
+- [ ] [`sdd/specs/vite-baseline/provenance.md`](./provenance.md) exists, documenting actions taken, validation performed, artifacts produced, and any deviations from this spec, per the *Provenance* section of [`architecture.md`](../../context/architecture.md).
 
 ## Out of scope
 
-- Product features, radar data, JSON catalogues, multiple pages/routes beyond the single entry.
-- Full [`sdd/context/design-system.md`](../../context/design-system.md) implementation (tokens, components, motion catalogue).
-- TLS, authentication, persistence, observability, Playwright/e2e (unless a follow-up spec adds them).
-- UI frameworks (React, Vue, Svelte, etc.), **Tailwind / DaisyUI / utility CSS frameworks**, and **Sass/LESS** unless a later spec adds them.
+- Product features, the content corpus under `sdd/content/`, multiple pages or routes beyond the single entry, and the corpus-driven build pipeline described in [`architecture.md`](../../context/architecture.md) (*The build pipeline* onward). Those are **target** capabilities, not in scope for vite-baseline.
+- Full implementation of [`sdd/context/design-system.md`](../../context/design-system.md): tokens, components, motion catalogue, sleeves, idioms.
+- TLS, authentication, persistence, observability, Playwright end-to-end tests against feature behaviour.
+- Any framework, preprocessor, or styling tool outside the plain-CSS / vanilla-TypeScript / Vite stack. The list of permanent prohibitions in [`architecture.md`](../../context/architecture.md) is exhaustive and is not modified by this spec or any subsequent spec.
 
-### Notes
+## Notes
 
-- **vite-baseline** establishes the **canonical** static-app toolchain for this product. If another spec later adds overlapping root-level Docker or static layout, resolve conflicts manually so one coherent setup remains.
+- **vite-baseline** establishes the **canonical** static-app toolchain for this product. It is the project's first implementation step. The corpus-driven build and multi-page `dist/` layout in [`architecture.md`](../../context/architecture.md) land in a **later** feature spec under `sdd/specs/` (see *Implementation status*); when that work ships it will replace some structural choices made here (single root `index.html`, `pnpm build` invoking `vite build` directly). The baseline's *toolchain* (pnpm, Vite, TypeScript, plain CSS, Docker/nginx) persists; *application shape* evolves.
+- Where this spec and [`architecture.md`](../../context/architecture.md) appear to disagree, architecture.md is authoritative. Please raise the discrepancy in `provenance.md` and update both documents to be congruent rather than implementing toward an inconsistent reading.
