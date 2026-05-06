@@ -193,6 +193,20 @@ esac
 LOCAL_OUTPUT_FORMAT="${AGENT_OUTPUT_FORMAT:-$DEFAULT_OUTPUT_FORMAT}"
 echo "AGENT_OUTPUT_FORMAT=$LOCAL_OUTPUT_FORMAT"
 
+# Allow QA (Playwright) to run `docker build` / `docker run` against the host daemon.
+DOCKER_RUN_EXTRA=()
+if [ -S /var/run/docker.sock ]; then
+  DOCKER_RUN_EXTRA+=(--volume /var/run/docker.sock:/var/run/docker.sock)
+  DOCKER_SOCK_GID="$(
+    stat -c '%g' /var/run/docker.sock 2>/dev/null \
+      || stat -f '%g' /var/run/docker.sock 2>/dev/null \
+      || true
+  )"
+  if [ -n "${DOCKER_SOCK_GID}" ]; then
+    DOCKER_RUN_EXTRA+=(--group-add "${DOCKER_SOCK_GID}")
+  fi
+fi
+
 if ! git -C "$REPO_ROOT" diff --quiet || ! git -C "$REPO_ROOT" diff --cached --quiet; then
   echo
   if [ "$USE_TMP" = "true" ]; then
@@ -248,6 +262,7 @@ run_agent_container() {
   set +e
   if [ "$PRETTY_OUTPUT" = "true" ]; then
     docker run --rm \
+      "${DOCKER_RUN_EXTRA[@]}" \
       --env SPEC="$SPEC" \
       --env AGENT_ROLE="$ROLE" \
       --env AGENT_DEBUG="${AGENT_DEBUG:-true}" \
@@ -267,6 +282,7 @@ run_agent_container() {
 
     # shellcheck disable=SC2086
     docker run --rm $DOCKER_TTY_ARGS \
+      "${DOCKER_RUN_EXTRA[@]}" \
       --env SPEC="$SPEC" \
       --env AGENT_ROLE="$ROLE" \
       --env AGENT_DEBUG="${AGENT_DEBUG:-true}" \

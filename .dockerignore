@@ -1,0 +1,37 @@
+# Version control
+.git/
+.gitignore
+
+# Dependencies (force clean install in image)
+node_modules/
+
+# Build output (must come from build stage)
+dist/
+
+# Environment and secrets
+.env
+.env.*
+
+# Generated / CI artifacts
+.tmp/
+playwright-report/
+test-results/
+coverage/
+
+# Development files
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

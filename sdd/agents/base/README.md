@@ -53,3 +53,17 @@ Three reasons:
 - Static files under `base/` must not embed secrets. **`AGENT_ROLE`**
   is chosen by the runner (`run-*.sh` reads the environment); role
   bodies live in separate `prompt-role-*.md` files.
+
+## Docker CLI in agent images
+
+Each agent **`Dockerfile`** under `sdd/agents/<name>/` copies the **`docker`**
+client binary from the official **`docker:27-cli`** image so QA can run
+repo **`e2e/`** tests that invoke **`docker build`** / **`docker run`**. The
+client talks to the **host daemon** via **`/var/run/docker.sock`**.
+
+- **Forgejo:** `.forgejo/workflows/workflow-agents.yml` mounts the socket on
+  **`docker create`** and passes **`--group-add $(stat -c '%g' /var/run/docker.sock)`**
+  so the non-root **`claude`** / **`deepseek`** users can access the socket.
+- **Local:** `sdd/scripts/run-agent-local.sh` adds the same mount and
+  **`--group-add`** when **`/var/run/docker.sock`** exists (Linux and macOS
+  `stat` flavours supported).

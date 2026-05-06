@@ -31,6 +31,9 @@ RUN apt-get update \
         tini \
  && rm -rf /var/lib/apt/lists/*
 
+# Docker CLI only (talks to host daemon via mounted /var/run/docker.sock).
+COPY --from=docker:27-cli /usr/local/bin/docker /usr/local/bin/docker
+
 RUN npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
 
 # pnpm is the repo's pinned package manager (see package.json
