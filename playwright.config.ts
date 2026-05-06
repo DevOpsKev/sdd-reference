@@ -22,4 +22,10 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
+
+  webServer: {
+    command: 'pnpm preview',
+    port: 4173,
+    reuseExistingServer: !process.env.CI,
+  },
 });
