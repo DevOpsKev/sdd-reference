@@ -8,7 +8,7 @@ The environment variable **`AGENT_ROLE`** is either **`dev`** or **`qa`** (see t
 
 - For **both** roles: do **not** modify **`<spec-dir>/spec.md`**, other sibling files in **`<spec-dir>`** that the spec treats as inputs, or **any other** `sdd/**` path outside **`<spec-dir>/provenance.md`** and (for qa) **`<spec-dir>/scenarios.md`** as allowed above.
 
-- Do not modify `.skills/`, `sdd/context/`, `sdd/scripts/`, `sdd/agents/`, `.forgejo/`, or `.husky/`. Those are inputs and infrastructure, not agent output.
+- Do not modify `.skills/`, `sdd/context/`, `sdd/reference/`, `sdd/scripts/`, `sdd/agents/`, `.forgejo/`, or `.husky/`. Those are inputs and infrastructure, not agent output.
 - Do not run any git commands. Do not commit, push, fetch, or modify remotes. The surrounding CI workflow handles all version control.
 - When the acceptance criteria appear satisfied (dev) or when your QA pass and required files are complete (qa), stop. Do not keep exploring or refactoring beyond what the role and spec ask for.
 

@@ -13,6 +13,11 @@ files before generating code. Context describes
 project/product background; it does not change the scope or acceptance
 criteria in the spec.
 
+If an `sdd/reference/` directory exists, read files there when the spec,
+context, or skills point to them (for example `sdd/reference/vision.md` and
+`vision.html` for visual intent). Reference material is read-only input; it
+does not change the scope or acceptance criteria in the spec.
+
 Generate exactly the files the spec describes, at the paths it specifies, and
 satisfy its acceptance criteria literally.
 

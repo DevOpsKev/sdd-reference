@@ -6,6 +6,10 @@ Each **spec** is a directory under **`sdd/specs/`** (for example `sdd/specs/vite
 
 **`sdd/context/`** holds human-maintained **background** Markdown (`product.md`, `architecture.md`, `design-system.md`, etc.). It is **not** a spec: there is no **`spec.md`** inside **`sdd/context/`**, and **`SPEC`** / local runs always point at a **sibling** directory such as `sdd/specs/homepage`. Workflow agents **read** **`sdd/context/*.md`** and must **never** add, edit, or delete files there (same rule as **`.skills/`**). From a spec under **`sdd/specs/<name>/`**, link to context as **`../../context/<file>.md`**.
 
+## Reference material (`sdd/reference/`)
+
+**`sdd/reference/`** holds human-maintained **fixed references** that are not specs and not part of the production build — for example static HTML mockups and short companion Markdown (`vision.html`, `vision.md`). Workflow agents **read** these when relevant and must **never** mutate this directory. From a spec under **`sdd/specs/<name>/`**, link to reference files as **`../../reference/<file>`**.
+
 **Dev** runs create or overwrite **`provenance.md`**; **qa** runs overwrite **`scenarios.md`** and append to **`provenance.md`**. Versioning is via **Git**, not multiple filenames.
 
 ## Workflow agents (`sdd/agents/`)

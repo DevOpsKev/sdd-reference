@@ -9,6 +9,7 @@ A reference implementation of **Spec Driven Development (SDD)**: humans write sp
 | **`sdd/specs/<path>/`** | Per-spec directory: human-authored **`spec.md`** (and siblings such as `copy.yaml`), plus agent-written **`provenance.md`** and **`scenarios.md`**. Nested specs use paths like `sdd/specs/homepage/header/`. |
 | **`.skills/`** | Reusable “how to work” guidance (`SKILL.md` per skill). |
 | **`sdd/context/`** | Shared product background (architecture, design system, product, deployment, glossary). **Not** a spec directory — there is no `spec.md` here; humans maintain these files; workflow agents **read** them and must **not** edit them. |
+| **`sdd/reference/`** | Fixed human references (e.g. vision mockups). **Not** a spec directory, not in the build; agents **read** only and must **not** edit. |
 | **`sdd/agents/`** | Workflow-agent Docker images and `run-*.sh` entrypoints, plus shared **`base/`** prompts — infrastructure co-located for templating; agents must **not** edit. |
 | **`sdd/scripts/`** | **`pnpm sdd`** (and **`pnpm execute`**) dispatcher plus **`run-agent-local.sh`**; humans maintain; agents must **not** edit. |
 
@@ -18,10 +19,11 @@ A reference implementation of **Spec Driven Development (SDD)**: humans write sp
 
 | Path | Purpose |
 | --- | --- |
-| `sdd/` | **`sdd/specs/`**, **`sdd/context/`**, **`sdd/agents/`**, **`sdd/scripts/`** — see [`sdd/README.md`](sdd/README.md) |
+| `sdd/` | **`sdd/specs/`**, **`sdd/context/`**, **`sdd/reference/`**, **`sdd/agents/`**, **`sdd/scripts/`** — see [`sdd/README.md`](sdd/README.md) |
 | `sdd/specs/` | Spec trees (`sdd/specs/<name>/` or nested); each directory with **`spec.md`** is a valid **`SPEC`** target |
 | `.skills/` | Agent skills |
 | `sdd/context/` | Human-maintained background docs (read-only for agents) |
+| `sdd/reference/` | Fixed references and mockups (read-only for agents) |
 | `sdd/agents/` | Dockerfiles and `run-*.sh` entrypoints per agent |
 | `.forgejo/workflows/` | CI workflow (manual dispatch) |
 | `sdd/scripts/` | `pnpm sdd` / `pnpm execute` and local agent runner |
@@ -162,9 +164,9 @@ It builds the agent image, runs against the repo snapshot, commits results to a 
 - Structure: **Intent**, **Requirements**, **Acceptance criteria**, **Out of scope**.
 - Agents must read **sibling files** the spec names (fixtures, `copy.yaml`, etc.).
 
-## Keeping `sdd/context/` honest
+## Keeping `sdd/context/` and `sdd/reference/` honest
 
-After tooling or layout changes, update the relevant **`sdd/context/*.md`** files so agents do not rely on stale assumptions. For git branch names about these docs, prefer a prefix like **`chore/sdd-context-…`** so branch topics are not confused with the **`sdd/context/`** directory.
+After tooling or layout changes, update the relevant **`sdd/context/*.md`** files so agents do not rely on stale assumptions. When product or visual intent changes in a way that should update the north-star mockup, humans edit **`sdd/reference/`** deliberately (it is not agent output). For git branch names about these docs, prefer a prefix like **`chore/sdd-context-…`** so branch topics are not confused with the **`sdd/context/`** directory.
 
 ## Scope and learning
 

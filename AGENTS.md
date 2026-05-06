@@ -1,15 +1,15 @@
 # Agents
 
-This repo is a reference implementation of **Spec Driven Development (SDD)**. Each spec is a **directory under `sdd/specs/`** (for example `sdd/specs/vite-baseline`, `sdd/specs/homepage`, or nested `sdd/specs/homepage/header`) containing human-authored **`spec.md`** alongside **`provenance.md`** and **`scenarios.md`** (the latter two are agent outputs per role). Reusable cross-spec guidance for agents lives under `.skills/` (see [`.skills/README.md`](.skills/README.md)). Project background context lives under **`sdd/context/`** (not a spec directory — no `spec.md` there). Agents consume these inputs and generate code — no manual scaffolding required. Each workflow-agent run must update audit files in that spec directory per **`AGENT_ROLE`** (see [Provenance and scenarios](#provenance-and-scenarios)): **dev** overwrites provenance; **qa** also writes scenarios and **appends** to provenance.
+This repo is a reference implementation of **Spec Driven Development (SDD)**. Each spec is a **directory under `sdd/specs/`** (for example `sdd/specs/vite-baseline`, `sdd/specs/homepage`, or nested `sdd/specs/homepage/header`) containing human-authored **`spec.md`** alongside **`provenance.md`** and **`scenarios.md`** (the latter two are agent outputs per role). Reusable cross-spec guidance for agents lives under `.skills/` (see [`.skills/README.md`](.skills/README.md)). Project background context lives under **`sdd/context/`**; fixed reference material (mockups, vision notes) lives under **`sdd/reference/`** — neither is a spec directory (no **`spec.md`** there). Agents consume these inputs and generate code — no manual scaffolding required. Each workflow-agent run must update audit files in that spec directory per **`AGENT_ROLE`** (see [Provenance and scenarios](#provenance-and-scenarios)): **dev** overwrites provenance; **qa** also writes scenarios and **appends** to provenance.
 
 ## How agents work
 
 Each agent is a workflow-managed CLI runtime under `sdd/agents/<AGENT>/`. The shared Forgejo workflow [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) builds the selected agent image fresh, streams the repository into `/work`, runs the agent against a spec (use **`AGENT_ROLE=all`** for **dev** then **qa** on the same workspace before commit), streams the changed workspace back out, then commits the result to a PR branch.
 
 ```
-sdd/specs/<SPEC>/spec.md (+ siblings)     .skills/*/SKILL.md      sdd/context/*.md
-        │                                       │                       │
-        ▼                                       ▼                       ▼
+sdd/specs/<SPEC>/spec.md (+ siblings)     .skills/*/SKILL.md      sdd/context/*.md      sdd/reference/*
+        │                                       │                       │                       │
+        ▼                                       ▼                       ▼                       ▼
                       sdd/agents/<AGENT>/
                                 │
                                 ▼
@@ -97,7 +97,7 @@ Specs may include sibling files such as `copy.yaml`, fixtures, schemas, or examp
 
 A skill is a reusable bundle of guidance that tells an agent *how* to do a kind of work well, distinct from a spec which tells it *what* to build. Skills live at `.skills/<name>/SKILL.md` and follow the [Anthropic Skills](https://www.anthropic.com/news/skills) convention (YAML frontmatter with `name` + `description`, then a markdown body). See [`.skills/README.md`](.skills/README.md) for the full convention.
 
-Workflow agents pick up `.skills/` automatically: `sdd/agents/<agent>/run-*.sh` prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code. `.skills/` and **`sdd/context/`** are in the no-modify list alongside most of **`sdd/`**, including **`sdd/scripts/`** and **`sdd/agents/`** (see [Provenance and scenarios](#provenance-and-scenarios) for which `sdd/` paths agents may write by role).
+Workflow agents pick up `.skills/` automatically: `sdd/agents/<agent>/run-*.sh` prompts include an instruction to read every `.skills/<name>/SKILL.md` before generating code. `.skills/`, **`sdd/context/`**, and **`sdd/reference/`** are in the no-modify list alongside most of **`sdd/`**, including **`sdd/scripts/`** and **`sdd/agents/`** (see [Provenance and scenarios](#provenance-and-scenarios) for which `sdd/` paths agents may write by role).
 
 To add a skill: create `.skills/<name>/SKILL.md` with valid frontmatter and a body. No further wiring is needed — workflow agents pick it up on the next run.
 
@@ -112,6 +112,10 @@ Project background context lives under **`sdd/context/`** (alongside spec direct
 - `sdd/context/glossary.md` — domain terms and naming conventions
 
 Context tells agents background knowledge about this repo/product. It does not replace spec requirements or acceptance criteria, and agents must treat **`sdd/context/`** as read-only input.
+
+### Reference material (`sdd/reference/`)
+
+**`sdd/reference/`** holds human-maintained **fixed references** that are not specs and not part of the build — for example static HTML mockups (`vision.html`) and companion notes (`vision.md`). Same rule as **`sdd/context/`**: workflow agents **read** these files when relevant (especially for visual or UX intent); they must **never** add, edit, or delete files under **`sdd/reference/`**. Humans own this tree; treat it like context for “read, don’t mutate.”
 
 ## Git hooks
 
@@ -148,7 +152,7 @@ Workflow agents read **`AGENT_ROLE`** from the environment (`dev` or `qa` per co
 
 **`SPEC`** in CI and local runs is the **repo-relative spec directory** (for example `sdd/specs/vite-baseline` or `sdd/specs/homepage/header`). Version history is **Git**; multiple QA passes append sections over time.
 
-No other paths under `sdd/` may be modified by the agent (specs and sibling inputs remain human-authored unless the spec says otherwise). That includes **`sdd/context/**`**, **`sdd/agents/**`**, and **`sdd/scripts/**`** — shared background and infrastructure only; do not add, edit, or delete files there. Do not add extra files under the active spec directory beyond **`provenance.md`** and **`scenarios.md`** as allowed for the role, and do not modify other **`sdd/specs/**`** spec trees.
+No other paths under `sdd/` may be modified by the agent (specs and sibling inputs remain human-authored unless the spec says otherwise). That includes **`sdd/context/**`**, **`sdd/reference/**`**, **`sdd/agents/**`**, and **`sdd/scripts/**`** — shared background, fixed references, and infrastructure only; do not add, edit, or delete files there. Do not add extra files under the active spec directory beyond **`provenance.md`** and **`scenarios.md`** as allowed for the role, and do not modify other **`sdd/specs/**`** spec trees.
 
 See [`sdd/agents/base/prompt-postlude.md`](sdd/agents/base/prompt-postlude.md) for the exact prompt wording.
 
@@ -156,9 +160,9 @@ See [`sdd/agents/base/prompt-postlude.md`](sdd/agents/base/prompt-postlude.md) f
 
 These apply to both human contributors and AI coding assistants working in this repo:
 
-- **Workflow agents** must not modify anything under `sdd/` except as allowed for the active **`AGENT_ROLE`** (see [Provenance and scenarios](#provenance-and-scenarios)). **Humans** maintain **`sdd/context/`** (shared background), **`sdd/agents/`** and **`sdd/scripts/`** (runner and container definitions), and each spec’s **`spec.md`** and declared sibling inputs under the corresponding **`sdd/specs/<path>/`** directory.
+- **Workflow agents** must not modify anything under `sdd/` except as allowed for the active **`AGENT_ROLE`** (see [Provenance and scenarios](#provenance-and-scenarios)). **Humans** maintain **`sdd/context/`** (shared background), **`sdd/reference/`** (fixed mockups and notes), **`sdd/agents/`** and **`sdd/scripts/`** (runner and container definitions), and each spec’s **`spec.md`** and declared sibling inputs under the corresponding **`sdd/specs/<path>/`** directory.
 - Treat `.skills/` as read-only — skills are inputs (how to work), not outputs
-- Treat **`sdd/context/`** as read-only for workflow agents — background input, not generated output (humans maintain it).
+- Treat **`sdd/context/`** and **`sdd/reference/`** as read-only for workflow agents — background and fixed reference input, not generated output (humans maintain them).
 - Treat **`sdd/scripts/`** and **`sdd/agents/`** as read-only for workflow agents — local runner and Docker/prompt infrastructure (humans maintain them). Use one subdirectory under **`sdd/agents/`** per agent key (`vibe`, `claude`, `deepseek`).
 - Generated files belong at the repo root (or wherever the spec directs)
 - Never commit API keys or CI secrets to tracked files

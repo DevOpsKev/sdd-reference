@@ -9,7 +9,7 @@ Each skill lives at `.skills/<name>/SKILL.md` and follows the [Anthropic Skills]
 
 ```
 .skills/
-└── frontend-design/
+└── vinyl-traffic-ui/
     └── SKILL.md
 ```
 
@@ -22,11 +22,11 @@ Workflow agents consume `.skills/` automatically — no per-spec configuration n
 1. Create `.skills/<name>/SKILL.md` with valid YAML frontmatter (`name`, `description`) and a markdown body.
 2. That's it — workflow agents pick it up on the next run.
 
-Skills should be **task-shaped**, not project-specific lore. `frontend-design` (how to make a UI good) is a skill; "how this repo's one-off feature acceptance criteria work" is not — that belongs in the spec.
+Skills should be **task-shaped**, not project-specific lore. This repo includes **`vinyl-traffic-ui`** (how to implement the Vinyl Traffic plain-CSS UI) alongside context docs; "how this repo's one-off feature acceptance criteria work" is not a skill — that belongs in the spec.
 
 ## Conventions
 
 - Treat `.skills/` as read-only from an agent's perspective — like most of `sdd/`, it's an input (see [AGENTS.md](../AGENTS.md#provenance-and-scenarios) for allowed `sdd/` agent outputs by role).
 - Keep each skill focused and short. The whole `SKILL.md` is loaded into context every run; bloat costs tokens on every invocation.
 - The skill `name` in the frontmatter should match the directory name.
-- Skills are domain-agnostic — the same skill should be usable across multiple specs in this repo or others.
+- Prefer skills that stay useful across specs in this repo; project-specific skills are OK when they encode non-obvious product craft (this repo's UI skill is an example).
