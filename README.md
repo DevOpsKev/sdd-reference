@@ -47,6 +47,18 @@ corepack enable   # once; picks up pinned pnpm from package.json
 pnpm install
 ```
 
+## Code quality
+
+Static analysis tooling ensures consistent code quality across contributors and agents:
+
+```bash
+pnpm typecheck  # TypeScript type checking (no emit)
+pnpm lint       # ESLint (TS/JS)
+pnpm check      # Run both (typecheck → lint)
+```
+
+These commands run on staged files via lint-staged during pre-commit.
+
 **Git hooks (optional but recommended):** hooks expect Python tooling on `PATH`:
 
 ```bash

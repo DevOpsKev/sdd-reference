@@ -8,20 +8,28 @@
     "sdd": "sdd/scripts/execute.sh spec",
     "execute": "sdd/scripts/execute.sh",
     "prepare": "husky",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "check": "pnpm typecheck && pnpm lint",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@eslint/js": "^9.20.0",
     "@playwright/test": "^1.50.1",
+    "@types/node": "^25.6.0",
+    "eslint": "^9.20.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "typescript": "^5.7.3",
+    "typescript-eslint": "^8.21.0",
     "vite": "^6.0.11",
     "yaml": "^2.8.4"
   },
   "lint-staged": {
+    "*.{ts,js,mjs,cjs}": "eslint --fix",
     "*.py": [
       ".husky/lib/run-python.sh -m ruff check --fix --force-exclude",
       ".husky/lib/run-python.sh -m ruff format --force-exclude"
