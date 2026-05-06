@@ -72,7 +72,12 @@ Line-height. Body copy 1.5 to 1.6. Display heads 0.85 to 1.0. Mono labels 1.0. T
 
 ## Spacing and rhythm
 
-Base spacing unit is 8px (0.5rem). All vertical rhythm is a multiple. Horizontal gutter is `clamp(1rem, 3vw, 2.5rem)` and is the same on every page edge — the page is centred in a maximum width of 1280px with that gutter on either side.
+Base spacing unit is 8px (0.5rem). All vertical rhythm is a multiple. The horizontal gutter is the same on every page edge; the page is centred in a maximum width with that gutter on either side. Concrete values live in the token table below (and in `tokens.css`).
+
+| Token              | Value                          | Use                                              |
+| ------------------ | ------------------------------ | ------------------------------------------------ |
+| `--gutter`         | `clamp(1rem, 3vw, 2.5rem)`     | Horizontal gutter on every page edge.            |
+| `--page-max-width` | `1280px`                       | Maximum width of centred page content.           |
 
 Sections are separated by 1px dashed rules in `--ink-faded`, except the section *immediately under* the masthead, which is separated by a 2px solid rule in `--ink`. This single-rule weighting is deliberate: the page reads as a stack of stapled documents, with the top one having a slightly heavier separator.
 
@@ -204,7 +209,7 @@ Motion is restrained, purposeful, and short.
 | `--ease-paper`  | `cubic-bezier(0.2, 0, 0, 1)`| Default ease for entry animations.             |
 | `--dur-short`   | `150ms`                     | Hover, focus, link states.                     |
 | `--dur-mid`     | `300ms`                     | Section reveals, status changes.               |
-| `--dur-rise`    | `500–700ms`                 | Page-load rise of mastheads and sections.      |
+| `--dur-rise`    | `650ms`                     | Page-load rise of mastheads and sections.      |
 
 On page load, the masthead and each major section rise 8–10px and fade in, staggered by 100ms each. After load, the page is still — no scroll-driven animations, no parallax, no autoplay.
 

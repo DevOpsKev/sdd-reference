@@ -1,0 +1,191 @@
+/* base.css
+ *
+ * Authoritative source: sdd/specs/global-css/base.css
+ * Target path:          src/styles/base.css
+ *
+ * Sets the paper-and-ink baseline every page builds on. Webfonts are
+ * self-hosted (woff2 only, subsetted to Latin and Latin Extended) and
+ * served from /fonts/ — Vite copies src/public/fonts/ to dist/fonts/
+ * once `publicDir: 'src/public'` is set in vite.config.ts.
+ *
+ * No component-specific styling lives here. Stamps, tape, sharpie
+ * annotations, status indicators, page grids — all in their own
+ * specs.
+ */
+
+/* ── Webfonts ──────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: 'Special Elite';
+  src: url('/fonts/special-elite-v20-latin-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Anton';
+  src: url('/fonts/anton-v27-latin-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Stardos Stencil';
+  src: url('/fonts/stardos-stencil-v15-latin-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Stardos Stencil';
+  src: url('/fonts/stardos-stencil-v15-latin-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Permanent Marker';
+  src: url('/fonts/permanent-marker-v16-latin-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-mono-v24-latin-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-mono-v24-latin-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-mono-v24-latin-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Document, body, paper texture ─────────────────────────────── */
+
+html {
+  font-size: 16px;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: 'Special Elite', 'Courier New', Courier, monospace;
+  font-size: var(--type-body);
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
+
+  /* paper grain noise + coffee ring + corner stain + ageing gradient.
+     all decorative; aria-hidden via the body's role of presentation
+     for these layers — no DOM elements added. */
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' seed='3'/><feColorMatrix values='0 0 0 0 0.10  0 0 0 0 0.08  0 0 0 0 0.06  0 0 0 0.10 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+    radial-gradient(circle at 88% 12%, rgba(112, 80, 40, 0.08) 0%, rgba(112, 80, 40, 0.04) 4%, transparent 5%),
+    radial-gradient(ellipse at 8% 88%, rgba(120, 90, 50, 0.05) 0%, transparent 30%),
+    linear-gradient(135deg, var(--paper) 0%, var(--paper-dark) 200%);
+}
+
+/* ── Headings (defaults; per-page overrides live in component CSS) */
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Anton', Impact, 'Arial Narrow', sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 0.95;
+}
+
+h1 { font-size: var(--type-wordmark); }
+h2 { font-size: var(--type-section); }
+h3 {
+  font-size: var(--type-h3);
+  letter-spacing: 0.06em;
+}
+h4 {
+  font-size: var(--type-mono-sm);
+  letter-spacing: 0.18em;
+}
+
+/* ── Body text defaults ─────────────────────────────────────────── */
+
+p {
+  margin: 0;
+}
+
+p + p {
+  margin-top: 0.75rem;
+}
+
+small {
+  font-size: var(--type-small);
+}
+
+em {
+  font-style: italic;
+}
+
+strong {
+  font-weight: 700;
+}
+
+/* ── Links ──────────────────────────────────────────────────────── */
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ── Selection ──────────────────────────────────────────────────── */
+
+::selection {
+  background-color: var(--orange);
+  color: var(--paper);
+}
+
+/* ── Mono utility (the one and only utility class in this spec) ── */
+
+.mono {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo,
+    Consolas, monospace;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* ── Reduced motion (redundant with reset.css; kept as belt + braces) */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
