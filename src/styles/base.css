@@ -177,6 +177,20 @@ a:focus-visible {
   font-feature-settings: 'tnum' 1;
 }
 
+/* ── Page layout (base-page spec) ─────────────────────────────────── */
+
+.page {
+  max-width: var(--page-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+main {
+  padding-top: 1.5rem;
+}
+
 /* ── Reduced motion (redundant with reset.css; kept as belt + braces) */
 
 @media (prefers-reduced-motion: reduce) {
