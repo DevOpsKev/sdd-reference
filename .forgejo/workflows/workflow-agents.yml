@@ -7,23 +7,19 @@ name: workflow-agents
 #
 # Runs an agentic CLI (Mistral Vibe, Claude Code) that mutates the
 # workspace in place. Each agent has its own subdirectory under
-# .workflow-agents/<AGENT>/ with a Dockerfile and entrypoint script.
+# sdd/agents/<AGENT>/ with a Dockerfile and entrypoint script.
 
 on:
   workflow_dispatch:
     inputs:
       AGENT:
-        description: "Which workflow agent to run"
-        type: choice
-        default: vibe
-        options:
-          - vibe
-          - claude
-          - deepseek
-      SPEC:
-        description: "Repo-relative spec directory under sdd/ (e.g. sdd/helloworld, sdd/homepage, sdd/homepage/header)"
+        description: "Workflow agent: vibe, claude, or deepseek"
         type: string
-        default: sdd/helloworld
+        default: vibe
+      SPEC:
+        description: "Repo-relative spec directory (free text). Must be under sdd/specs/ and contain spec.md, e.g. sdd/specs/vite-baseline or sdd/specs/homepage/header"
+        type: string
+        default: sdd/specs/vite-baseline
       DEBUG:
         description: "Enable verbose agent diagnostics"
         type: choice
@@ -31,23 +27,17 @@ on:
         options:
           - "false"
           - "true"
-      PIPELINE:
-        description: "agent-only runs once with AGENT_ROLE; dev-then-qa runs dev then qa on the same workspace before commit"
-        type: choice
-        default: agent-only
-        options:
-          - agent-only
-          - dev-then-qa
       AGENT_ROLE:
-        description: "When PIPELINE is agent-only, which prompt role to use"
+        description: "dev or qa once; all runs dev then qa on the same workspace before commit (same as pnpm sdd … all locally)"
         type: choice
         default: dev
         options:
           - dev
           - qa
+          - all
 
 concurrency:
-  group: workflow-agents-${{ inputs.AGENT }}-${{ inputs.SPEC }}
+  group: workflow-agents-${{ inputs.AGENT }}-${{ inputs.SPEC }}-${{ inputs.AGENT_ROLE }}
   cancel-in-progress: false
 
 jobs:
@@ -69,19 +59,40 @@ jobs:
       AGENT: ${{ inputs.AGENT }}
       AGENT_DEBUG: ${{ inputs.DEBUG }}
       SPEC: ${{ inputs.SPEC }}
-      PIPELINE: ${{ inputs.PIPELINE }}
       AGENT_ROLE_INPUT: ${{ inputs.AGENT_ROLE }}
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
 
+      - name: Validate inputs
+        run: |
+          set -e
+          case "${AGENT}" in
+            vibe | claude | deepseek) ;;
+            *)
+              echo "Invalid AGENT=${AGENT} (expected vibe, claude, or deepseek)" >&2
+              exit 1
+              ;;
+          esac
+          case "${AGENT_ROLE_INPUT}" in
+            dev | qa | all) ;;
+            *)
+              echo "Invalid AGENT_ROLE=${AGENT_ROLE_INPUT} (expected dev, qa, or all)" >&2
+              exit 1
+              ;;
+          esac
+          if [ ! -f "${SPEC}/spec.md" ]; then
+            echo "SPEC must be a repo-relative directory containing spec.md (got SPEC=${SPEC})" >&2
+            exit 1
+          fi
+
       - name: Build agent image
         run: |
           set -e
           docker build \
             --tag "${AGENT}-agent:local" \
-            ".workflow-agents/${AGENT}"
+            "sdd/agents/${AGENT}"
 
       - name: Run agent
         env:
@@ -102,11 +113,10 @@ jobs:
           # Instead: create the container, stream the workspace in via
           # `docker cp` (no path translation needed - data flows over
           # the docker API), run the agent, copy the result back, drop
-          # the container. For dev-then-qa, repeat on the updated
+          # the container. For AGENT_ROLE=all, repeat on the updated
           # workspace so QA sees dev output.
 
-          PIPELINE="${PIPELINE:-agent-only}"
-          if [ "$PIPELINE" = "dev-then-qa" ]; then
+          if [ "${AGENT_ROLE_INPUT}" = "all" ]; then
             ROLES="dev qa"
           else
             ROLES="${AGENT_ROLE_INPUT:-dev}"
@@ -235,11 +245,10 @@ jobs:
           FORGEJO_PUSH_TOKEN: ${{ secrets.FORGEJO_PUSH_TOKEN }}
         run: |
           set -e
-          ROLE_NOTE="Pipeline: ${PIPELINE}."
-          if [ "${PIPELINE}" != "dev-then-qa" ]; then
-            ROLE_NOTE="${ROLE_NOTE} Role: ${AGENT_ROLE_INPUT}."
+          if [ "${AGENT_ROLE_INPUT}" = "all" ]; then
+            ROLE_NOTE="AGENT_ROLE: all (dev then qa on the same workspace)."
           else
-            ROLE_NOTE="${ROLE_NOTE} Roles: dev then qa."
+            ROLE_NOTE="AGENT_ROLE: ${AGENT_ROLE_INPUT}."
           fi
           PR_BODY=$(jq -n \
             --arg head  "$BRANCH" \
@@ -257,11 +266,9 @@ jobs:
             echo "### Workflow agent run summary"
             echo "- Agent: \`${AGENT}\`"
             echo "- Spec: \`${SPEC}\`"
-            echo "- Pipeline: \`${PIPELINE}\`"
-            if [ "${PIPELINE}" = "dev-then-qa" ]; then
-              echo "- Roles: \`dev\` then \`qa\`"
-            else
-              echo "- Role: \`${AGENT_ROLE_INPUT}\`"
+            echo "- AGENT_ROLE: \`${AGENT_ROLE_INPUT}\`"
+            if [ "${AGENT_ROLE_INPUT}" = "all" ]; then
+              echo "- Roles executed: \`dev\` then \`qa\`"
             fi
             echo "- Branch: \`${BRANCH}\`"
             echo "- PR: ${PR_URL}"
