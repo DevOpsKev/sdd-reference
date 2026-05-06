@@ -10,17 +10,22 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
+  pnpm sdd [--tmp] <agent> <spec-dir> <role>
   sdd/scripts/run-agent-local.sh [--tmp] <agent> <spec-dir> <role>
+
+Dispatcher (env vars, API keys): pnpm sdd --help
 
 Examples:
   AGENT_DEBUG=true AGENT_MAX_TURNS=20 sdd/scripts/run-agent-local.sh vibe sdd/specs/vite-baseline dev
   AGENT_DEBUG=true sdd/scripts/run-agent-local.sh claude sdd/specs/homepage qa
   sdd/scripts/run-agent-local.sh deepseek sdd/specs/vite-baseline dev
   AGENT_MAX_TURNS=20 sdd/scripts/run-agent-local.sh --tmp vibe sdd/specs/vite-baseline dev
+  sdd/scripts/run-agent-local.sh claude sdd/specs/homepage all
 
   <spec> must be under sdd/specs/ with a spec.md (e.g. sdd/specs/homepage). Not valid: sdd/context/, sdd/agents/, sdd/scripts/, or paths outside sdd/specs/.
 
-  <role> is "dev" (implement from spec) or "qa" (verify; write scenarios; append provenance).
+  <role> is "dev" (implement from spec), "qa" (verify; write scenarios; append provenance),
+  or "all" (run dev then qa on the same workspace, same as CI when AGENT_ROLE=all).
 
 Options:
   --tmp             Run in an isolated .tmp/agent-runs workspace instead of
@@ -35,7 +40,8 @@ Environment:
   AGENT_PRETTY_OUTPUT
                     Set to false/0 to print the raw agent stream.
 
-  The third positional argument sets AGENT_ROLE inside the container (dev or qa).
+  The third positional argument sets the run: for dev/qa it is AGENT_ROLE inside the
+  container; for "all", the script runs dev then qa sequentially on the same workspace.
 
 Required provider keys:
   vibe      MISTRAL_API_KEY
@@ -79,12 +85,20 @@ AGENT="$1"
 SPEC="$2"
 AGENT_ROLE="$3"
 case "$AGENT_ROLE" in
-  dev | qa) ;;
+  dev | qa | all) ;;
   *)
-    echo "Invalid role: $AGENT_ROLE (expected dev or qa)" >&2
+    echo "Invalid role: $AGENT_ROLE (expected dev, qa, or all)" >&2
     exit 2
     ;;
 esac
+
+if [ "$AGENT_ROLE" = "all" ]; then
+  ROLES="dev qa"
+  RUN_DIR_ROLE_LABEL="all"
+else
+  ROLES="$AGENT_ROLE"
+  RUN_DIR_ROLE_LABEL="$AGENT_ROLE"
+fi
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 AGENT_DIR="$REPO_ROOT/sdd/agents/$AGENT"
 # shellcheck source=/dev/null
@@ -94,7 +108,7 @@ SPEC_PATH="$REPO_ROOT/$SPEC_PATH"
 IMAGE_TAG="${AGENT}-agent:local"
 RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)"
 RUN_ROOT="$REPO_ROOT/.tmp/agent-runs"
-RUN_DIR="$RUN_ROOT/${AGENT}-${SPEC_SLUG}-${AGENT_ROLE}-${RUN_ID}"
+RUN_DIR="$RUN_ROOT/${AGENT}-${SPEC_SLUG}-${RUN_DIR_ROLE_LABEL}-${RUN_ID}"
 BASELINE_DIR="${RUN_DIR}.baseline"
 if [ "$USE_TMP" = "true" ]; then
   MODE="tmp"
@@ -155,7 +169,11 @@ fi
 
 echo "Agent: $AGENT"
 echo "Spec: $SPEC"
-echo "Role: $AGENT_ROLE"
+if [ "$AGENT_ROLE" = "all" ]; then
+  echo "Role: all (dev then qa on the same workspace)"
+else
+  echo "Role: $AGENT_ROLE"
+fi
 echo "Mode: $MODE"
 echo "Branch: ${CURRENT_BRANCH:-detached HEAD}"
 echo "Image: $IMAGE_TAG"
@@ -223,40 +241,60 @@ else
   echo "Streaming pretty agent output live..."
   PRETTY_OUTPUT=true
 fi
-set +e
-if [ "$PRETTY_OUTPUT" = "true" ]; then
-  docker run --rm \
-    --env SPEC="$SPEC" \
-    --env AGENT_ROLE="$AGENT_ROLE" \
-    --env AGENT_DEBUG="${AGENT_DEBUG:-true}" \
-    --env AGENT_MAX_TURNS="${AGENT_MAX_TURNS:-150}" \
-    --env AGENT_OUTPUT_FORMAT="$LOCAL_OUTPUT_FORMAT" \
-    --env ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}" \
-    --env DEEPSEEK_API_KEY="${DEEPSEEK_API_KEY:-}" \
-    --env MISTRAL_API_KEY="${MISTRAL_API_KEY:-}" \
-    --volume "$WORK_DIR:/work" \
-    "$IMAGE_TAG" 2>&1 | "$REPO_ROOT/sdd/scripts/pretty-agent-stream.mjs"
-  AGENT_EXIT=${PIPESTATUS[0]}
-else
-  DOCKER_TTY_ARGS=""
-  if [ -t 0 ]; then
-    DOCKER_TTY_ARGS="--interactive --tty"
-  fi
 
-  # shellcheck disable=SC2086
-  docker run --rm $DOCKER_TTY_ARGS \
-    --env SPEC="$SPEC" \
-    --env AGENT_ROLE="$AGENT_ROLE" \
-    --env AGENT_DEBUG="${AGENT_DEBUG:-true}" \
-    --env AGENT_MAX_TURNS="${AGENT_MAX_TURNS:-150}" \
-    --env AGENT_OUTPUT_FORMAT="$LOCAL_OUTPUT_FORMAT" \
-    --env ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}" \
-    --env DEEPSEEK_API_KEY="${DEEPSEEK_API_KEY:-}" \
-    --env MISTRAL_API_KEY="${MISTRAL_API_KEY:-}" \
-    --volume "$WORK_DIR:/work" \
-    "$IMAGE_TAG"
+run_agent_container() {
+  local ROLE="$1"
+  local ec
+  set +e
+  if [ "$PRETTY_OUTPUT" = "true" ]; then
+    docker run --rm \
+      --env SPEC="$SPEC" \
+      --env AGENT_ROLE="$ROLE" \
+      --env AGENT_DEBUG="${AGENT_DEBUG:-true}" \
+      --env AGENT_MAX_TURNS="${AGENT_MAX_TURNS:-150}" \
+      --env AGENT_OUTPUT_FORMAT="$LOCAL_OUTPUT_FORMAT" \
+      --env ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}" \
+      --env DEEPSEEK_API_KEY="${DEEPSEEK_API_KEY:-}" \
+      --env MISTRAL_API_KEY="${MISTRAL_API_KEY:-}" \
+      --volume "$WORK_DIR:/work" \
+      "$IMAGE_TAG" 2>&1 | "$REPO_ROOT/sdd/scripts/pretty-agent-stream.mjs"
+    ec=${PIPESTATUS[0]}
+  else
+    local DOCKER_TTY_ARGS=""
+    if [ -t 0 ]; then
+      DOCKER_TTY_ARGS="--interactive --tty"
+    fi
+
+    # shellcheck disable=SC2086
+    docker run --rm $DOCKER_TTY_ARGS \
+      --env SPEC="$SPEC" \
+      --env AGENT_ROLE="$ROLE" \
+      --env AGENT_DEBUG="${AGENT_DEBUG:-true}" \
+      --env AGENT_MAX_TURNS="${AGENT_MAX_TURNS:-150}" \
+      --env AGENT_OUTPUT_FORMAT="$LOCAL_OUTPUT_FORMAT" \
+      --env ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}" \
+      --env DEEPSEEK_API_KEY="${DEEPSEEK_API_KEY:-}" \
+      --env MISTRAL_API_KEY="${MISTRAL_API_KEY:-}" \
+      --volume "$WORK_DIR:/work" \
+      "$IMAGE_TAG"
+    ec=$?
+  fi
+  set -e
+  return "$ec"
+}
+
+set +e
+AGENT_EXIT=0
+for ROLE in $ROLES; do
+  echo
+  echo "=== Agent run (AGENT_ROLE=$ROLE) ==="
+  run_agent_container "$ROLE"
   AGENT_EXIT=$?
-fi
+  echo "=== Finished (AGENT_ROLE=$ROLE) exit=$AGENT_EXIT ==="
+  if [ "$AGENT_EXIT" -ne 0 ]; then
+    break
+  fi
+done
 set -e
 
 echo

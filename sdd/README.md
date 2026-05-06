@@ -14,6 +14,6 @@ Each **spec** is a directory under **`sdd/specs/`** (for example `sdd/specs/vite
 
 ## Local scripts (`sdd/scripts/`)
 
-**`sdd/scripts/`** contains **`execute.sh`** (invoked via **`pnpm execute`**) and **`run-agent-local.sh`** (Docker-based local runs). Same read-only rule for workflow agents as **`sdd/agents/`**.
+**`sdd/scripts/`** contains **`execute.sh`** (invoked via **`pnpm sdd`** or **`pnpm execute`**) and **`run-agent-local.sh`** (Docker-based local runs). Same read-only rule for workflow agents as **`sdd/agents/`**.
 
 See [AGENTS.md](../AGENTS.md) and [`sdd/agents/base/prompt-postlude.md`](../sdd/agents/base/prompt-postlude.md) for rules and required content.

@@ -4,7 +4,7 @@ This repo is a reference implementation of **Spec Driven Development (SDD)**. Ea
 
 ## How agents work
 
-Each agent is a workflow-managed CLI runtime under `sdd/agents/<AGENT>/`. The shared Forgejo workflow [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) builds the selected agent image fresh, streams the repository into `/work`, runs the agent against a spec (optionally **dev** then **qa** on the same workspace when `PIPELINE` is `dev-then-qa`), streams the changed workspace back out, then commits the result to a PR branch.
+Each agent is a workflow-managed CLI runtime under `sdd/agents/<AGENT>/`. The shared Forgejo workflow [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) builds the selected agent image fresh, streams the repository into `/work`, runs the agent against a spec (use **`AGENT_ROLE=all`** for **dev** then **qa** on the same workspace before commit), streams the changed workspace back out, then commits the result to a PR branch.
 
 ```
 sdd/specs/<SPEC>/spec.md (+ siblings)     .skills/*/SKILL.md      sdd/context/*.md
@@ -57,11 +57,11 @@ The primary model is pinned to `deepseek-v4-flash` for lower latency and cost in
 
 ## CI (Forgejo)
 
-The pipeline is defined in [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) using Forgejo Actions' `workflow_dispatch.inputs` feature, which exposes `AGENT`, `SPEC`, `PIPELINE`, `AGENT_ROLE`, and `DEBUG`. `PIPELINE` may be `agent-only` (one container run using `AGENT_ROLE`) or `dev-then-qa` (runs **dev** then **qa** sequentially on the same workspace before commit). On a successful run it commits generated files to `ai/<AGENT>-<SPEC_SLUG>-<run_id>` and opens a pull request against `main` via the Forgejo (Gitea-compatible) API.
+The pipeline is defined in [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) using Forgejo Actions' `workflow_dispatch.inputs` feature, which exposes **`AGENT`** (string: `vibe`, `claude`, or `deepseek`), **`SPEC`** (repo-relative spec directory as free text, validated to contain `spec.md`), **`AGENT_ROLE`** (`dev`, `qa`, or **`all`** — same as `pnpm sdd … all`: **dev** then **qa** on the same workspace before commit), and **`DEBUG`**. On a successful run it commits generated files to `ai/<AGENT>-<SPEC_SLUG>-<run_id>` and opens a pull request against `main` via the Forgejo (Gitea-compatible) API.
 
 Set the workflow's `DEBUG` input to `true` to pass `AGENT_DEBUG=true` into the container. Debug mode prints safe container diagnostics, runner startup context, and verbose Claude Code streams for Claude Code-based agents without exposing provider API keys.
 
-For local prompt/spec runs, use `pnpm execute spec <agent> <spec-dir> <role>` (which dispatches to [`sdd/scripts/run-agent-local.sh`](sdd/scripts/run-agent-local.sh)). **`<spec-dir>`** is the repo-relative path to the spec directory (must contain **`spec.md`**, be under **`sdd/specs/`**, and must **not** be **`sdd/context/`**, **`sdd/agents/`**, or **`sdd/scripts/`**), for example **`sdd/specs/vite-baseline`** or **`sdd/specs/homepage`**. **`<role>`** is **`dev`** or **`qa`**. It builds the selected agent image, runs it against the current checkout by default, pretty-prints step-by-step output live, and leaves generated files on the current branch without committing, pushing, or opening a PR. Pass `--tmp` after `spec` to copy the current repo to `.tmp/agent-runs/<AGENT>-<SPEC_SLUG>-<role>-<timestamp>/` for a disposable smoke test. Set `AGENT_MAX_TURNS=20` for cheap early checks and raise it only once the spec/prompt path looks correct.
+For local prompt/spec runs, use `pnpm sdd <agent> <spec-dir> <role>` (equivalent: `pnpm execute spec …`; both dispatch to [`sdd/scripts/run-agent-local.sh`](sdd/scripts/run-agent-local.sh)). **`<role>`** is **`dev`**, **`qa`**, or **`all`** (**`all`** runs **dev** then **qa** on the same workspace, matching CI when **`AGENT_ROLE=all`**). **`<spec-dir>`** is the repo-relative path to the spec directory (must contain **`spec.md`**, be under **`sdd/specs/`**, and must **not** be **`sdd/context/`**, **`sdd/agents/`**, or **`sdd/scripts/`**), for example **`sdd/specs/vite-baseline`** or **`sdd/specs/homepage`**. It builds the selected agent image, runs it against the current checkout by default, pretty-prints step-by-step output live, and leaves generated files on the current branch without committing, pushing, or opening a PR. Pass **`--tmp`** immediately after **`pnpm sdd`** to copy the current repo to `.tmp/agent-runs/<AGENT>-<SPEC_SLUG>-<role>-<timestamp>/` for a disposable smoke test (with **`all`**, the tmp directory name uses the label **`all`**). Set `AGENT_MAX_TURNS=20` for cheap early checks and raise it only once the spec/prompt path looks correct. Run **`pnpm sdd --help`** for a full usage summary.
 
 Required repo-scoped secrets:
 
@@ -140,7 +140,7 @@ Bypass hooks for a single commit only when truly necessary: `git commit --no-ver
 
 ## Provenance and scenarios
 
-Workflow agents read **`AGENT_ROLE`** from the environment (`dev` or `qa`; local runs pass **`dev`** or **`qa`** as **`<role>`** in `pnpm execute spec <agent> <spec-dir> <role>`).
+Workflow agents read **`AGENT_ROLE`** from the environment (`dev` or `qa` per container run; local runs pass **`dev`**, **`qa`**, or **`all`** as **`<role>`** in `pnpm sdd <agent> <spec-dir> <role>`, equivalent to `pnpm execute spec …`. CI sets **`AGENT_ROLE=all`** to run **dev** then **qa** sequentially; each container still sees **`AGENT_ROLE`** as **`dev`** or **`qa`** only.
 
 - **`dev`:** Must create or **fully overwrite** **`provenance.md` in the active spec directory** (the same directory as `spec.md`, i.e. the path in the **`SPEC`** environment variable such as `sdd/specs/vite-baseline`) once per run. Must **not** create or modify **`scenarios.md`** there on a dev run.
 

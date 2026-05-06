@@ -10,7 +10,7 @@ A reference implementation of **Spec Driven Development (SDD)**: humans write sp
 | **`.skills/`** | Reusable “how to work” guidance (`SKILL.md` per skill). |
 | **`sdd/context/`** | Shared product background (architecture, design system, product, deployment, glossary). **Not** a spec directory — there is no `spec.md` here; humans maintain these files; workflow agents **read** them and must **not** edit them. |
 | **`sdd/agents/`** | Workflow-agent Docker images and `run-*.sh` entrypoints, plus shared **`base/`** prompts — infrastructure co-located for templating; agents must **not** edit. |
-| **`sdd/scripts/`** | **`pnpm execute`** dispatcher and **`run-agent-local.sh`**; humans maintain; agents must **not** edit. |
+| **`sdd/scripts/`** | **`pnpm sdd`** (and **`pnpm execute`**) dispatcher plus **`run-agent-local.sh`**; humans maintain; agents must **not** edit. |
 
 **Output:** application and repo files where the spec says to put them (often the repo root). Full rules: [`AGENTS.md`](AGENTS.md).
 
@@ -24,7 +24,7 @@ A reference implementation of **Spec Driven Development (SDD)**: humans write sp
 | `sdd/context/` | Human-maintained background docs (read-only for agents) |
 | `sdd/agents/` | Dockerfiles and `run-*.sh` entrypoints per agent |
 | `.forgejo/workflows/` | CI workflow (manual dispatch) |
-| `sdd/scripts/` | `pnpm execute` and local agent runner |
+| `sdd/scripts/` | `pnpm sdd` / `pnpm execute` and local agent runner |
 | `.husky/` | Git hooks (lint-staged, etc.) |
 | `e2e/` | Playwright tests (often extended by **qa** runs) |
 
@@ -60,11 +60,13 @@ Hooks use **ruff**, **pyyaml**, **gitleaks**, etc. See [`AGENTS.md`](AGENTS.md) 
 **Command:**
 
 ```bash
-pnpm execute spec <agent> <spec-dir> <role>
+pnpm sdd <agent> <spec-dir> <role>
 ```
 
+(`pnpm execute spec …` is equivalent; see `pnpm sdd --help`.)
+
 - **`<spec-dir>`** — Repo-relative directory under **`sdd/specs/`** that contains **`spec.md`** (e.g. `sdd/specs/vite-baseline`, `sdd/specs/homepage`). Must **not** be **`sdd/context/`**, **`sdd/agents/`**, or **`sdd/scripts/`**.
-- **`<role>`** — `dev` (implement) or `qa` (verify, scenarios, append provenance). See [Agent roles in AGENTS.md](AGENTS.md#provenance-and-scenarios).
+- **`<role>`** — `dev` (implement), `qa` (verify, scenarios, append provenance), or `all` (dev then qa on the same checkout). See [Agent roles in AGENTS.md](AGENTS.md#provenance-and-scenarios).
 
 **Requirements:** Docker running; API key exported for the chosen agent. The local runner **refuses `main`** — use a feature/spec branch.
 
@@ -73,26 +75,29 @@ pnpm execute spec <agent> <spec-dir> <role>
 ```bash
 # Cheap smoke run (vibe / implementation-friendly)
 export MISTRAL_API_KEY="..."
-AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm execute spec vibe sdd/specs/vite-baseline dev
+AGENT_DEBUG=true AGENT_MAX_TURNS=20 pnpm sdd vibe sdd/specs/vite-baseline dev
 
 # Full dev pass on vite baseline
-pnpm execute spec vibe sdd/specs/vite-baseline dev
+pnpm sdd vibe sdd/specs/vite-baseline dev
 
 # QA with Playwright-capable agent (homepage)
 export ANTHROPIC_API_KEY="..."
-pnpm execute spec claude sdd/specs/homepage qa
+pnpm sdd claude sdd/specs/homepage qa
+
+# Dev then QA on the same checkout (matches CI AGENT_ROLE=all)
+pnpm sdd claude sdd/specs/homepage all
 ```
 
 **Disposable copy** (does not mutate the current checkout):
 
 ```bash
-pnpm execute spec --tmp claude sdd/specs/vite-baseline dev
+pnpm sdd --tmp claude sdd/specs/vite-baseline dev
 ```
 
 **Raw provider stream** (no pretty printer):
 
 ```bash
-AGENT_PRETTY_OUTPUT=false pnpm execute spec claude sdd/specs/vite-baseline dev
+AGENT_PRETTY_OUTPUT=false pnpm sdd claude sdd/specs/vite-baseline dev
 ```
 
 More detail: [`sdd/scripts/run-agent-local.sh`](sdd/scripts/run-agent-local.sh) (env vars `AGENT_DEBUG`, `AGENT_MAX_TURNS`, `AGENT_OUTPUT_FORMAT`, etc.).
@@ -120,11 +125,13 @@ Artifacts go to **`test-results/`** (gitignored).
 
 2. **Add or edit** `sdd/specs/<path>/spec.md` (and siblings the spec references). When you change **repo-wide** architecture, design rules, or product assumptions, update the matching files under **`sdd/context/`** so agents stay aligned (see **Keeping `sdd/context/` honest** later in this README).
 
-3. **Run dev** then **qa** as needed:
+3. **Run dev** then **qa** as needed (or one shot with **`all`**):
 
    ```bash
-   pnpm execute spec claude sdd/specs/my-feature dev
-   pnpm execute spec claude sdd/specs/my-feature qa
+   pnpm sdd claude sdd/specs/my-feature all
+   # or separately:
+   pnpm sdd claude sdd/specs/my-feature dev
+   pnpm sdd claude sdd/specs/my-feature qa
    ```
 
 4. **Verify:** `pnpm run build`, `pnpm test:e2e`, or whatever the spec lists.
@@ -143,7 +150,7 @@ Artifacts go to **`test-results/`** (gitignored).
 
 ### Forgejo workflow (agent → PR)
 
-The workflow [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) is **manually dispatched**. It does **not** auto-run on every push; you pick **agent**, **`SPEC`** (same form as local, e.g. `sdd/specs/homepage`), **pipeline**, and **role** in the UI.
+The workflow [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) is **manually dispatched**. It does **not** auto-run on every push; you pick **agent** and **`SPEC`** as text (validated: must contain `spec.md`), **debug**, and **`AGENT_ROLE`** (`dev`, `qa`, or **`all`** for dev then qa on the same workspace before commit).
 
 It builds the agent image, runs against the repo snapshot, commits results to a branch like **`ai/<agent>-<spec-with-slashes-as-dashes>-<run_id>`**, and opens a PR to **`main`**.
 

@@ -5,6 +5,7 @@
   "description": "Spec-Driven Development reference architecture — git hook tooling.",
   "packageManager": "pnpm@10.33.2",
   "scripts": {
+    "sdd": "sdd/scripts/execute.sh spec",
     "execute": "sdd/scripts/execute.sh",
     "prepare": "husky",
     "dev": "vite",
