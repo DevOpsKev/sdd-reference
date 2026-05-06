@@ -55,6 +55,9 @@ The target directory layout is:
 │   │   ├── glossary.md
 │   │   ├── voice.md              # forthcoming
 │   │   └── sleeves.md            # forthcoming
+│   ├── reference/                # fixed mockups & notes — read-only for agents; not in prod build
+│   │   ├── vision.md
+│   │   └── vision.html
 │   ├── content/                  # the corpus that becomes site content
 │   │   ├── stock/                # *.yaml — one record per file
 │   │   ├── racks/                # *.yaml — one rack per file (A through F)
