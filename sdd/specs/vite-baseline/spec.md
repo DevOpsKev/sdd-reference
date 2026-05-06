@@ -1,17 +1,17 @@
-# Vite baseline — scaffold, single page, Docker
+# Vite baseline — scaffold, empty page, Docker
 
 ## Intent
 
 Establish the baseline **static web application toolchain** for this repository: **pnpm**, **Vite**, **TypeScript** (strict), **HTML with plain CSS**, and a **multi-stage Docker image** that serves only the production build from **nginx** on port **8080**. Output must align with [`sdd/context/architecture.md`](../../context/architecture.md), which is the authoritative source for project-wide architectural constraints.
 
-This spec is a **minimal styling baseline**: hand-authored CSS for readable layout and typography on a placeholder page. It does **not** implement the full design system in [`sdd/context/design-system.md`](../../context/design-system.md); broader design-system work is delivered by later feature specs. See [`architecture.md`](../../context/architecture.md) (*Implementation status* and *Layout*) for how the corpus-driven static site evolves after this baseline.
+The application itself is an **empty page**: no placeholder copy, hero, cards, or decorative UI—only the minimal HTML shell needed for Vite’s entry (and an optional `<title>` for smoke checks). This spec does **not** implement the full design system in [`sdd/context/design-system.md`](../../context/design-system.md); that comes in later feature specs.
 
 This is the project's first feature specification. It establishes the toolchain that subsequent specs evolve. As [`architecture.md`](../../context/architecture.md) describes under *Implementation status*, the corpus-driven build pipeline replaces this baseline's single-page Vite app via a later spec; until that spec lands, the baseline is the live implementation.
 
 ## References
 
 - [`sdd/context/architecture.md`](../../context/architecture.md) — authoritative on package manager, Vite, TypeScript, `dist/`, the Docker image, port 8080, and all permanent framework prohibitions. This spec defers to architecture.md on every constraint listed there.
-- [`sdd/context/design-system.md`](../../context/design-system.md) — out of scope for breadth of work in this baseline, but cited so that hand-authored CSS does not contradict its tokens or principles. The baseline's placeholder styling should be a small subset compatible with the design system, not a different aesthetic.
+- [`sdd/context/design-system.md`](../../context/design-system.md) — out of scope; no design-system styling work in this baseline.
 
 ## Requirements
 
@@ -30,14 +30,14 @@ Operators run **`pnpm install`**, **`pnpm dev`**, **`pnpm build`**, and **`pnpm 
 ### Source layout (conceptual)
 
 - Single HTML entry at repository root per Vite convention (e.g. `index.html`).
-- One TypeScript entry (e.g. `src/main.ts`) that imports the **global stylesheet** (e.g. `src/style.css`) containing normal CSS rules. No framework directives, preprocessor syntax, or PostCSS-as-build-step configuration.
+- One TypeScript entry (e.g. `src/main.ts`) that imports the **global stylesheet** (e.g. `src/style.css`). The stylesheet may be empty. No framework directives, preprocessor syntax, or PostCSS-as-build-step configuration.
 - **`vite.config.ts`** at repo root — standard Vite config for the vanilla app (path aliases optional).
 
 ### CSS / UI
 
 - **Plain CSS only.** No CSS framework or preprocessor. The complete prohibition list lives in [`architecture.md`](../../context/architecture.md) under *Styles*; agents should read that section before adding any styling dependency.
-- **Minimal**: hand-authored CSS for readable defaults (layout, typography, contrast). The full design system is implemented by later specs.
-- The placeholder must show intentional styling: at least one **custom CSS class** (not inline-only) applied to visible content so it is obvious real CSS is in use (for example a `.hero`, `.card`, or `.tagline` rule).
+- **Empty page**: the document **body** must contain **no** visible text nodes or block content beyond what the toolchain requires (no headings, paragraphs, or decorative markup for users). A `<title>` in `<head>` is allowed so smoke checks can find a stable string.
+- No requirement for custom CSS classes, hero/card/tagline patterns, or “intentional” visual styling beyond an empty (or default) canvas.
 
 ### Docker
 
@@ -48,10 +48,10 @@ Operators run **`pnpm install`**, **`pnpm dev`**, **`pnpm build`**, and **`pnpm 
 - Container exposes **8080**; `docker run -p 8080:8080 <image>` serves the app at `http://localhost:8080/`.
 - Do not copy secrets, `.env` files, or git metadata into the image.
 
-### Page content (placeholder)
+### Page content
 
 - Single route `/`.
-- The served HTML must include the exact string **`Vite baseline`** in the document (e.g. in `<title>` or visible text) so smoke checks are unambiguous.
+- The served HTML must include the exact string **`Vite baseline`** in the document (e.g. in `<title>`) so smoke checks are unambiguous. The visible page remains empty.
 
 ## Acceptance criteria
 
@@ -59,9 +59,9 @@ Operators run **`pnpm install`**, **`pnpm dev`**, **`pnpm build`**, and **`pnpm 
 - [ ] No CSS framework dependency is added (Tailwind CSS, DaisyUI, Bootstrap, Bulma, Foundation, or similar). No CSS preprocessor dependency is added (Sass, LESS, Stylus). No client-side JavaScript framework dependency is added (React, Vue, Svelte, Lit, Solid, Preact, Alpine, Petite Vue, Stimulus, HTMX, or similar).
 - [ ] PostCSS and autoprefixer are not added as direct dependencies. They may exist transitively through Vite's defaults; they are not configured by this project.
 - [ ] `pnpm install` completes successfully; `pnpm-lock.yaml` is present and committed.
-- [ ] `pnpm build` produces a `dist/` directory with `index.html` and referenced assets; built output includes CSS derived from the hand-authored stylesheet (not an empty or unstyled page).
-- [ ] Placeholder uses at least one **custom CSS class** on visible content as described under **CSS / UI**.
-- [ ] `Dockerfile` at repo root builds successfully. The resulting image, run as `docker run -p 8080:8080 <image>`, returns **HTTP 200** to `GET /` with a body containing the string **`Vite baseline`**.
+- [ ] `pnpm build` produces a `dist/` directory with `index.html` and referenced assets.
+- [ ] The built page’s **body** is empty of user-visible content (no placeholder copy or decorative UI); smoke checks may still assert the string **`Vite baseline`** appears in the HTML source (e.g. `<title>`).
+- [ ] `Dockerfile` at repo root builds successfully. The resulting image, run as `docker run -p 8080:8080 <image>`, returns **HTTP 200** to `GET /` with a body containing the string **`Vite baseline`** (e.g. in the HTML source).
 - [ ] Final runtime image serves static files only (no Node runtime, no `node_modules`, no source).
 - [ ] [`sdd/specs/vite-baseline/provenance.md`](./provenance.md) exists, documenting actions taken, validation performed, artifacts produced, and any deviations from this spec, per the *Provenance* section of [`architecture.md`](../../context/architecture.md).
 
