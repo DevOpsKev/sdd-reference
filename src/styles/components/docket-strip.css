@@ -1,0 +1,97 @@
+/* docket-strip.css
+ *
+ * Authoritative source: sdd/specs/site/components/docket-strip/docket-strip.css
+ * Target path:          src/styles/components/docket-strip.css
+ *
+ * Spec: sdd/specs/site/components/docket-strip/spec.md
+ *
+ * Scoped to the .docket-strip namespace. Depends on tokens declared in
+ * src/styles/tokens.css and the body / @font-face declarations in
+ * src/styles/base.css. Imported into src/styles/index.css after base.css.
+ */
+
+.docket-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+
+  padding: 0.5rem var(--gutter);
+  /* 1px rule — the docket-to-masthead boundary is a metadata strip, lighter
+     than the design-system primary-section rule. */
+  border-bottom: 1px solid var(--ink);
+
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo,
+    Consolas, monospace;
+  font-size: var(--type-mono-sm);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--ink-soft);
+
+  overflow-x: hidden;
+}
+
+.docket-strip__side {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  white-space: nowrap;
+}
+
+.docket-strip__status {
+  display: inline-flex;
+  align-items: center;
+}
+
+.docket-strip__pulse {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 0.5em;
+  border-radius: 50%;
+  /* Single-use indicator green. Not a token; if a second use-case appears,
+     graduate this to design-system.md per spec notes. */
+  background-color: #3a8a4a;
+  animation: docket-strip-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes docket-strip-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.docket-strip__sep {
+  /* Middle-dot separator between discrete metadata items. The em-dash
+     inside "UNIT OPEN — STAFF ON SITE" is part of the status text itself,
+     not a separator. */
+  user-select: none;
+}
+
+.docket-strip__ref,
+.docket-strip__date,
+.docket-strip__unit {
+  white-space: nowrap;
+}
+
+/* ── Responsive: stack the two sides below 720px ────────────────── */
+
+@media (max-width: 719px) {
+  .docket-strip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .docket-strip__side {
+    width: 100%;
+  }
+}
+
+/* prefers-reduced-motion is handled globally in base.css; no per-component
+   override needed. The pulse animation halts there. */
