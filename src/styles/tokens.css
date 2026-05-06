@@ -1,0 +1,51 @@
+/* tokens.css
+ *
+ * Authoritative source: sdd/specs/global-css/tokens.css
+ * Target path:          src/styles/tokens.css
+ *
+ * Every custom property below is mirrored in sdd/context/design-system.md
+ * in a Markdown table whose first column header is `Token`.
+ * The build-time validator (build/validate-tokens.ts) enforces equality.
+ *
+ * Names and values must match design-system.md exactly. Do not edit
+ * this file in isolation — change design-system.md first, then
+ * propagate, per sdd/specs/global-css/spec.md.
+ */
+
+:root {
+  /* ── Paper, ink, accent ───────────────────────────────────────── */
+  --paper: #ece6d4;
+  --paper-dark: #d8d0b8;
+  --paper-stain: #c8bfa3;
+  --ink: #1a1410;
+  --ink-soft: #4a4135;
+  --ink-faded: #6a604f;
+  --orange: #c95028;
+  --orange-bright: #d8612e;
+  --red: #a83228;
+  --tape: rgba(232, 210, 138, 0.65);
+  --sharpie: #1d2e4a;
+  --void: #0c0a08;
+  --bone: #f0e8d2;
+  --hairline: rgba(26, 20, 16, 0.18);
+
+  /* ── Type scale ───────────────────────────────────────────────── */
+  --type-wordmark: clamp(2.5rem, 7vw, 5rem);
+  --type-section: clamp(1.8rem, 3.5vw, 2.6rem);
+  --type-h3: 1.2rem;
+  --type-body: 1rem;
+  --type-small: 0.92rem;
+  --type-mono: 0.78rem;
+  --type-mono-sm: 0.7rem;
+  --type-mono-xs: 0.62rem;
+
+  /* ── Spacing and rhythm ───────────────────────────────────────── */
+  --gutter: clamp(1rem, 3vw, 2.5rem);
+  --page-max-width: 1280px;
+
+  /* ── Motion ───────────────────────────────────────────────────── */
+  --ease-paper: cubic-bezier(0.2, 0, 0, 1);
+  --dur-short: 150ms;
+  --dur-mid: 300ms;
+  --dur-rise: 650ms;
+}
