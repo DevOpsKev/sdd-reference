@@ -50,7 +50,7 @@ Operators run **`pnpm install`**, **`pnpm dev`**, and **`pnpm build`**; pnpm run
 ### Page content (placeholder)
 
 - Single route `/`.
-- The served HTML must include the exact string **`Vite baseline`** in the document (e.g. in `<title>` or visible text) so smoke checks are unambiguous and distinct from the `helloworld` spec’s phrasing.
+- The served HTML must include the exact string **`Vite baseline`** in the document (e.g. in `<title>` or visible text) so smoke checks are unambiguous.
 
 ## Acceptance criteria
 
@@ -72,4 +72,4 @@ Operators run **`pnpm install`**, **`pnpm dev`**, and **`pnpm build`**; pnpm run
 
 ### Notes
 
-- The [`helloworld`](../helloworld/spec.md) spec targets a **different** layout (`app/`, no Vite). Implementing **vite-baseline** establishes the **canonical** static-app toolchain for this product and **replaces** root-level Docker/static layout from other specs if both were applied to the same branch; resolve overlaps manually if needed.
+- **vite-baseline** establishes the **canonical** static-app toolchain for this product. If another spec later adds overlapping root-level Docker or static layout, resolve conflicts manually so one coherent setup remains.

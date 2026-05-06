@@ -22,7 +22,7 @@ Workflow agents consume `.skills/` automatically — no per-spec configuration n
 1. Create `.skills/<name>/SKILL.md` with valid YAML frontmatter (`name`, `description`) and a markdown body.
 2. That's it — workflow agents pick it up on the next run.
 
-Skills should be **task-shaped**, not project-specific lore. `frontend-design` (how to make a UI good) is a skill; "how the helloworld spec works" is not — that belongs in the spec.
+Skills should be **task-shaped**, not project-specific lore. `frontend-design` (how to make a UI good) is a skill; "how this repo's one-off feature acceptance criteria work" is not — that belongs in the spec.
 
 ## Conventions
 
