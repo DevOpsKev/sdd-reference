@@ -28,6 +28,9 @@ RUN apt-get update \
         tini \
  && rm -rf /var/lib/apt/lists/*
 
+# Docker CLI only (talks to host daemon via mounted /var/run/docker.sock).
+COPY --from=docker:27-cli /usr/local/bin/docker /usr/local/bin/docker
+
 RUN pip install "mistral-vibe==${VIBE_VERSION}"
 
 COPY config.toml /root/.vibe/config.toml

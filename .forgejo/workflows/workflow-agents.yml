@@ -153,8 +153,11 @@ jobs:
             docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
 
             debug_group_start "Create agent container (role=${ROLE})"
+            DOCKER_SOCK_GID="$(stat -c '%g' /var/run/docker.sock)"
             docker create \
               --name "$CONTAINER" \
+              --volume /var/run/docker.sock:/var/run/docker.sock \
+              --group-add "${DOCKER_SOCK_GID}" \
               --env AGENT_DEBUG \
               --env AGENT_ROLE="$ROLE" \
               --env ANTHROPIC_API_KEY \
