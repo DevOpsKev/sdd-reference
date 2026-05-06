@@ -242,3 +242,67 @@ Per spec § Acceptance criteria:
 - **Runnable tests committed:** Automated test suite at `e2e/docker-multistage.spec.ts` can be re-run via `pnpm test:e2e` or `pnpm exec playwright test e2e/docker-multistage.spec.ts`.
 - **Scenarios document:** `scenarios.md` provides human/CI-readable test plan with expected results and manual reproduction steps for skipped runtime checks.
 - **CI responsibility:** Runtime Docker verification deferred to CI per agent tooling constraints (documented in agent prompt and dev provenance). This is an acceptable and expected QA outcome when Docker CLI is unavailable but static structure is verified correct.
+
+---
+
+## QA verification — 2026-05-06T12:03:35Z
+
+### Agent
+
+- **Agent:** claude
+- **Role:** qa
+- **Model:** claude-sonnet-4-5
+- **Branch:** spec/docker-multistage
+
+### Purpose
+
+Verification run to confirm previous QA results remain valid after commit.
+
+### Actions taken
+
+1. **Read existing artifacts:**
+   - Previous provenance (this file)
+   - Existing `scenarios.md`
+   - Existing `e2e/docker-multistage.spec.ts`
+   - Current `Dockerfile`, `nginx.conf`, `.dockerignore`
+
+2. **Re-ran static test suite:**
+   - Created temporary minimal Playwright config (no web server dependency)
+   - Command: `pnpm exec playwright test e2e/docker-multistage.spec.ts --config=playwright.docker-only.config.ts`
+   - Result: **16 passed**, **4 failed to run** (Docker daemon not accessible)
+   - Cleaned up temporary config after test run
+
+3. **Verified file structure:**
+   - Re-read Dockerfile, nginx.conf, .dockerignore to confirm no drift
+   - All files match previous QA inspection
+
+### Verification results
+
+**Static tests (16/16 passed ✅):**
+- All Dockerfile structure tests passed
+- All nginx.conf configuration tests passed
+- All .dockerignore pattern tests passed
+- No regressions detected
+
+**Runtime tests (0/4 run):**
+- Docker CLI present at `/usr/local/bin/docker`
+- Docker daemon socket not accessible: `permission denied while trying to connect to the Docker daemon socket at unix:///var/run/docker.sock`
+- Same constraint as previous QA pass
+- Runtime verification remains deferred to CI with Docker daemon access
+
+### Findings
+
+**Confirmation:**
+- Previous QA results from 2026-05-06T11:35:00Z remain accurate
+- All static configuration still correct per spec
+- No changes needed to implementation, test suite, or scenarios
+- Test suite remains runnable and produces consistent results
+
+**Status:** Implementation satisfies all statically-verifiable acceptance criteria. Runtime criteria require CI with Docker daemon access (documented in scenarios.md).
+
+### Artifacts
+
+No new artifacts produced (all exist from previous QA pass):
+- `e2e/docker-multistage.spec.ts` — unchanged, verified working
+- `sdd/specs/docker-multistage/scenarios.md` — unchanged, still accurate
+- `sdd/specs/docker-multistage/provenance.md` — updated (this append)
