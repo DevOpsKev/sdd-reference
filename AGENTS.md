@@ -2,6 +2,19 @@
 
 This repo is a reference implementation of **Spec Driven Development (SDD)**. Each spec is a **directory under `sdd/specs/`** (for example `sdd/specs/vite-baseline`, `sdd/specs/homepage`, or nested `sdd/specs/homepage/header`) containing human-authored **`spec.md`** alongside **`provenance.md`** and **`scenarios.md`** (the latter two are agent outputs per role). Reusable cross-spec guidance for agents lives under `.skills/` (see [`.skills/README.md`](.skills/README.md)). Project background context lives under **`sdd/context/`**; fixed reference material (mockups, vision notes) lives under **`sdd/reference/`** — neither is a spec directory (no **`spec.md`** there). Agents consume these inputs and generate code — no manual scaffolding required. Each workflow-agent run must update audit files in that spec directory per **`AGENT_ROLE`** (see [Provenance and scenarios](#provenance-and-scenarios)): **dev** overwrites provenance; **qa** also writes scenarios and **appends** to provenance.
 
+For a concise overview of the SDD workflow and **dev** vs **qa** roles for workflow agents, see [`sdd/sdd-for-agents.md`](sdd/sdd-for-agents.md).
+
+## Execution paths
+
+The **same** SDD rules apply everywhere (dev vs qa semantics, provenance and scenarios, where tests live — see [Provenance and scenarios](#provenance-and-scenarios)). What differs is **how** the role is supplied and **who** runs the tools.
+
+| Path | Who runs | Role mechanism |
+| --- | --- | --- |
+| **Workflow agents** | Docker-based CLIs under [`sdd/agents/`](sdd/agents/) — [`pnpm sdd`](sdd/scripts/run-agent-local.sh), or CI ([`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml)) | The runner sets **`SPEC`** (repo-relative spec directory) and **`AGENT_ROLE`** (`dev`, `qa`, or orchestration via **`all`** for dev then qa on one workspace). Entrypoints load [`sdd/agents/base/prompt-role-dev.md`](sdd/agents/base/prompt-role-dev.md) / [`prompt-role-qa.md`](sdd/agents/base/prompt-role-qa.md) plus shared prelude/postlude. |
+| **Interactive (IDE) agents** | Editors or assistants (e.g. Cursor) working directly in the checkout | No **`AGENT_ROLE`** environment variable — follow the **same** rules by running **dev** then **qa** as separate phases or turns (implementation first, then QA with scenarios and append-only provenance). Use **[`sdd/prompts/cursor-spec-all.md`](sdd/prompts/cursor-spec-all.md)** as a self-contained prompt template for **all**, or read this file and [`sdd/sdd-for-agents.md`](sdd/sdd-for-agents.md) and apply them explicitly. |
+
+CI and meta-automation only need to choose **`AGENT`**, **`SPEC`**, and **`AGENT_ROLE`** (or **`all`**); they do not need to duplicate dev/qa prose — the container prompt supplies role content from **`sdd/agents/base/`**.
+
 ## How agents work
 
 Each agent is a workflow-managed CLI runtime under `sdd/agents/<AGENT>/`. The shared Forgejo workflow [`.forgejo/workflows/workflow-agents.yml`](.forgejo/workflows/workflow-agents.yml) builds the selected agent image fresh, streams the repository into `/work`, runs the agent against a spec (use **`AGENT_ROLE=all`** for **dev** then **qa** on the same workspace before commit), streams the changed workspace back out, then commits the result to a PR branch.

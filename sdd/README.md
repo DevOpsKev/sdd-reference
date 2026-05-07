@@ -2,7 +2,9 @@
 
 Each **spec** is a directory under **`sdd/specs/`** (for example `sdd/specs/vite-baseline` or nested `sdd/specs/homepage/header`) containing at least **`spec.md`**. Workflow agents also write **`provenance.md`** and **`scenarios.md`** in that same directory per **`AGENT_ROLE`** (see [AGENTS.md](../AGENTS.md#provenance-and-scenarios)).
 
-## Shared context (`sdd/context/`)
+**SDD process and dev/qa roles (workflow agents):** [sdd-for-agents.md](sdd-for-agents.md).
+
+**Workflow vs IDE execution paths:** [AGENTS.md § Execution paths](../AGENTS.md#execution-paths).
 
 **`sdd/context/`** holds human-maintained **background** Markdown (`product.md`, `architecture.md`, `design-system.md`, etc.). It is **not** a spec: there is no **`spec.md`** inside **`sdd/context/`**, and **`SPEC`** / local runs always point at a **sibling** directory such as `sdd/specs/homepage`. Workflow agents **read** **`sdd/context/*.md`** and must **never** add, edit, or delete files there (same rule as **`.skills/`**). From a spec under **`sdd/specs/<name>/`**, link to context as **`../../context/<file>.md`**.
 
