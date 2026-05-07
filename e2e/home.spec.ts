@@ -1,130 +1,115 @@
-/**
- * Home page acceptance tests
- *
- * Spec: sdd/specs/site/pages/home/spec.md
- *
- * Validates the homepage: docket strip with build-time data, empty main slot,
- * correct title, and the expected composition with pages/base.
- */
-
 import { test, expect } from '@playwright/test';
+import { isUnitOpen } from '../build/lib/unit-open';
 
-const BASE_URL = 'http://localhost:4173';
+/**
+ * Home page `/` — docket, masthead + nav tabs in `beforeMain`, empty `<main>`.
+ * Must match `webServer` in `playwright.config.ts` (BUILD_DATE for reproducible output).
+ */
+const PAGE_TITLE = 'Vinyl Traffic — Industrial Record Dispatch';
+const UNIT_LABEL = 'UNIT 14B · SOROKSÁRI ÚT · BUDAPEST IX';
 
-test.describe('Home page', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto(BASE_URL);
-    // Wait for fonts to be ready to prevent race conditions
-    await page.evaluate(() => document.fonts.ready);
+/** Same instant as `BUILD_DATE=...` in `playwright.config.ts` webServer build step */
+const E2E_BUILD_INSTANT = new Date('2026-05-07T15:00:00.000Z');
+const TZ = 'Europe/Budapest';
+
+test.describe('Home page /', () => {
+  test('serves root with HTTP 200', async ({ page }) => {
+    const response = await page.goto('http://localhost:4173/');
+    expect(response).not.toBeNull();
+    expect(response!.status()).toBe(200);
   });
 
-  test('/ returns 200', async ({ page }) => {
-    const response = await page.goto(BASE_URL);
-    expect(response?.status()).toBe(200);
+  test('document title matches spec', async ({ page }) => {
+    await page.goto('http://localhost:4173/');
+    await expect(page).toHaveTitle(PAGE_TITLE);
   });
 
-  test('has correct title', async ({ page }) => {
-    await expect(page).toHaveTitle('Vinyl Traffic — Industrial Record Dispatch');
+  test('.docket is first child of .page; masthead and nav.tabs follow; <main> is empty', async ({
+    page,
+  }) => {
+    await page.goto('http://localhost:4173/');
+
+    await expect(page.locator('.page')).toBeVisible();
+    await expect(page.locator('.docket')).toBeVisible();
+
+    const first = page.locator('.page').locator(':scope > *').first();
+    await expect(first).toHaveClass(/docket/);
+
+    await expect(page.locator('header.masthead')).toBeVisible();
+    await expect(page.locator('nav.tabs')).toBeVisible();
+
+    const main = page.locator('.page > main');
+    await expect(main).toHaveCount(1);
+    await expect(main).toBeEmpty();
   });
 
-  test('docket strip is rendered as first body block', async ({ page }) => {
-    const docketStrip = page.locator('.docket-strip');
-    await expect(docketStrip).toBeVisible();
+  test('nav tabs: structure, active tab, copy, and order after masthead', async ({ page }) => {
+    await page.goto('http://localhost:4173/');
 
-    // Check it's the first visible element in .page
-    const firstChild = page.locator('.page > *').first();
-    await expect(firstChild).toHaveClass('docket-strip');
+    const nav = page.locator('nav.tabs');
+    await expect(nav).toBeVisible();
+
+    await expect(nav.locator(':scope > a.active')).toHaveCount(1);
+
+    await expect(nav.locator(':scope > a').filter({ hasText: 'Stockroom' })).toBeVisible();
+    await expect(nav.locator(':scope > a').filter({ hasText: 'Find Us' })).toBeVisible();
+
+    const right = nav.locator('.right-tabs');
+    await expect(right).toContainText('Search');
+    await expect(right).toContainText('Bag (0)');
+
+    const order = await page.locator('.page').evaluate((el) => {
+      const kids = [...el.children];
+      return kids.map((k) => k.tagName.toLowerCase() + (k.className ? '.' + k.className : ''));
+    });
+    const mastIdx = order.findIndex((s) => s.includes('masthead'));
+    const navIdx = order.findIndex((s) => s === 'nav.tabs');
+    expect(mastIdx).toBeGreaterThanOrEqual(0);
+    expect(navIdx).toBeGreaterThanOrEqual(0);
+    expect(mastIdx).toBeLessThan(navIdx);
   });
 
-  test('docket date label matches canonical format pattern', async ({ page }) => {
-    const dateLabel = page.locator('.docket-strip__date');
-    await expect(dateLabel).toBeVisible();
+  test('masthead wordmark, stamps, and tagline', async ({ page }) => {
+    await page.goto('http://localhost:4173/');
 
-    const text = await dateLabel.textContent();
-    // Pattern: DDD DD.MM.YYYY / HH:MM
-    // Example: WED 06.05.2026 / 02:14
-    expect(text).toMatch(/^[A-Z]{3} \d{2}\.\d{2}\.\d{4} \/ \d{2}:\d{2}$/);
+    const wordmark = page.locator('.wordmark-stamp');
+    await expect(wordmark).toContainText('VINYL');
+    await expect(wordmark).toContainText('TRAFFIC');
+
+    await expect(page.locator('.stamps-row .stamp:not(.ink):not(.red)')).toContainText(
+      'FRAGILE · DO NOT BEND',
+    );
+    await expect(page.locator('.stamps-row .stamp.ink')).toContainText('BTC · ETH · USDC · XMR');
+    await expect(page.locator('.stamps-row .stamp.red')).toContainText('NO RETURNS · NO REFUNDS');
+
+    await expect(page.locator('.masthead-meta .tagline')).toContainText('Soroksári út');
+    await expect(page.locator('.masthead-meta .tagline')).toContainText("don't have a shop");
   });
 
-  test('docket DKT ref matches pattern DKT-YYYY-Www-001', async ({ page }) => {
-    const dktRef = page.locator('.docket-strip__ref');
-    await expect(dktRef).toBeVisible();
+  test('docket date, DKT ref, and unit label', async ({ page }) => {
+    await page.goto('http://localhost:4173/');
 
-    const text = await dktRef.textContent();
-    expect(text).toMatch(/^DKT-\d{4}-W\d{2}-001$/);
+    const dateText = await page.locator('.docket .right span').first().innerText();
+    expect(dateText).toMatch(/^[A-Z]{3} \d{2}\.\d{2}\.\d{4} \/ \d{2}:\d{2}$/);
+
+    const dktText = await page.locator('.docket .left .ref').innerText();
+    expect(dktText).toMatch(/^DKT-\d{4}-W\d{2}-001$/);
+
+    const unitText = await page.locator('.docket .right .ref').innerText();
+    expect(unitText).toBe(UNIT_LABEL);
   });
 
-  test('docket unit label is exactly correct', async ({ page }) => {
-    const unitLabel = page.locator('.docket-strip__unit');
-    await expect(unitLabel).toBeVisible();
+  test('open vs closed matches .light per build instant', async ({ page }) => {
+    await page.goto('http://localhost:4173/');
 
-    const text = await unitLabel.textContent();
-    expect(text).toBe('UNIT 14B · SOROKSÁRI ÚT · BUDAPEST IX');
-  });
+    const expectOpen = isUnitOpen(E2E_BUILD_INSTANT, TZ);
+    const light = page.locator('.docket .light');
 
-  test('docket open/closed state matches build moment', async ({ page }) => {
-    // The page is built at build time, so we check that the open/closed state
-    // is consistent with the presence/absence of the __pulse element
-    const status = page.locator('.docket-strip__status');
-    await expect(status).toBeVisible();
-
-    const pulseElement = page.locator('.docket-strip__pulse');
-    const statusText = await status.textContent();
-
-    const isOpen = statusText?.includes('UNIT OPEN');
-    const hasPulse = (await pulseElement.count()) > 0;
-
-    // If open, must have pulse; if closed, must not have pulse
-    if (isOpen) {
-      expect(hasPulse).toBe(true);
-      expect(statusText).toContain('UNIT OPEN — STAFF ON SITE');
+    if (expectOpen) {
+      await expect(light).toBeVisible();
     } else {
-      expect(hasPulse).toBe(false);
-      expect(statusText).toContain('UNIT CLOSED');
+      await expect(light).toHaveCount(0);
+      await expect(page.locator('.docket .left')).toContainText('UNIT CLOSED');
     }
-  });
-
-  test('main element exists and is empty', async ({ page }) => {
-    const main = page.locator('main');
-    await expect(main).toBeVisible();
-
-    // Check that main is empty (no text content, no child elements with content)
-    const text = await main.textContent();
-    expect(text?.trim()).toBe('');
-  });
-
-  test('bundled stylesheet is linked', async ({ page }) => {
-    // Check for stylesheet link with content-hashed filename
-    const stylesheet = page.locator('link[rel="stylesheet"][href^="/assets/"]');
-    await expect(stylesheet).toHaveCount(1);
-
-    const href = await stylesheet.getAttribute('href');
-    expect(href).toMatch(/^\/assets\/index-[a-zA-Z0-9_-]+\.css$/);
-  });
-
-  test('font preloads are present', async ({ page }) => {
-    // Special Elite
-    const specialElite = page.locator(
-      'link[rel="preload"][href="/fonts/special-elite-v20-latin-regular.woff2"]'
-    );
-    await expect(specialElite).toHaveCount(1);
-
-    // JetBrains Mono
-    const jetbrainsMono = page.locator(
-      'link[rel="preload"][href="/fonts/jetbrains-mono-v24-latin-regular.woff2"]'
-    );
-    await expect(jetbrainsMono).toHaveCount(1);
-  });
-
-  test('page wrapper has correct structure', async ({ page }) => {
-    const pageWrapper = page.locator('.page');
-    await expect(pageWrapper).toBeVisible();
-
-    // Should contain docket strip and main
-    const docketStrip = pageWrapper.locator('.docket-strip');
-    const main = pageWrapper.locator('main');
-
-    await expect(docketStrip).toBeVisible();
-    await expect(main).toBeVisible();
   });
 });

@@ -19,7 +19,8 @@ context, or skills point to them (for example `sdd/reference/vision.md` and
 does not change the scope or acceptance criteria in the spec.
 
 Generate exactly the files the spec describes, at the paths it specifies, and
-satisfy its acceptance criteria literally.
+satisfy its acceptance criteria literally. Put **runnable automated tests** under
+**`e2e/`** at the repo root (never under **`sdd/`**).
 
 When a spec requires a validation script or acceptance command,
 implement it early and use it as the completion gate.

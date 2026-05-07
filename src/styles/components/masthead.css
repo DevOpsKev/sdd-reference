@@ -1,0 +1,123 @@
+.masthead {
+  padding: 3rem 0 2.5rem;
+  border-bottom: 1px dashed var(--ink-faded);
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2.5rem;
+  align-items: end;
+}
+@media (max-width: 720px) {
+  .masthead {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 2rem 0 2rem;
+  }
+}
+
+.wordmark-stamp {
+  display: inline-block;
+  padding: 0.7rem 1.2rem 0.5rem;
+  border: 4px solid var(--ink);
+  transform: rotate(-1.8deg);
+  background: transparent;
+  position: relative;
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  line-height: 0.85;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+.wordmark-stamp::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 2px solid var(--ink);
+  opacity: 0.4;
+  transform: translate(2px, 1.5px);
+  pointer-events: none;
+}
+.wordmark-stamp::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 5% 95%, var(--ink) 0.5px, transparent 1.5px),
+    radial-gradient(circle at 92% 8%, var(--ink) 0.5px, transparent 1.5px),
+    radial-gradient(circle at 30% 8%, var(--ink) 0.4px, transparent 1px);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.masthead-meta {
+  text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.7;
+}
+@media (max-width: 720px) {
+  .masthead-meta {
+    text-align: left;
+  }
+}
+.masthead-meta strong {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.masthead-meta .tagline {
+  font-family: 'Special Elite', monospace;
+  font-size: 0.85rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-soft);
+  margin-top: 0.5rem;
+  font-style: italic;
+  max-width: 36ch;
+  margin-left: auto;
+}
+@media (max-width: 720px) {
+  .masthead-meta .tagline {
+    margin-left: 0;
+  }
+}
+
+.stamps-row {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.stamp {
+  display: inline-block;
+  padding: 0.35em 0.75em;
+  border: 2px solid var(--orange);
+  color: var(--orange);
+  font-family: 'Stardos Stencil', sans-serif;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+  background: transparent;
+  line-height: 1;
+}
+.stamp.red {
+  border-color: var(--red);
+  color: var(--red);
+  transform: rotate(2deg);
+}
+.stamp.ink {
+  border-color: var(--ink);
+  color: var(--ink);
+  transform: rotate(-1deg);
+}
+.stamp.lg {
+  font-size: 1.1rem;
+  padding: 0.4em 0.9em;
+}
+.stamp.flat {
+  transform: none;
+}

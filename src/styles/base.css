@@ -177,7 +177,7 @@ a:focus-visible {
   font-feature-settings: 'tnum' 1;
 }
 
-/* ── Page layout (base-page spec) ─────────────────────────────────── */
+/* ── Page layout (base page) ─────────────────────────────────── */
 
 .page {
   max-width: var(--page-max-width);

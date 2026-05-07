@@ -48,8 +48,10 @@ Three reasons:
   this directory.
 - The shell library targets bash 5+ (every agent base image ships
   bash). It does not aim for POSIX `sh` portability.
-- Agents may **write** only the `sdd/` paths allowed for the active
-  **`AGENT_ROLE`** (see `prompt-postlude.md` and `AGENTS.md`).
+- Agents may **write** under `sdd/` **only** **`provenance.md`** and
+  **`scenarios.md`** in the active spec directory, per **`AGENT_ROLE`**
+  (see `prompt-postlude.md` and `AGENTS.md`). All other `sdd/` paths are
+  read-only for agents.
 - Static files under `base/` must not embed secrets. **`AGENT_ROLE`**
   is chosen by the runner (`run-*.sh` reads the environment); role
   bodies live in separate `prompt-role-*.md` files.

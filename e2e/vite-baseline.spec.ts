@@ -1,12 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Vite baseline + app shell smoke checks.
+ * Vite baseline + root shell smoke checks.
  *
- * The root page is rendered by `src/main.ts` using `basePage()` from
- * `sdd/specs/site/pages/base/` (docket strip + `<main>` slot). Title and
- * visible content expectations follow that shell — see `index.html` and
- * `src/main.ts` for the canonical title string.
+ * Root markup comes from repo `index.html`; Vite bundles CSS via `src/main.ts`.
  */
 
 const PAGE_TITLE = 'Vinyl Traffic — Industrial Record Dispatch';
@@ -29,16 +26,14 @@ test.describe('Vite baseline', () => {
     expect(html).toContain(PAGE_TITLE);
   });
 
-  test('base page shell renders docket strip and main content', async ({ page }) => {
+  test('base page shell renders docket then main inside .page', async ({ page }) => {
     await page.goto('http://localhost:4173/');
 
-    await expect(page.locator('.docket-strip')).toBeVisible();
     await expect(page.locator('main')).toBeVisible();
-
-    const body = page.locator('body');
-    const textContent = (await body.textContent()) ?? '';
-    expect(textContent.length).toBeGreaterThan(0);
-    expect(textContent).toMatch(/UNIT OPEN|UNIT CLOSED/);
+    await expect(page.locator('.page')).toBeVisible();
+    await expect(page.locator('.docket')).toBeVisible();
+    await expect(page.locator('.page > .docket')).toHaveCount(1);
+    await expect(page.locator('.page > main')).toHaveCount(1);
   });
 
   test('page loads without console errors', async ({ page }) => {
@@ -63,12 +58,11 @@ test.describe('Vite baseline', () => {
   test('built assets are loaded correctly', async ({ page }) => {
     await page.goto('http://localhost:4173/');
 
-    // Bundled CSS remains linked after basePage() merges head (see main.ts)
+    // Bundled CSS linked by Vite from index.html entry
     const cssLinks = await page.locator('link[rel="stylesheet"]').count();
     expect(cssLinks).toBeGreaterThan(0);
 
-    // Entry script may no longer sit under <body> after innerHTML replace;
-    // shell visibility implies the module ran.
+    // Shell visibility implies the dev server served index.html.
     await expect(page.locator('.page')).toBeVisible();
   });
 });

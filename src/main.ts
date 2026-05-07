@@ -1,11 +1,8 @@
 /**
  * Entry point for Vite's stylesheet bundling.
  *
- * The homepage is pre-rendered at build time by build/generate-index.ts.
- * This module exists solely so Vite knows to bundle src/styles/index.css
- * and inject the stylesheet link into dist/index.html.
- *
- * No client-side JavaScript runs on the homepage — the page is fully static.
+ * Root HTML lives at `index.html` in the repo; Vite injects the bundled CSS.
+ * This module only imports `src/styles/index.css` so the stylesheet is emitted.
  */
 
 import './styles/index.css';
