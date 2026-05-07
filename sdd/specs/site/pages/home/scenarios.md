@@ -5,25 +5,25 @@ spec: sdd/specs/site/pages/home
 
 ## Automated (Playwright)
 
-**Command:** `pnpm test:e2e` (uses `playwright.config.ts` `webServer`: `BUILD_DATE=2026-05-07T15:00:00.000Z pnpm build && pnpm preview` on port **4173**).
+**Command:** `pnpm test:e2e` (`webServer`: `BUILD_DATE=2026-05-07T15:00:00.000Z pnpm build && pnpm preview`, port **4173**).
 
 **File:** `e2e/home.spec.ts`
 
 | Id | Intent | Expected |
 | -- | ------ | -------- |
 | H-01 | Root HTTP | `GET /` returns 200. |
-| H-02 | Title | Document title is `Vinyl Traffic — Industrial Record Dispatch`. |
-| H-03 | Layout | `.docket` visible; first direct child of `.page` has class `docket`; `header.masthead` visible; `.page > main` exists once and is empty. |
-| H-04 | Docket copy | Date line matches `^[A-Z]{3} \d{2}\.\d{2}\.\d{4} \/ \d{2}:\d{2}$`; DKT line matches `^DKT-\d{4}-W\d{2}-001$`; unit line is exactly `UNIT 14B · SOROKSÁRI ÚT · BUDAPEST IX`. |
-| H-05 | Open/closed | For the fixed `BUILD_DATE`, `isUnitOpen` from `build/lib/unit-open.ts` matches presence of `.docket .light` and `UNIT CLOSED` when closed. |
-| H-06 | Masthead | `.wordmark-stamp` contains VINYL and TRAFFIC; default / `.ink` / `.red` stamps; tagline contains `Soroksári út` and `don't have a shop`. |
+| H-02 | Title | Document title `Vinyl Traffic — Industrial Record Dispatch`. |
+| H-03 | Layout | `.docket` first under `.page`; `header.masthead`; `nav.tabs`; empty `main`. |
+| H-04 | Nav | One `a.active`; Stockroom / Find Us; `.right-tabs` has Search + Bag (0); masthead before nav. |
+| H-05 | Masthead | Wordmark, three stamps, tagline substrings. |
+| H-06 | Docket copy | Date / DKT / unit patterns; open/closed vs `.light` for fixed `BUILD_DATE`. |
 
-**Result (2026-05-07):** All six scenarios passed. Full suite **67** tests passed. `pnpm build` succeeded (`prebuild` runs `tsx build/generate-index.ts`).
+**Result:** 2026-05-07 — **65** tests passed (`e2e/home.spec.ts`, `e2e/base-page.spec.ts`, `e2e/docket-strip.spec.ts`, plus global/docker/code-quality suites).
 
 ## Manual / env
 
-- **BUILD_DATE:** Optional ISO string; `build/generate-index.ts` throws on invalid. E2E pins a constant via `playwright.config.ts` for reproducible docket output.
+- **`BUILD_DATE`:** optional ISO for `generate-index.ts`; invalid values throw. Playwright pins a constant for reproducible docket strings.
 
-## Out of scope (per spec)
+## Out of scope (per `spec.md`)
 
-Other routes, real DKT sequence, i18n — not covered here. Masthead CSS/HTML details: `sdd/specs/site/components/masthead/spec.md`.
+Other routes, real DKT sequence beyond `001`, i18n.

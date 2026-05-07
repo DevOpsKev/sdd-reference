@@ -25,7 +25,6 @@ export default defineConfig({
   ],
 
   webServer: {
-    // Rebuild so preview serves HTML from `base` + `home` with a fixed clock (reproducible e2e).
     command: 'BUILD_DATE=2026-05-07T15:00:00.000Z pnpm build && pnpm preview',
     port: 4173,
     reuseExistingServer: !process.env.CI,

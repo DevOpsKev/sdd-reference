@@ -2,15 +2,15 @@
 
 ## Intent
 
-Add the **masthead** component (`src/templates/components/` + `src/styles/components/`) and show it **only on `/`**, between the docket and `<main>`, matching `sdd/reference/vision.html` (wordmark, stamps row, meta column). **`src/templates/pages/base.ts` must not import or call `masthead`** — only `src/templates/pages/home.ts` may import the component and pass HTML via an optional slot.
+Add the **masthead** component (`src/templates/components/masthead.ts` + `src/styles/components/masthead.css`) matching `sdd/reference/vision.html` (wordmark, stamps row, meta column). **Layout and call site** — where `masthead()` is invoked — are defined in **`sdd/specs/site/pages/base/spec.md`**; the homepage passes **`MastheadData`** via **`basePage`** per **`sdd/specs/site/pages/home/spec.md`**.
 
-**Run fourth**, after `sdd/specs/site/components/docket-strip`, `sdd/specs/site/pages/base`, and `sdd/specs/site/pages/home`. **`src/templates/pages/base.ts`** must already follow **`sdd/specs/site/pages/base/spec.md`** (optional `beforeMain` between docket and `<main>`). This spec adds the masthead component, replaces **`src/templates/pages/home.ts`** with the block below, stylesheet import, and e2e.
+**Run second**, after `sdd/specs/site/components/docket-strip/` and **before** `sdd/specs/site/components/nav-tabs/` and **`pages/base`**.
 
 Do not read `sdd/context/` or other specs unless something here is unclear.
 
 ## Preconditions
 
-- `src/templates/components/docket-strip.ts`, `src/templates/pages/base.ts`, `src/templates/pages/home.ts`, and `src/styles/index.css` exist per the earlier site specs.
+- `src/templates/components/docket-strip.ts` and `src/styles/index.css` exist per the docket-strip spec.
 - Global tokens include `--ink`, `--ink-soft`, `--ink-faded`, `--orange`, `--red` (used by the CSS below).
 
 ## Authoritative CSS
@@ -189,52 +189,10 @@ export function masthead(data: MastheadData): string {
 }
 ```
 
-## `base.ts`
+## Composition
 
-Ensure **`src/templates/pages/base.ts`** matches **`sdd/specs/site/pages/base/spec.md`** (optional `beforeMain` between docket and `<main>`). **Do not** import or call `masthead` in this file.
-
-## `home.ts` (only caller of `masthead`)
-
-Replace **`src/templates/pages/home.ts`** with **exactly** this content (vision-default copy; `metaTitle` / `tagline` / stamps match `sdd/reference/vision.html`):
-
-```ts
-import { masthead } from '../components/masthead';
-import { basePage } from './base';
-import { formatDocketDate } from '../../../build/lib/date-format';
-import { isUnitOpen } from '../../../build/lib/unit-open';
-import { generateDktRef } from '../../../build/lib/dkt-ref';
-
-export interface HomePageContext {
-  buildDate: Date;
-}
-
-export function homePage(context: HomePageContext): string {
-  const { buildDate } = context;
-  const tz = 'Europe/Budapest';
-
-  return basePage({
-    title: 'Vinyl Traffic — Industrial Record Dispatch',
-    docket: {
-      open: isUnitOpen(buildDate, tz),
-      dktRef: generateDktRef(buildDate, tz),
-      dateLabel: formatDocketDate(buildDate, tz),
-      unitLabel: 'UNIT 14B · SOROKSÁRI ÚT · BUDAPEST IX',
-    },
-    beforeMain: masthead({
-      metaTitle: 'STOCKROOM & DISPATCH',
-      metaLine2: 'UNIT 14B · BAY 3',
-      metaLine3: '22:00 — 05:00 · By appt.',
-      metaLine4: '+36 1 ___ ____',
-      tagline:
-        "A small operation moving records out of an industrial unit off Soroksári út. We work nights. Crypto only. We don't have a shop — we have a stockroom.",
-      stampDefault: 'FRAGILE · DO NOT BEND',
-      stampInk: 'BTC · ETH · USDC · XMR',
-      stampRed: 'NO RETURNS · NO REFUNDS',
-    }),
-    children: '',
-  });
-}
-```
+- **`src/templates/pages/base.ts`** calls **`masthead(data.masthead)`** per **`sdd/specs/site/pages/base/spec.md`**.
+- **`src/templates/pages/home.ts`** supplies the **`masthead`** object on **`basePage({ ... })`** per **`sdd/specs/site/pages/home/spec.md`**. **`home.ts` must not** import or invoke **`masthead()`** — only pass data.
 
 ## Wiring (this spec)
 
@@ -244,14 +202,14 @@ export function homePage(context: HomePageContext): string {
 
 - [ ] `src/styles/components/masthead.css` matches the CSS block byte-for-byte.
 - [ ] `src/templates/components/masthead.ts` matches the TypeScript block byte-for-byte.
-- [ ] `src/templates/pages/base.ts` matches **`sdd/specs/site/pages/base/spec.md`** and **does not** import `masthead`.
-- [ ] `src/templates/pages/home.ts` matches its block byte-for-byte.
+- [ ] `src/templates/pages/base.ts` matches **`sdd/specs/site/pages/base/spec.md`** and **imports** `masthead`.
+- [ ] `src/templates/pages/home.ts` matches **`sdd/specs/site/pages/home/spec.md`** (includes **`masthead: { ... }`** on **`basePage`**).
 - [ ] `src/styles/index.css` imports `masthead.css`.
-- [ ] Emitted `/` HTML: first child of `.page` is the docket root (`.docket`); next sibling is **`header.masthead`**; then `<main>`.
-- [ ] `pnpm build` succeeds; `pnpm preview` shows wordmark **VINYL** / **TRAFFIC**, three stamps, meta lines, and tagline text as in `home.ts`.
-- [ ] Extend **`e2e/home.spec.ts`**: assert `header.masthead` is visible, `.wordmark-stamp` contains both words, one `.stamp` per variant (default / `.ink` / `.red`), and `.masthead-meta .tagline` matches the tagline string (or a stable substring).
+- [ ] Emitted `/` HTML: under `.page`, **`header.masthead`** is the **second** direct child (after `.docket`, before `nav.tabs` and `<main>`).
+- [ ] `pnpm build` succeeds; `pnpm preview` shows wordmark **VINYL** / **TRAFFIC**, three stamps, meta lines, and tagline text as in **`pages/home`** spec.
+- [ ] **`e2e/home.spec.ts`**: assert `header.masthead` is visible, `.wordmark-stamp` contains both words, one `.stamp` per variant (default / `.ink` / `.red`), and `.masthead-meta .tagline` matches the tagline string (or a stable substring).
 - [ ] `provenance.md` / `scenarios.md` per `AGENT_ROLE`.
 
 ## Out of scope
 
-Nav tabs, sections below the masthead, `paper-rise` or other motion from `vision.html`, tape decorations, other routes, font preload additions, changing docket or build helpers, social meta, i18n.
+Nav tabs (**`sdd/specs/site/components/nav-tabs/spec.md`**), sections below the masthead in `vision.html`, `paper-rise` or other motion, tape decorations, other routes, font preload additions, changing docket or build helpers, social meta, i18n.

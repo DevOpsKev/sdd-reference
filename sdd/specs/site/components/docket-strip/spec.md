@@ -2,7 +2,7 @@
 
 ## Intent
 
-Create the docket component under `src/` and register its stylesheet. **Run this spec first** in the three-spec chain (`docket-strip` → `pages/base` → `pages/home`).
+Create the docket component under `src/` and register its stylesheet. **Run first** in the site chain: **`docket-strip`** → **`masthead`** (component) → **`nav-tabs`** (component) → **`pages/base`** → **`pages/home`**.
 
 Do not read `sdd/context/` or other specs unless something here is unclear.
 
@@ -95,9 +95,9 @@ export function docketStrip(data: DocketStripData): string {
 
 - [ ] `src/templates/components/docket-strip.ts` and `src/styles/components/docket-strip.css` match the blocks above byte-for-byte.
 - [ ] `src/styles/index.css` imports the component stylesheet.
-- [ ] `pnpm build` succeeds after **base** and **home** specs are applied (this spec alone may not leave a full page).
+- [ ] `pnpm build` succeeds after **`pages/base`** and **`pages/home`** specs are applied (this spec alone may not leave a full page).
 - [ ] `provenance.md` / `scenarios.md` per `AGENT_ROLE`.
 
 ## Out of scope
 
-Date strings, DKT values, open/closed boolean — supplied by callers (`pages/home`).
+Date strings, DKT values, open/closed boolean — supplied by callers of **`basePage`** (e.g. **`homePage`** in **`pages/home`**).

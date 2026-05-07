@@ -2,7 +2,9 @@
 
 ## Intent
 
-Create `src/templates/pages/base.ts`: full HTML document with **docket above `<main>`** inside `.page`, and an optional **opaque `beforeMain`** fragment between docket and `<main>` (used by the homepage masthead spec — `base.ts` does not import masthead). **Run second**, after `sdd/specs/site/components/docket-strip/`.
+Create `src/templates/pages/base.ts`: full HTML document whose **`.page`** region renders, in order: **docket** (`docketStrip`), **masthead** (`masthead`), **nav tabs** (`navTabs`), then **`<main>`** — all composed inside this file (no `beforeMain` slot). Callers pass structured data for each region.
+
+**Run fourth**, after `sdd/specs/site/components/docket-strip/`, `sdd/specs/site/components/masthead/`, and `sdd/specs/site/components/nav-tabs/` (so the imported component modules and stylesheets exist). **Run before** `sdd/specs/site/pages/home/`.
 
 `src/main.ts` stays a **CSS-only** entry (imports `./styles/index.css`); do not replace the DOM at runtime. The homepage HTML is produced at **build time** by `pages/home` + `build/generate-index.ts`.
 
@@ -12,14 +14,16 @@ Create `src/templates/pages/base.ts` with **exactly** this content:
 
 ```ts
 import { docketStrip, type DocketStripData } from '../components/docket-strip';
+import { masthead, type MastheadData } from '../components/masthead';
+import { navTabs, type NavTabsData } from '../components/nav-tabs';
 
-export type { DocketStripData };
+export type { DocketStripData, MastheadData, NavTabsData };
 
 export interface BasePageData {
   title: string;
   docket: DocketStripData;
-  /** Pre-main HTML fragment (e.g. homepage masthead). Not generated inside this file. */
-  beforeMain?: string;
+  masthead: MastheadData;
+  navTabs: NavTabsData;
   children: string;
 }
 
@@ -37,7 +41,8 @@ const THEME_COLOR_PAPER = '#ece6d4';
 export function basePage(data: BasePageData): string {
   const titleSafe = escapeTitle(data.title);
   const docketHtml = docketStrip(data.docket);
-  const beforeMainHtml = data.beforeMain ?? '';
+  const mastheadHtml = masthead(data.masthead);
+  const navTabsHtml = navTabs(data.navTabs);
 
   return `<!doctype html>
 <html lang="en">
@@ -52,7 +57,8 @@ export function basePage(data: BasePageData): string {
   <body>
     <div class="page">
       ${docketHtml}
-      ${beforeMainHtml}
+      ${mastheadHtml}
+      ${navTabsHtml}
       <main>${data.children}</main>
     </div>
   </body>
@@ -84,10 +90,10 @@ main {
 
 - [ ] `src/templates/pages/base.ts` matches the TypeScript block byte-for-byte.
 - [ ] `src/styles/base.css` includes the `.page` and `main` rules above.
-- [ ] First child of `.page` in emitted HTML is the docket root (`.docket`).
-- [ ] `pnpm build` succeeds once **home** spec wires `generate-index.ts`.
+- [ ] Direct children of `.page` in emitted HTML are, in order: `.docket`, `header.masthead`, `nav.tabs`, `<main>`.
+- [ ] `pnpm build` succeeds once **`pages/home`** wires `generate-index.ts` and supplies `masthead` / `navTabs` data per **`sdd/specs/site/pages/home/spec.md`**.
 - [ ] `provenance.md` / `scenarios.md` per `AGENT_ROLE`.
 
 ## Out of scope
 
-Homepage masthead component and copy (`sdd/specs/site/components/masthead/spec.md`). Nav, footer, meta tags beyond what’s in the template, client-side JS beyond `main.ts` importing CSS.
+Per-component copy and CSS (see component specs under `sdd/specs/site/components/`). Footer, extra meta tags beyond what’s in the template, client-side JS beyond `main.ts` importing CSS.

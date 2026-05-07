@@ -2,13 +2,12 @@ import { test, expect } from '@playwright/test';
 import { isUnitOpen } from '../build/lib/unit-open';
 
 /**
- * Home page `/` — docket, masthead + nav tabs in `beforeMain`, empty `<main>`.
- * Must match `webServer` in `playwright.config.ts` (BUILD_DATE for reproducible output).
+ * Home page `/` — docket, masthead, nav from `basePage` + `homePage`, empty `<main>`.
+ * `webServer` uses fixed `BUILD_DATE` (see `playwright.config.ts`).
  */
 const PAGE_TITLE = 'Vinyl Traffic — Industrial Record Dispatch';
 const UNIT_LABEL = 'UNIT 14B · SOROKSÁRI ÚT · BUDAPEST IX';
 
-/** Same instant as `BUILD_DATE=...` in `playwright.config.ts` webServer build step */
 const E2E_BUILD_INSTANT = new Date('2026-05-07T15:00:00.000Z');
 const TZ = 'Europe/Budapest';
 
@@ -24,9 +23,7 @@ test.describe('Home page /', () => {
     await expect(page).toHaveTitle(PAGE_TITLE);
   });
 
-  test('.docket is first child of .page; masthead and nav.tabs follow; <main> is empty', async ({
-    page,
-  }) => {
+  test('.page child order: docket, masthead, nav.tabs, empty main', async ({ page }) => {
     await page.goto('http://localhost:4173/');
 
     await expect(page.locator('.page')).toBeVisible();
@@ -43,14 +40,12 @@ test.describe('Home page /', () => {
     await expect(main).toBeEmpty();
   });
 
-  test('nav tabs: structure, active tab, copy, and order after masthead', async ({ page }) => {
+  test('nav tabs: one active primary, copy, masthead before nav', async ({ page }) => {
     await page.goto('http://localhost:4173/');
 
     const nav = page.locator('nav.tabs');
     await expect(nav).toBeVisible();
-
     await expect(nav.locator(':scope > a.active')).toHaveCount(1);
-
     await expect(nav.locator(':scope > a').filter({ hasText: 'Stockroom' })).toBeVisible();
     await expect(nav.locator(':scope > a').filter({ hasText: 'Find Us' })).toBeVisible();
 
@@ -58,10 +53,9 @@ test.describe('Home page /', () => {
     await expect(right).toContainText('Search');
     await expect(right).toContainText('Bag (0)');
 
-    const order = await page.locator('.page').evaluate((el) => {
-      const kids = [...el.children];
-      return kids.map((k) => k.tagName.toLowerCase() + (k.className ? '.' + k.className : ''));
-    });
+    const order = await page.locator('.page').evaluate((el) =>
+      [...el.children].map((k) => k.tagName.toLowerCase() + (k.className ? '.' + k.className : '')),
+    );
     const mastIdx = order.findIndex((s) => s.includes('masthead'));
     const navIdx = order.findIndex((s) => s === 'nav.tabs');
     expect(mastIdx).toBeGreaterThanOrEqual(0);
@@ -69,7 +63,7 @@ test.describe('Home page /', () => {
     expect(mastIdx).toBeLessThan(navIdx);
   });
 
-  test('masthead wordmark, stamps, and tagline', async ({ page }) => {
+  test('masthead wordmark, stamps, tagline', async ({ page }) => {
     await page.goto('http://localhost:4173/');
 
     const wordmark = page.locator('.wordmark-stamp');

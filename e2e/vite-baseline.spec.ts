@@ -1,9 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Vite baseline + root shell smoke checks.
- *
- * Root markup comes from repo `index.html`; Vite bundles CSS via `src/main.ts`.
+ * Toolchain smoke: preview serves built `index.html` (from `homePage` + generate-index).
  */
 
 const PAGE_TITLE = 'Vinyl Traffic — Industrial Record Dispatch';
@@ -15,25 +13,15 @@ test.describe('Vite baseline', () => {
     expect(response!.status()).toBe(200);
   });
 
-  test('page title matches base shell', async ({ page }) => {
+  test('document title matches shipped home shell', async ({ page }) => {
     await page.goto('http://localhost:4173/');
     await expect(page).toHaveTitle(PAGE_TITLE);
   });
 
-  test('rendered HTML includes title string', async ({ page }) => {
+  test('rendered HTML includes stable product string', async ({ page }) => {
     await page.goto('http://localhost:4173/');
     const html = await page.content();
-    expect(html).toContain(PAGE_TITLE);
-  });
-
-  test('base page shell renders docket then main inside .page', async ({ page }) => {
-    await page.goto('http://localhost:4173/');
-
-    await expect(page.locator('main')).toBeVisible();
-    await expect(page.locator('.page')).toBeVisible();
-    await expect(page.locator('.docket')).toBeVisible();
-    await expect(page.locator('.page > .docket')).toHaveCount(1);
-    await expect(page.locator('.page > main')).toHaveCount(1);
+    expect(html).toContain('Vinyl Traffic');
   });
 
   test('page loads without console errors', async ({ page }) => {
@@ -49,20 +37,15 @@ test.describe('Vite baseline', () => {
 
     await page.goto('http://localhost:4173/');
 
-    // Wait a moment for any async errors
     await page.waitForTimeout(500);
 
     expect(errors).toHaveLength(0);
   });
 
-  test('built assets are loaded correctly', async ({ page }) => {
+  test('built CSS is linked from the preview page', async ({ page }) => {
     await page.goto('http://localhost:4173/');
 
-    // Bundled CSS linked by Vite from index.html entry
     const cssLinks = await page.locator('link[rel="stylesheet"]').count();
     expect(cssLinks).toBeGreaterThan(0);
-
-    // Shell visibility implies the dev server served index.html.
-    await expect(page.locator('.page')).toBeVisible();
   });
 });

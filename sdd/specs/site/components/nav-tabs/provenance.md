@@ -1,25 +1,22 @@
 # Provenance — `sdd/specs/site/components/nav-tabs`
 
-## Dev pass — 2026-05-07T16:00:00Z (Cursor, combined dev+qa)
+## Dev pass — 2026-05-07T18:47:00Z (Cursor, site chain step 3)
 
-**Role:** dev (manual implementation against `spec.md`).
+**Role:** dev
 
 ### Actions
 
 1. Read `sdd/specs/site/components/nav-tabs/spec.md`.
-2. Created `src/styles/components/nav-tabs.css` and `src/templates/components/nav-tabs.ts` per authoritative blocks.
-3. Appended `@import "./components/nav-tabs.css";` to `src/styles/index.css` after masthead.
-4. Replaced `src/templates/pages/home.ts` with spec block: `beforeMain = masthead(...) + navTabs(...)`.
-5. Confirmed `src/templates/pages/base.ts` does not import `navTabs`.
+2. Created `src/templates/components/nav-tabs.ts` and `src/styles/components/nav-tabs.css` per authoritative blocks.
+3. Added `@import "./components/nav-tabs.css";` to `src/styles/index.css` after masthead import.
 
 ### Files touched
 
 | Path | Change |
 |------|--------|
-| `src/styles/components/nav-tabs.css` | New |
 | `src/templates/components/nav-tabs.ts` | New |
+| `src/styles/components/nav-tabs.css` | New |
 | `src/styles/index.css` | Import nav-tabs stylesheet |
-| `src/templates/pages/home.ts` | Compose nav after masthead in `beforeMain` |
 
 ### Deviations
 
@@ -27,18 +24,19 @@ None.
 
 ---
 
-## QA pass — 2026-05-07T16:05:00Z
+## QA pass — 2026-05-07T18:55:00Z
 
-**Role:** qa (manual, same session)
+**Role:** qa
 
 | Acceptance (from `spec.md`) | Result |
 | ---------------------------- | ------ |
 | CSS / TS match authoritative blocks | PASS |
-| `base.ts` has no `navTabs` import | PASS |
-| `home.ts` matches spec block | PASS |
+| `base.ts` imports `navTabs` | PASS |
+| `home.ts` passes `navTabs` data only | PASS |
 | `index.css` imports nav-tabs | PASS |
-| DOM: `.docket` → `header.masthead` → `nav.tabs` → `main` | PASS |
-| `e2e/home.spec.ts` + `e2e/base-page.spec.ts` nav / child count | PASS (`pnpm test:e2e`, 68) |
+| DOM order docket → masthead → nav → main | PASS |
+| Nav e2e assertions | PASS (`e2e/home.spec.ts`) |
+| `pnpm test:e2e` | PASS (**65**) |
 
 ### QA-touched paths
 

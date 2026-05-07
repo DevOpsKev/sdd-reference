@@ -1,18 +1,20 @@
 ---
-title: "Docket Strip — QA scenarios"
-spec: "sdd/specs/site/components/docket-strip"
+title: Docket strip — QA scenarios
+spec: sdd/specs/site/components/docket-strip
 ---
 
 # QA scenarios — Docket strip
 
-Automated coverage: **`e2e/docket-strip.spec.ts`**.
-
-| ID | Scenario | Result |
-| -- | --------- | ------ |
-| DS-Q01 | `open: true` renders `UNIT OPEN` and `.light` | PASS |
-| DS-Q02 | `open: false` renders `UNIT CLOSED` without `.light` | PASS |
-| DS-Q03 | HTML structure `.docket` > `.left` / `.right` | PASS |
-| DS-Q04 | `escape()` on `dktRef`, `dateLabel`, `unitLabel` | PASS |
-
 **Command:** `pnpm test:e2e`
-**Last run:** 2026-05-07 — suite green (67 passed).
+**Primary file:** `e2e/docket-strip.spec.ts` (preview check); `e2e/home.spec.ts` / `e2e/base-page.spec.ts` for live `/` docket.
+
+| ID | Intent | Expected | Result |
+| -- | ------ | -------- | ------ |
+| DS-01 | Open vs closed HTML | `open: true` emits `.light` + UNIT OPEN; `open: false` emits UNIT CLOSED, no `.light` | PASS |
+| DS-02 | Structure | Root `.docket` with `.left` / `.right` | PASS |
+| DS-03 | Escaping | `dktRef`, `dateLabel`, `unitLabel` escaped for HTML | PASS |
+| DS-04 | Built CSS | `dist` bundle CSS contains `.docket` rules | PASS |
+| DS-05 | Wiring | `src/styles/index.css` imports `docket-strip.css` | PASS |
+| DS-06 | Preview | `.page .docket` visible on `/` | PASS |
+
+**Last run:** 2026-05-07 — full suite **65** tests passed.

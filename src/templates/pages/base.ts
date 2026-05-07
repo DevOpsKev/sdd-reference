@@ -1,12 +1,14 @@
 import { docketStrip, type DocketStripData } from '../components/docket-strip';
+import { masthead, type MastheadData } from '../components/masthead';
+import { navTabs, type NavTabsData } from '../components/nav-tabs';
 
-export type { DocketStripData };
+export type { DocketStripData, MastheadData, NavTabsData };
 
 export interface BasePageData {
   title: string;
   docket: DocketStripData;
-  /** Pre-main HTML fragment (e.g. homepage masthead). Not generated inside this file. */
-  beforeMain?: string;
+  masthead: MastheadData;
+  navTabs: NavTabsData;
   children: string;
 }
 
@@ -24,7 +26,8 @@ const THEME_COLOR_PAPER = '#ece6d4';
 export function basePage(data: BasePageData): string {
   const titleSafe = escapeTitle(data.title);
   const docketHtml = docketStrip(data.docket);
-  const beforeMainHtml = data.beforeMain ?? '';
+  const mastheadHtml = masthead(data.masthead);
+  const navTabsHtml = navTabs(data.navTabs);
 
   return `<!doctype html>
 <html lang="en">
@@ -39,7 +42,8 @@ export function basePage(data: BasePageData): string {
   <body>
     <div class="page">
       ${docketHtml}
-      ${beforeMainHtml}
+      ${mastheadHtml}
+      ${navTabsHtml}
       <main>${data.children}</main>
     </div>
   </body>

@@ -2,12 +2,13 @@
 
 ## Intent
 
-Wire **`/`** so `pnpm build` emits HTML with a **live docket** (from `homePage`) and an **empty `<main>`**. **Run third**, after **docket-strip** and **pages/base**. Apply **`sdd/specs/site/components/masthead/spec.md` fourth** to add the homepage masthead (`beforeMain` + component + e2e).
+Wire **`/`** so `pnpm build` emits HTML with a **live docket**, **masthead**, and **nav tabs**, with an **empty `<main>`**, by calling **`basePage`** with all required fields (see **`sdd/specs/site/pages/base/spec.md`**). **Run fifth**, after **`sdd/specs/site/components/docket-strip`**, **`sdd/specs/site/components/masthead`**, **`sdd/specs/site/components/nav-tabs`**, and **`sdd/specs/site/pages/base`**.
 
 ## Preconditions
 
+- `src/templates/pages/base.ts` composes docket, masthead, and nav per **`sdd/specs/site/pages/base/spec.md`**.
 - `src/templates/components/docket-strip.ts` + CSS import exist.
-- `src/templates/pages/base.ts` exists and composes the docket.
+- Masthead and nav-tabs components and stylesheet imports exist per their specs.
 
 ## Files to create or update
 
@@ -16,10 +17,10 @@ Wire **`/`** so `pnpm build` emits HTML with a **live docket** (from `homePage`)
 | `build/lib/date-format.ts` | `formatDocketDate(date, timeZone?)` |
 | `build/lib/unit-open.ts` | `isUnitOpen(date, timeZone?)` |
 | `build/lib/dkt-ref.ts` | `generateDktRef(date, timeZone?)` |
-| `src/templates/pages/home.ts` | `homePage({ buildDate })` → `basePage(...)` |
+| `src/templates/pages/home.ts` | `homePage({ buildDate })` → `basePage(...)` with docket + masthead + `navTabs` data |
 | `build/generate-index.ts` | Writes repo-root `index.html` before Vite |
 | `package.json` | `"prebuild": "tsx build/generate-index.ts"` before `vite build` |
-| `e2e/home.spec.ts` | Smoke tests for `/` + docket |
+| `e2e/home.spec.ts` | Smoke tests for `/` + docket, masthead, nav |
 
 Default timezone for all helpers: **`Europe/Budapest`**.
 
@@ -56,6 +57,32 @@ export function homePage(context: HomePageContext): string {
       dktRef: generateDktRef(buildDate, tz),
       dateLabel: formatDocketDate(buildDate, tz),
       unitLabel: 'UNIT 14B · SOROKSÁRI ÚT · BUDAPEST IX',
+    },
+    masthead: {
+      metaTitle: 'STOCKROOM & DISPATCH',
+      metaLine2: 'UNIT 14B · BAY 3',
+      metaLine3: '22:00 — 05:00 · By appt.',
+      metaLine4: '+36 1 ___ ____',
+      tagline:
+        "A small operation moving records out of an industrial unit off Soroksári út. We work nights. Crypto only. We don't have a shop — we have a stockroom.",
+      stampDefault: 'FRAGILE · DO NOT BEND',
+      stampInk: 'BTC · ETH · USDC · XMR',
+      stampRed: 'NO RETURNS · NO REFUNDS',
+    },
+    navTabs: {
+      primary: [
+        { href: '#', label: 'Stockroom' },
+        { href: '#', label: 'Outgoing' },
+        { href: '#', label: 'New In' },
+        { href: '#', label: 'Counter' },
+        { href: '#', label: 'Index' },
+        { href: '#', label: 'Find Us' },
+      ],
+      activePrimaryIndex: 0,
+      right: [
+        { href: '#', label: 'Search ↗' },
+        { href: '#', label: 'Bag (0)' },
+      ],
     },
     children: '',
   });
@@ -111,16 +138,17 @@ Set scripts so **generate-index runs before Vite**, e.g.:
 
 ### Playwright
 
-Add or replace **`e2e/home.spec.ts`** with tests that hit **`pnpm preview`** root URL (port **4173**): HTTP 200, document title `Vinyl Traffic — Industrial Record Dispatch`, **`.docket`** visible and **first element child of `.page`** is the docket block, date text matches `/^[A-Z]{3} \d{2}\.\d{2}\.\d{4} \/ \d{2}:\d{2}$/`, DKT matches `/^DKT-\d{4}-W\d{2}-001$/`, unit label exact string above, open vs closed via **presence / absence of `.light`**. (After the **masthead** spec, extend this file per that spec.)
+Add or replace **`e2e/home.spec.ts`** with tests that hit **`pnpm preview`** root URL (port **4173**): HTTP 200, document title `Vinyl Traffic — Industrial Record Dispatch`, **`.docket`** visible and **first element child of `.page`** is the docket block, date text matches `/^[A-Z]{3} \d{2}\.\d{2}\.\d{4} \/ \d{2}:\d{2}$/`, DKT matches `/^DKT-\d{4}-W\d{2}-001$/`, unit label exact string above, open vs closed via **presence / absence of `.light`**. Also assert **`header.masthead`**, **`nav.tabs`**, and **`.page` child order** per **`sdd/specs/site/pages/base/spec.md`** and the **masthead** / **nav-tabs** component specs (wordmark, stamps, tagline, active tab, right utilities).
 
 ## Acceptance criteria
 
 - [ ] Helpers + `home.ts` + `generate-index.ts` exist; imports resolve; **`prebuild`** runs before **`vite build`**.
-- [ ] `pnpm build` then `pnpm preview`: `/` shows docket with correct structure; `<main>` empty.
+- [ ] `home.ts` matches the TypeScript block byte-for-byte.
+- [ ] `pnpm build` then `pnpm preview`: `/` shows docket, masthead, nav, and empty `<main>``.
 - [ ] Optional env **`BUILD_DATE`** (ISO string) fixes the instant for reproducible builds.
 - [ ] `e2e/home.spec.ts` covers the bullets above; `pnpm test:e2e` passes.
 - [ ] `provenance.md` / `scenarios.md` per `AGENT_ROLE`.
 
 ## Out of scope
 
-Other routes, masthead (see `sdd/specs/site/components/masthead/spec.md`), main content inside `<main>`, real DKT counters (suffix stays `001`), social meta, i18n.
+Other routes, main content inside `<main>`, real DKT counters (suffix stays `001`), social meta, i18n.

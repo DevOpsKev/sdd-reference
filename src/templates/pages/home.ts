@@ -1,5 +1,3 @@
-import { masthead } from '../components/masthead';
-import { navTabs } from '../components/nav-tabs';
 import { basePage } from './base';
 import { formatDocketDate } from '../../../build/lib/date-format';
 import { isUnitOpen } from '../../../build/lib/unit-open';
@@ -13,8 +11,15 @@ export function homePage(context: HomePageContext): string {
   const { buildDate } = context;
   const tz = 'Europe/Budapest';
 
-  const beforeMain =
-    masthead({
+  return basePage({
+    title: 'Vinyl Traffic — Industrial Record Dispatch',
+    docket: {
+      open: isUnitOpen(buildDate, tz),
+      dktRef: generateDktRef(buildDate, tz),
+      dateLabel: formatDocketDate(buildDate, tz),
+      unitLabel: 'UNIT 14B · SOROKSÁRI ÚT · BUDAPEST IX',
+    },
+    masthead: {
       metaTitle: 'STOCKROOM & DISPATCH',
       metaLine2: 'UNIT 14B · BAY 3',
       metaLine3: '22:00 — 05:00 · By appt.',
@@ -24,8 +29,8 @@ export function homePage(context: HomePageContext): string {
       stampDefault: 'FRAGILE · DO NOT BEND',
       stampInk: 'BTC · ETH · USDC · XMR',
       stampRed: 'NO RETURNS · NO REFUNDS',
-    }) +
-    navTabs({
+    },
+    navTabs: {
       primary: [
         { href: '#', label: 'Stockroom' },
         { href: '#', label: 'Outgoing' },
@@ -39,17 +44,7 @@ export function homePage(context: HomePageContext): string {
         { href: '#', label: 'Search ↗' },
         { href: '#', label: 'Bag (0)' },
       ],
-    });
-
-  return basePage({
-    title: 'Vinyl Traffic — Industrial Record Dispatch',
-    docket: {
-      open: isUnitOpen(buildDate, tz),
-      dktRef: generateDktRef(buildDate, tz),
-      dateLabel: formatDocketDate(buildDate, tz),
-      unitLabel: 'UNIT 14B · SOROKSÁRI ÚT · BUDAPEST IX',
     },
-    beforeMain,
     children: '',
   });
 }

@@ -2,11 +2,15 @@
 
 ## Intent
 
-Add the **nav tabs** row from `sdd/reference/vision.html` (`nav.tabs`: primary section links plus `.right-tabs` utilities) as a **template + stylesheet** component. Render it **only on `/`**, **after** `header.masthead` and **before** `<main>`, matching vision markup and styling. **`src/templates/pages/base.ts` must not import or call `navTabs`** — only `src/templates/pages/home.ts` may compose it (e.g. concatenate with `masthead(...)` inside `beforeMain`).
+Add the **nav tabs** row from `sdd/reference/vision.html` (`nav.tabs`: primary section links plus `.right-tabs` utilities) as **`src/templates/components/nav-tabs.ts`** + **`src/styles/components/nav-tabs.css`**. **Layout and call site** — where **`navTabs()`** is invoked — are defined in **`sdd/specs/site/pages/base/spec.md`**; the homepage passes **`NavTabsData`** via **`basePage`** per **`sdd/specs/site/pages/home/spec.md`**.
 
-**Run fifth**, after `sdd/specs/site/components/docket-strip`, `sdd/specs/site/pages/base`, `sdd/specs/site/pages/home`, and `sdd/specs/site/components/masthead`. Preconditions: masthead + `beforeMain` wiring exist; global tokens include `--ink`, `--ink-soft`, `--orange`, `--paper`.
+**Run third**, after **`docket-strip`** and **`masthead`**, and **before** **`sdd/specs/site/pages/base`**.
 
 Do not read `sdd/context/` or other specs unless something here is unclear.
+
+## Preconditions
+
+- Docket strip and masthead component files exist; global tokens include `--ink`, `--ink-soft`, `--orange`, `--paper`.
 
 ## Authoritative CSS
 
@@ -111,71 +115,10 @@ export function navTabs(data: NavTabsData): string {
 }
 ```
 
-## `base.ts`
+## Composition
 
-**Do not** import or call `navTabs` in `src/templates/pages/base.ts`. Navigation stays a homepage concern composed via `beforeMain` only.
-
-## `home.ts` (only caller alongside `masthead`)
-
-Replace **`src/templates/pages/home.ts`** with **exactly** this content (vision-default labels and `href="#"` placeholders; first primary tab active):
-
-```ts
-import { masthead } from '../components/masthead';
-import { navTabs } from '../components/nav-tabs';
-import { basePage } from './base';
-import { formatDocketDate } from '../../../build/lib/date-format';
-import { isUnitOpen } from '../../../build/lib/unit-open';
-import { generateDktRef } from '../../../build/lib/dkt-ref';
-
-export interface HomePageContext {
-  buildDate: Date;
-}
-
-export function homePage(context: HomePageContext): string {
-  const { buildDate } = context;
-  const tz = 'Europe/Budapest';
-
-  const beforeMain =
-    masthead({
-      metaTitle: 'STOCKROOM & DISPATCH',
-      metaLine2: 'UNIT 14B · BAY 3',
-      metaLine3: '22:00 — 05:00 · By appt.',
-      metaLine4: '+36 1 ___ ____',
-      tagline:
-        "A small operation moving records out of an industrial unit off Soroksári út. We work nights. Crypto only. We don't have a shop — we have a stockroom.",
-      stampDefault: 'FRAGILE · DO NOT BEND',
-      stampInk: 'BTC · ETH · USDC · XMR',
-      stampRed: 'NO RETURNS · NO REFUNDS',
-    }) +
-    navTabs({
-      primary: [
-        { href: '#', label: 'Stockroom' },
-        { href: '#', label: 'Outgoing' },
-        { href: '#', label: 'New In' },
-        { href: '#', label: 'Counter' },
-        { href: '#', label: 'Index' },
-        { href: '#', label: 'Find Us' },
-      ],
-      activePrimaryIndex: 0,
-      right: [
-        { href: '#', label: 'Search ↗' },
-        { href: '#', label: 'Bag (0)' },
-      ],
-    });
-
-  return basePage({
-    title: 'Vinyl Traffic — Industrial Record Dispatch',
-    docket: {
-      open: isUnitOpen(buildDate, tz),
-      dktRef: generateDktRef(buildDate, tz),
-      dateLabel: formatDocketDate(buildDate, tz),
-      unitLabel: 'UNIT 14B · SOROKSÁRI ÚT · BUDAPEST IX',
-    },
-    beforeMain,
-    children: '',
-  });
-}
-```
+- **`src/templates/pages/base.ts`** calls **`navTabs(data.navTabs)`** per **`sdd/specs/site/pages/base/spec.md`**.
+- **`src/templates/pages/home.ts`** supplies the **`navTabs`** object on **`basePage({ ... })`** per **`sdd/specs/site/pages/home/spec.md`**. **`home.ts` must not** import or invoke **`navTabs()`** — only pass data.
 
 ## Wiring (this spec)
 
@@ -185,8 +128,8 @@ export function homePage(context: HomePageContext): string {
 
 - [ ] `src/styles/components/nav-tabs.css` matches the CSS block byte-for-byte.
 - [ ] `src/templates/components/nav-tabs.ts` matches the TypeScript block byte-for-byte.
-- [ ] `src/templates/pages/base.ts` **does not** import `navTabs`.
-- [ ] `src/templates/pages/home.ts` matches its block byte-for-byte.
+- [ ] `src/templates/pages/base.ts` matches **`sdd/specs/site/pages/base/spec.md`** and **imports** `navTabs`.
+- [ ] `src/templates/pages/home.ts` matches **`sdd/specs/site/pages/home/spec.md`** (includes **`navTabs: { ... }`** on **`basePage`**).
 - [ ] `src/styles/index.css` imports `nav-tabs.css`.
 - [ ] Emitted `/` HTML order inside `.page`: `.docket`, then `header.masthead`, then `nav.tabs`, then `<main>`.
 - [ ] `pnpm build` succeeds; `pnpm preview` shows six primary tabs, two right tabs, and the first primary tab uses `.active` styling (orange fill).
@@ -195,4 +138,4 @@ export function homePage(context: HomePageContext): string {
 
 ## Out of scope
 
-Hash routing or real URLs for tabs, SPA section switching, bag count logic, search UI, other pages or routes, changing the masthead or docket specs, `prefers-reduced-motion` overrides for tab transitions, font preload changes, i18n.
+Hash routing or real URLs for tabs, SPA section switching, bag count logic, search UI, other pages or routes, `prefers-reduced-motion` overrides for tab transitions, font preload changes, i18n.

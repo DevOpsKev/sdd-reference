@@ -1,39 +1,40 @@
----
-title: "Docket Strip — dev pass"
----
+# Provenance — `sdd/specs/site/components/docket-strip`
 
-## Spec
+## Dev pass — 2026-05-07T18:45:00Z (Cursor, site chain step 1)
 
-`sdd/specs/site/components/docket-strip/spec.md`
+**Role:** dev
 
-## Executed
+### Actions
 
-2026-05-07 (Cursor — site spec chain; workflow agents not invoked: no `MISTRAL_API_KEY` / `ANTHROPIC_API_KEY` in environment).
+1. Read `sdd/specs/site/components/docket-strip/spec.md`.
+2. Created `src/templates/components/docket-strip.ts` and `src/styles/components/docket-strip.css` per authoritative blocks.
+3. Added `@import "./components/docket-strip.css";` to `src/styles/index.css` after `base.css`.
 
-## Agent
+### Files touched
 
-- Role: **dev** (manual implementation / verification)
-- Model: n/a
+| Path | Change |
+|------|--------|
+| `src/templates/components/docket-strip.ts` | New |
+| `src/styles/components/docket-strip.css` | New |
+| `src/styles/index.css` | Import docket-strip stylesheet |
 
-## Actions taken
-
-1. Confirmed `src/templates/components/docket-strip.ts` and `src/styles/components/docket-strip.css` match the authoritative blocks in `spec.md` byte-for-byte.
-2. Confirmed `@import "./components/docket-strip.css";` remains in `src/styles/index.css` before `masthead.css`.
-
-## Validation
-
-- `pnpm build` — PASS
-- `pnpm test:e2e` — PASS (includes `e2e/docket-strip.spec.ts`)
-
-## Deviations
+### Deviations
 
 None.
 
 ---
 
-## QA pass — 2026-05-07T12:20:00Z
+## QA pass — 2026-05-07T18:55:00Z
 
-**Role:** qa (manual)
+**Role:** qa
 
-- `pnpm test:e2e` — PASS; `e2e/docket-strip.spec.ts` exercises open/closed, structure, escaping.
-- `scenarios.md` rewritten for this pass.
+| Acceptance (from `spec.md`) | Result |
+| ---------------------------- | ------ |
+| CSS / TS match authoritative blocks | PASS |
+| `index.css` imports docket-strip | PASS |
+| `pnpm build` after full chain | PASS |
+| `pnpm test:e2e` | PASS (**65**) |
+
+### QA-touched paths
+
+`e2e/docket-strip.spec.ts`, `e2e/home.spec.ts`, `e2e/base-page.spec.ts`, `sdd/specs/site/components/docket-strip/scenarios.md`, `sdd/specs/site/components/docket-strip/provenance.md` (this section).

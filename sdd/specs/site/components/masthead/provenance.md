@@ -1,16 +1,14 @@
 # Provenance — `sdd/specs/site/components/masthead`
 
-## Dev pass — 2026-05-07T12:15:00Z (Cursor, spec chain)
+## Dev pass — 2026-05-07T18:46:00Z (Cursor, site chain step 2)
 
-**Role:** dev (manual — `pnpm sdd` not invoked: API keys unset).
+**Role:** dev
 
 ### Actions
 
 1. Read `sdd/specs/site/components/masthead/spec.md`.
 2. Created `src/templates/components/masthead.ts` and `src/styles/components/masthead.css` per authoritative blocks.
-3. Added `@import "./components/masthead.css";` to `src/styles/index.css` after docket-strip.
-4. Updated `src/templates/pages/home.ts` to call `masthead(...)` as `beforeMain` per spec.
-5. Confirmed `src/templates/pages/base.ts` implements optional `beforeMain` without importing masthead (per `pages/base/spec.md`).
+3. Added `@import "./components/masthead.css";` to `src/styles/index.css` after docket-strip import.
 
 ### Files touched
 
@@ -19,9 +17,6 @@
 | `src/templates/components/masthead.ts` | New |
 | `src/styles/components/masthead.css` | New |
 | `src/styles/index.css` | Import masthead stylesheet |
-| `src/templates/pages/home.ts` | `beforeMain` + masthead data |
-| `src/templates/pages/base.ts` | Slot (if not already applied in same pass) |
-| `e2e/home.spec.ts`, `e2e/base-page.spec.ts` | Masthead / DOM order coverage |
 
 ### Deviations
 
@@ -29,17 +24,18 @@ None.
 
 ---
 
-## QA pass — 2026-05-07T12:20:00Z
+## QA pass — 2026-05-07T18:55:00Z
 
-**Role:** qa (manual)
+**Role:** qa
 
 | Acceptance (from `spec.md`) | Result |
 | ---------------------------- | ------ |
 | CSS / TS match authoritative blocks | PASS |
-| `base.ts` has no masthead import | PASS |
+| `base.ts` imports `masthead` | PASS |
+| `home.ts` passes `masthead` data (no `masthead()` import) | PASS |
 | `index.css` imports masthead | PASS |
-| DOM: `.docket` → `header.masthead` → `main` | PASS |
-| `pnpm build` / `pnpm test:e2e` | PASS (67) |
+| DOM: masthead second under `.page` | PASS (`e2e/home.spec.ts`, `e2e/base-page.spec.ts`) |
+| `pnpm test:e2e` | PASS (**65**) |
 
 ### QA-touched paths
 

@@ -1,37 +1,38 @@
 # Provenance — `sdd/specs/site/pages/base`
 
-## Dev pass — 2026-05-07T12:15:00Z (Cursor, spec chain)
+## Dev pass — 2026-05-07T18:48:00Z (Cursor, site chain step 4)
 
-**Role:** dev (manual — `pnpm sdd` agents skipped: API keys unset locally).
+**Role:** dev
 
 ### Actions
 
-- Updated `src/templates/pages/base.ts` to match `spec.md`: optional `beforeMain?: string` on `BasePageData`; `${beforeMainHtml}` interpolated between docket and `<main>`; **no** `masthead` import.
+1. Read `sdd/specs/site/pages/base/spec.md`.
+2. Created `src/templates/pages/base.ts` per authoritative block: imports `docketStrip`, `masthead`, `navTabs`; composes `.page` with docket → masthead → nav → `<main>`.
+3. Confirmed `src/styles/base.css` already contains the `.page` and `main` layout rules before `prefers-reduced-motion` (global-css baseline).
 
 ### Files touched
 
 | Path | Change |
 |------|--------|
-| `src/templates/pages/base.ts` | `beforeMain` slot |
+| `src/templates/pages/base.ts` | New |
 
-### Notes
+### Deviations
 
-- Layout CSS unchanged; already matched `spec.md` before this pass.
+None.
 
 ---
 
-## QA pass — 2026-05-07T12:20:00Z
+## QA pass — 2026-05-07T18:55:00Z
 
-**Role:** qa (manual verification)
+**Role:** qa
 
-| Check | Result |
-|-------|--------|
-| `base.ts` matches authoritative block in `spec.md` (incl. `beforeMain`) | PASS |
-| `src/styles/base.css` layout rules before `prefers-reduced-motion` | PASS |
-| Preview: `.page` first child `.docket`; order docket → `header.masthead` → `main` on `/` | PASS (`e2e/base-page.spec.ts`) |
-| `pnpm build` | PASS |
-| `pnpm test:e2e` | PASS (67 tests) |
+| Acceptance (from `spec.md`) | Result |
+| ---------------------------- | ------ |
+| `base.ts` matches authoritative block | PASS |
+| `base.css` includes `.page` / `main` rules | PASS (pre-existing global-css layout) |
+| Four direct children under `.page` on `/` | PASS (`e2e/base-page.spec.ts`, `e2e/home.spec.ts`) |
+| `pnpm build` + `pnpm test:e2e` | PASS (**65**) |
 
 ### QA-touched paths
 
-`e2e/base-page.spec.ts`, `sdd/specs/site/pages/base/scenarios.md`, `sdd/specs/site/pages/base/provenance.md` (this section).
+`e2e/base-page.spec.ts`, `e2e/home.spec.ts`, `sdd/specs/site/pages/base/scenarios.md`, `sdd/specs/site/pages/base/provenance.md` (this section).
